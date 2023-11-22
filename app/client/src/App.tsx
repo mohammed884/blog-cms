@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { FormEvent, useState } from "react";
+import axios from "axios";
+import "./App.css";
 function App() {
-  const [count, setCount] = useState(0)
-
+  const [cover, setCover] = useState<File | null>(null);
+  const [avatar, setAvatar] = useState<File | null>(null);
+  const handleUpload = async (e: FormEvent) => {
+    try {
+      e.preventDefault();
+      if (!cover && !avatar) return; 
+      const formData = new FormData();
+      if (avatar) formData.append("avatar", avatar);
+      if (cover) formData.append("cover", cover);
+      const res = await axios.post(
+        "http://localhost:6060/articles/add",
+        formData
+      );
+      console.log(res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <form encType="multipart/form-data" onSubmit={handleUpload}>
+        <input
+          type="file"
+          name="cover"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setCover(e.target.files ? e.target.files[0] : null)
+          }
+          id=""
+        />
+                <input
+          type="file"
+          name="avatar"
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setAvatar(e.target.files ? e.target.files[0] : null)
+          }
+          id=""
+        />
+        <button type="submit">upload</button>
+      </form>
+    </div>
+  );
 }
 
-export default App
+export default App;

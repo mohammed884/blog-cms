@@ -1,16 +1,16 @@
 import mongoose from 'mongoose';
-//Bucket design the notifications limt foreach document is 50 
 const Schema = new mongoose.Schema({
-    followed:{
+    user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    followedBy:{
-        type:[
+    followers: {
+        type: [
             {
-                followedBy:{
+                user: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: 'User'
+                    ref: 'User',
+                    required: true,
                 },
                 createdAt: {
                     type: Date,
@@ -18,17 +18,13 @@ const Schema = new mongoose.Schema({
                 }
             },
         ],
-        // validate: [50, '{PATH} exceeds the limit of 50']
     },
-    count:{
-        type:Number,
-        default:50
+    followersCount: {
+        type: Number,
+        default: 100
     },
-    createdAt:{
-        type:Date,
-        required: true
-    }
 });
+Schema.set("timestamps", true)
 type FollowType = mongoose.InferSchemaType<typeof Schema>;
-const Follow = mongoose.model<FollowType>('Notification', Schema);
+const Follow = mongoose.model<FollowType>('Follow', Schema);
 export default Follow;

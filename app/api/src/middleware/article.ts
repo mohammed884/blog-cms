@@ -1,4 +1,4 @@
-import {Request, Response, NextFunction} from "express";
+import {Response, NextFunction} from "express";
 import Article from "../models/article";
 import {IRequestWithArticle} from "interfaces/global";
 export const isOwner = (expectedStatus : boolean) => {

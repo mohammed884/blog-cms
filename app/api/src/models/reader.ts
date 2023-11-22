@@ -26,11 +26,8 @@ const Schema = new mongoose.Schema({
         type:Number,
         default:100
     },
-    createdAt:{
-        type:Date,
-        required: true
-    }
 })
+Schema.set("timestamps", true);
 type ReaderType = mongoose.InferSchemaType<typeof Schema>;
 const Reader = mongoose.model<ReaderType>('Reader', Schema);
 export default Reader;

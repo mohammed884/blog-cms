@@ -20,7 +20,10 @@ const Schema = new mongoose.Schema({
                 article: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Article',
-                    required: true
+                },
+                notificationType:{
+                    type:String,
+                    enum:["like", "comment"]
                 },
                 createdAt:{
                     type:Date,
@@ -28,17 +31,14 @@ const Schema = new mongoose.Schema({
                 }
             }
         ],
-        // validate: [50, '{PATH} exceeds the limit of 50']
     },
     count:{
         type:Number,
         default:50
     },
-    createdAt: {
-        type: Date,
-        required: true
-    }
 });
+Schema.set("timestamps", true);
+
 type NotificationType = mongoose.InferSchemaType<typeof Schema>;
 const Notification = mongoose.model<NotificationType>('Notification', Schema);
 export default Notification;

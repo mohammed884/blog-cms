@@ -1,0 +1,1 @@
+export const mimeTypes = ["image/jpeg", "image/png", "image/jpeg","image/jpg"];

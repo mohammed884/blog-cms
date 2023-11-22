@@ -2,7 +2,7 @@ import { Response, NextFunction } from "express";
 import { verifyToken } from "../helpers/jwt";
 import User from "../models/user";
 import { IRequestWithUser } from "interfaces/global";
-export const isLoggedIn = (expectedStatus: boolean) => {
+const isLoggedIn = (expectedStatus: boolean) => {
   try {
     return async (req: IRequestWithUser, res: Response, next: NextFunction) => {
       const token = req.cookies.access_token;
@@ -30,7 +30,7 @@ export const isLoggedIn = (expectedStatus: boolean) => {
     console.log(err);
   }
 };
-export const isConfirmed = (expectedStatus: boolean) => {
+const isConfirmed = (expectedStatus: boolean) => {
   try {
     return (req: IRequestWithUser, res: Response, next: NextFunction) => {
       const user = req.user;
@@ -55,17 +55,20 @@ export const isConfirmed = (expectedStatus: boolean) => {
     console.log(err);
   }
 };
-const role = async (expectedRole: "user" | "admin" | "mod") => {
+const role = (expectedRole: "user" | "admin" | "moderator") => {
   try {
-    return (req: IRequestWithUser, res: Response) => {
+    return (req: IRequestWithUser, res: Response, next: NextFunction) => {
       const user = req.user;
-      if (user.role !== expectedRole) return 
+      if (user.role !== expectedRole)
+        return res.status(401).send({ success: false, message: "غير مصرح" });
+      next();
     };
   } catch (err) {
     console.log(err);
   }
 };
-export default {
+export {
   isLoggedIn,
   isConfirmed,
+  role,
 };

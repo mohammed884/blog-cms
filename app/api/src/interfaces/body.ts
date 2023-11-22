@@ -1,14 +1,16 @@
-import { Request } from "express";
-import { IUser } from "./global";
+//Auth
 export interface ILoginBody {
     email: string,
     password: string,
 }
 export interface IRegisterBody extends ILoginBody {
-    name:string,
+    name: string,
+    username: string,
     gender: "male | female",
     birthdate: string,
+
 }
-export interface ISendEmailRequest extends Request {
-    user:IUser,
+//Article
+export interface ISearchBody {
+
 }

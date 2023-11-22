@@ -1,7 +1,6 @@
 import { Response } from "express";
 import Article from "../models/article";
 import Comment from "../models/comment";
-import dayjs from "dayjs";
 import { IRequestWithUser } from "interfaces/global";
 const addComment = async (req: IRequestWithUser, res: Response) => {
   try {
@@ -114,9 +113,9 @@ const deleteComment = async (req: IRequestWithUser, res: Response) => {
 const likeComment = async (req: IRequestWithUser, res: Response) => {
   try {
     /*
-        first create a update statement that expext the user is not exist 
-        then if the user is existing then create a update request but the query should expect the user 
-        dosen't exist
+        first create an update statement that expext no user  
+        then if there is user create an update request with a query that expect the user 
+        dosen't exist return response
       */
     const commentId = req.body.commentId;
     const user = req.user;
@@ -152,11 +151,11 @@ const likeComment = async (req: IRequestWithUser, res: Response) => {
       if (updateStatus.modifiedCount === 1) {
         res
           .status(201)
-          .send({ sucess: true, message: "تم ازالة الاعجاب الى التعليق" });
+          .send({ sucess: true, message: "تم ازالة الاعجاب من التعليق" });
       } else {
         res
           .status(401)
-          .send({ sucess: true, message: "لم يتم العثور على التعليق" });
+          .send({ sucess: false, message: "لم يتم العثور على التعليق" });
       }
     }
   } catch (err) {

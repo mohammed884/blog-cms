@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
-  name: {
+  username: {
     type: String,
     required: true,
+    unique: true,
   },
   email: {
     type: String,
@@ -26,8 +27,18 @@ const Schema = new mongoose.Schema({
     required: true,
   },
   bio: {
-    type: String,
-    trim: true,
+    type: {
+      text: {
+        type: String,
+        trim: true,
+
+      },
+      title: {
+        type: String,
+        trim: true,
+      }
+    },
+    default: {},
   },
   confirmed: {
     type: Boolean,
@@ -90,12 +101,10 @@ const Schema = new mongoose.Schema({
       },
     ],
   },
-  createdAt: {
-    type: Date,
-    required: true,
-  },
 });
-Schema.index({ email: 1 }, { unique: true });
+Schema.set("timestamps", true);
+Schema.index({ email: 1 });
+Schema.index({ username: 1 });
 type UserType = mongoose.InferSchemaType<typeof Schema>;
 const User = mongoose.model<UserType>("User", Schema);
 export default User;

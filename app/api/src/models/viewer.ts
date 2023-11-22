@@ -18,17 +18,13 @@ const Schema = new mongoose.Schema({
                 required: true
             },
         }],
-        validate: [100, '{PATH} exceeds the limit of 50']
     },
     count:{
         type: Number,
         default: 100
     },
-    createdAt: {
-        type: Date,
-        required: true
-    }
 });
+Schema.set("timestamps", true);
 type ViewerType = mongoose.InferSchemaType<typeof Schema>;
 const Viewer = mongoose.model<ViewerType>('Viewer', Schema);
 export default Viewer

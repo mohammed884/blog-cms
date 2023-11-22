@@ -25,12 +25,8 @@ const Schema = new mongoose.Schema({
         type:Number,
         default:1
     },
-    createdAt: {
-        type: Date,
-        required: false
-    }
 });
-
+Schema.set("timestamps", true);
 type LikeType = mongoose.InferSchemaType<typeof Schema>;
 const Like = mongoose.model<LikeType>('Like', Schema);
 export default Like;

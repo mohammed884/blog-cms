@@ -1,6 +1,7 @@
 import Joi from "joi";
 export const registerSchema = Joi.object({
-    name:Joi.string().min(3).max(80).required(),
+    // name:Joi.string().min(3).max(80).required(),
+    username:Joi.string().alphanum().lowercase().min(3).max(80).required(),
     email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
     password: Joi.string().min(8).max(32),
     repeat_password: Joi.ref('password'),

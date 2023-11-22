@@ -44,11 +44,8 @@ const Schema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  createdAt: {
-    type: Date,
-    required: true,
-  },
 });
+Schema.set("timestamps", true);
 type CommentType = mongoose.InferSchemaType<typeof Schema>;
 const Comment = mongoose.model<CommentType>("Comment", Schema);
 export default Comment;
