@@ -7,7 +7,7 @@ interface verifyInterface {
 }
 export const signToken =  (_id : string, options : object = {expiresIn: "30d"}) => {
     try {    
-        return jwt.sign({_id}, JWT_SECRET, options);
+        return jwt.sign({_id}, JWT_SECRET,options);
     } catch (err) {
         console.log("JWT error during singing a toke", err); 
     }

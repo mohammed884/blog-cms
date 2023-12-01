@@ -6,8 +6,8 @@ const isLoggedIn = (expectedStatus: boolean) => {
   try {
     return async (req: IRequestWithUser, res: Response, next: NextFunction) => {
       const token = req.cookies.access_token;
-      const validateToken = verifyToken(token);
-      const user = await User.findOne({ _id: validateToken.decoded });
+      const validateToken = verifyToken(token);      
+      const user = await User.findOne({ _id:validateToken.decoded });
       switch (true) {
         case !user && expectedStatus:
           return res

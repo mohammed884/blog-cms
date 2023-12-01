@@ -2,21 +2,14 @@ import { Response, Request } from "express";
 import { addArticleSchema } from "../validation/article";
 import Article from "../models/article";
 import Like from "../models/like";
-import { IRequestWithUser } from "interfaces/global";
+import { IRequestWithArticle, IRequestWithUser } from "interfaces/global";
 import { ObjectId } from "mongodb";
-import Topic from "../models/topic";
-import { uploadSingle } from "helpers/fileupload";
+import { uploadSingle, deleteSingle } from "../helpers/fileopreations";
 interface IAddPostBody {
   title: string;
   content: object;
   topics: [];
 }
-/*
-  How collbrations are going to work
-  first you add the person to the article collbrations list with a pending status
-  then if the user that was added accepts he will be allowed to edit.
-  we will create a speical route for the accepting function  
-*/
 
 // ARTICLES FUNCTIONALITY
 // get articles/article, search/filter , add, edit, like, save, delete.
@@ -102,11 +95,9 @@ const searchArticles = async (req: Request, res: Response) => {
 };
 const addArticle = async (req: IRequestWithUser, res: Response) => {
   try {
+    //you should make sure that the content isn't empty after implementing the frontend
     const body: IAddPostBody = req.body;
     await addArticleSchema.validateAsync(body);
-    // const areTopicsValid = await Topic.find({ _id: { $all: body.topics } });
-    // if (!areTopicsValid) return res.status(401).send({ success: false, message: "تاكد من المواضيع المعطاه" })
-    
     //upload cover
     if (req.files && req.files.cover) {
       const uploadStatus = uploadSingle(req.files.cover);
@@ -130,22 +121,25 @@ const addArticle = async (req: IRequestWithUser, res: Response) => {
     }
   }
 };
-const editArticle = async (req: Request, res: Response) => {
+const editArticle = async (req: IRequestWithArticle, res: Response) => {
   try {
-    const body = req.body;
-    const articleId = req.params.id;
-    await Article.updateOne(
-      {
-        _id: articleId,
-      },
-      {
-        $set: {
-          title: body.title,
-          content: body.content,
-          topics: body.topics,
-        },
-      }
-    );
+    //edit need work to be done here
+    const { title, content, topics } = req.body;
+    const article = req.article;
+    const files = req.files;
+    if (title && title !== article.title) article.title = title;
+    if (content && JSON.stringify(content) !== JSON.stringify(article.content)) article.content = content;
+    if (topics && topics.toString() !== article.topics.toString()) article.topics = topics;
+    if (files && files.cover) {
+      const uploadStatus = uploadSingle(files.cover);
+      if (!uploadStatus.success)
+        return res
+          .status(401)
+          .send({ success: false, message: uploadStatus.err });
+      article.cover = uploadStatus.path;
+    };
+    await article.save();
+    res.status(201).send({ success: true, message: "تم تحديث المعلومات" })
   } catch (err) {
     console.log(err);
   }
@@ -161,41 +155,40 @@ const likeArticle = async (req: IRequestWithUser, res: Response) => {
         .send({ success: false, message: "لم يتم العثور على المقالة" });
 
     const likesBucket = await Like.findOne({ article: articleId, likesCount: { $lt: 50 } });
-    const isLikedBefore = likesBucket.likes.find((like) => like.user === user._id)
-    switch (true as unknown) {
+    if (!likesBucket) {
+      await Like.create({
+        article: articleId,
+        likes: [
+          {
+            user: user._id,
+            createdAt: new Date()
+          }
+        ],
+        likesCount: 1,
+      });
+      article.likesCount++;
+      await article.save();
+      return res.status(201).send({ success: true, message: "تم اضافة الاعجاب" })
+    };
+
+    const isLikedBefore = likesBucket.likes.some((like) => String(like.user) === String(user._id));
+    switch (true) {
       case isLikedBefore:
-        likesBucket.likes = likesBucket.likes.filter(like => like.user !== user._id);
+        likesBucket.likes = likesBucket.likes.filter(like => String(like.user) !== String(user._id));
         likesBucket.likesCount--;
         article.likesCount--;
         await likesBucket.save()
         await article.save();
-        res.status(201).send({ success: true, message: "تم ازالة التعليق" });
-        break;
+        return res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
       case !isLikedBefore:
         likesBucket.likes = [...likesBucket.likes, { user: user._id, createdAt: new Date() }];
         likesBucket.likesCount++;
         article.likesCount++;
         await likesBucket.save()
         await article.save()
-        res.status(201).send({ success: true, message: "تم اضافة التعليق" });
-        break;
-
-      case !likesBucket:
-        await Like.create({
-          likesCount: 1,
-          likes: [
-            {
-              user: user._id,
-              createdAt: new Date()
-            }
-          ],
-        })
-        article.likesCount++;
-        await article.save();
-        res.status(201).send({ success: true, message: "تم اضافة التعليق" })
-        break;
+        return res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
       default:
-        console.log("like request");
+        return res.status(401).send({ success: false, message: "حدث خطأ ما" })
     }
     // //if the user didn't like the article before
     // const updateStatus = await Like.updateOne(
@@ -303,22 +296,33 @@ const saveArticle = async (req: IRequestWithUser, res: Response) => {
     }
   } catch (err) {
     console.log(err);
+    res.status(500).send({ success: false, message: "Internal server error" });
   }
 };
-const deleteArticle = async (req: Request, res: Response) => {
+const deleteArticle = async (req: IRequestWithUser, res: Response) => {
   try {
+    const user = req.user;
     const articleId = req.params.id;
     if (!articleId)
       return res
         .status(401)
         .send({ success: true, message: "الرجاء توفير معرف المقالة" });
-    const article = await Article.findOne({ id: articleId });
+    const article = await Article.findOne({
+      _id: articleId,
+      $or: [
+        { publisher: user._id },
+        { "collaborators.collaborator": user._id, "collaborators.accepted": true, "collaborators.canDelete": true }
+      ]
+    });
     if (!article) res.status(201).send({ success: false, message: "لا يوجد مقالة بهذا المعرف" });
-    if (article.cover)
-    await Article.deleteOne({ _id: articleId });
+    if (article.cover) deleteSingle(article.cover);
+    const deletionStatus = await Article.deleteOne({ _id: articleId });
+    if (!deletionStatus.acknowledged)
+      return res.status(501).send({ success: false, message: "حدث خطا ما" });
     res.status(201).send({ success: true, message: "تم حذف المقال بنجاح" });
   } catch (err) {
     console.log(err);
+    res.status(500).send({ success: false, message: "Internal Server error" });
   }
 };
 export {

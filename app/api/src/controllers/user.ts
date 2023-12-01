@@ -1,6 +1,6 @@
 import User from "../models/user";
 import { Request, Response } from "express";
-import { uploadSingle } from "../helpers/fileupload";
+import { uploadSingle } from "../helpers/fileopreations";
 import { IRequestWithUser } from "interfaces/global";
 import Follow from "../models/follow";
 const getUser = async (req: Request, res: Response) => {
@@ -72,82 +72,54 @@ const editUser = async (req: IRequestWithUser, res: Response) => {
 };
 const followUser = async (req: IRequestWithUser, res: Response) => {
   try {
+    //add notifiction
     const user = req.user;
-    const followedId = req.params.id;
-    if (String(user._id) === followedId) return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
-    const updateStatus = await Follow.updateOne(
-      {
-        user: followedId,
-        "followers.user": { $ne: user._id },
-        count: {
-          $lt: 100,
-        },
-      },
-      {
-        $push: {
-          followers: {
+    const id = req.params.id;
+    if (String(user._id) === id) {
+      return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
+    }
+    /*
+      step 1 get the bucket
+      step 2 check the bucket
+      step 3 if the user already follows remove him
+      step 4 if he don't add him 
+    */
+    const followersBucket = await Follow.findOne({ user: id });
+    if (!followersBucket) {
+      await Follow.create({
+        user: id,
+        followers: [
+          {
             user: user._id,
-            createdAt: new Date(),
-          },
-        },
-        $inc: {
-          followersCount: 1,
-        },
-      }
-    );
-    if (updateStatus.modifiedCount === 1) {
-      res.status(201).send({ success: true, message: "تم اضافة المتابعة" });
-    } else {
-      //if the user liked the article before
-      const updateStatus = await Follow.updateOne(
-        {
-          user: followedId,
-          "followers.user": user._id,
-          count: {
-            $lt: 100,
-          },
-        },
-        {
-          $pull: {
-            followers: {
-              user: user._id,
-            },
-          },
-          $inc: {
-            followersCount: -1,
-          },
-        }
-      );
-      if (updateStatus.modifiedCount === 1) {
-        res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
-      } else {
-        //if there is no bucket and the user didn't like the article before
-        await Follow.create({
-          user: followedId,
-          followers: [
-            {
-              user: user._id,
-              createdAt: new Date(),
-            },
-          ],
-          followersCount: 1,
-        });
-        res.status(201).send({ success: true, message: "تم اضافة المتابعة" });
-      }
+            createdAt: new Date()
+          }
+        ],
+        followersCount: 1
+      })
+    };
+    const isFollowedBefore = followersBucket.followers.some((follow) => String(follow.user) === String(user._id));
+    switch (true) {
+      case isFollowedBefore:
+        followersBucket.followers = followersBucket.followers.filter((follow) => String(follow.user) !== String(user._id));
+        followersBucket.followersCount--
+        await followersBucket.save();
+        return res.status(201).send({ success: true, message: "تم الغاء المتابعة" });
+      case !isFollowedBefore:
+        followersBucket.followers.push({
+          user: user._id,
+          createdAt: new Date()
+        })
+        followersBucket.followersCount++
+        await followersBucket.save();
+        return res.status(201).send({ success: true, message: "تم المتابعة" });
+      default:
+        return res.status(401).send({ success: false, message: "حدث خطأ ما" })
     }
   } catch (err) {
     console.log(err);
 
   }
 };
-// const sendNotification = async (req, res) => {
-//   try {
-//     // const {}
-//   } catch (err) {
-//     console.log(err);
-    
-//   }
-// }
 export {
   getUser,
   searchUser,

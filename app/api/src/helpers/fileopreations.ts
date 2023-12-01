@@ -1,6 +1,7 @@
 import path from "node:path";
 import { v4 as uuid } from "uuid";
 import { mimeTypes } from "../constants/constants";
+import { unlink } from "node:fs"
 export const uploadSingle = (file) => {
   try {
     if (!mimeTypes.find((type) => type === file.mimetype))
@@ -59,9 +60,14 @@ export const uploadMultiple = <T>(files: T, loopCount: number) => {
     console.log(err);
   }
 };
-export const deleteSingle = (filePath: string) => {
+export const deleteSingle = (filePath: string): { success: boolean } => {
   try {
-    
+    unlink(filePath, (err) => {
+      if (err) {
+        console.log(err);
+      }
+    });
+    return { success: true }
   } catch (err) {
     console.log(err);
   }

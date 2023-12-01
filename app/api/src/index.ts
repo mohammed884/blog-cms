@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import compression from "compression";
 import authRouter from "./routes/auth";
 import articleRouter from "./routes/article";
+import collaborationRouter from "./routes/collaboration";
 import commentRouter from "./routes/comment";
 import topicsRouter from "./routes/topic";
 import userRouter from "./routes/user";
@@ -32,6 +33,7 @@ app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/articles", articleRouter);
+app.use("/collaboration", collaborationRouter);
 app.use("/comments", commentRouter);
 app.use("/topics", topicsRouter);
 //serve the app

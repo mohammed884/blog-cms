@@ -2,7 +2,7 @@ import { Request } from "express";
 import { ObjectId } from "bson";
 export interface IUser {
   _id: ObjectId;
-  username:string;
+  username: string;
   email: string;
   password: string;
   gender: "male" | "female";
@@ -13,9 +13,9 @@ export interface IUser {
   role: "user" | "admin" | "moderator";
   avatar?: string;
   cover?: string;
-  bio?:{
-    title?:string;
-    text?:string;
+  bio?: {
+    title?: string;
+    text?: string;
   }
 }
 export interface IRequestWithUser extends Request {
@@ -28,11 +28,12 @@ export interface IArticle {
   content: object;
   topics: Array<{ _id: ObjectId }>;
   estimatedReadTime: string;
-  createdAt: Date;
   likesCount: number;
   commentsCount: number;
   savedCount: number;
-  cover:string;
+  cover?: string;
+  save: () => {};
+  // remove: () => {};
 }
 export interface IRequestWithArticle extends Request {
   user: IUser;

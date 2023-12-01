@@ -17,13 +17,18 @@ const Schema = new mongoose.Schema({
   collaborators: {
     type: [
       {
-        user: {
+        collaborator: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
+          required: true,
         },
         accepted: {
           type: Boolean,
           default: false,
+        },
+        canDelete:{
+          type:Boolean,
+          default:false
         },
         createdAt: {
           type: Date,
@@ -48,7 +53,6 @@ const Schema = new mongoose.Schema({
   },
   cover: {
     type: String,
-    unique: true,
   },
   likesCount: {
     type: Number,

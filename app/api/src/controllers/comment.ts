@@ -4,6 +4,7 @@ import Comment from "../models/comment";
 import { IRequestWithUser } from "interfaces/global";
 const addComment = async (req: IRequestWithUser, res: Response) => {
   try {
+    //send notifiction to the user about the comment
     const user = req.user;
     const articleId = req.body.articleId;
     const text = req.body.text;
@@ -164,6 +165,7 @@ const likeComment = async (req: IRequestWithUser, res: Response) => {
 };
 const addReply = async (req: IRequestWithUser, res: Response) => {
   try {
+    //also add notifiction to the user that got the reply 
     const user = req.user;
     const commentId = req.body.commentId;
     const articleId = req.body.articleId;

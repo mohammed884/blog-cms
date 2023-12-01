@@ -38,6 +38,7 @@ const register = async (req: Request, res: Response) => {
 };
 const login = async (req: Request, res: Response) => {
   try {
+
     const body: ILoginBody = req.body;
     await loginSchema.validateAsync(body);
     const user = await User.findOne({ email: body.email });
@@ -53,9 +54,8 @@ const login = async (req: Request, res: Response) => {
         succesfull: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
-
     const accessToken = signToken(user._id.toString());
-    res.cookie("access_token", accessToken);
+    res.cookie("access_token", accessToken, { secure: true, maxAge: 6 * 30 * 24 * 60 * 60 * 1000 });
     res
       .status(201)
       .send({ succesfull: true, message: "تم تسجيل الدخول بنجاح" });
@@ -75,19 +75,12 @@ const logout = async (req: Request, res: Response) => {
 };
 const sendVerifyEmail = (req: ISendEmailRequest, res: Response) => {
   try {
-    /*
-        check if the user exists
-        sign a token then send the email
-        with the email include a link that contains a token
-        when the user click the token i will take it and decoded it and 
-        then verify the user that the email belongs to
-        */
     const user = req.user;
-    const token = signToken(user.email, {});
+    const token = signToken(user.email, {expiresIn:"5m"});
     const html = `
        <div>
            <h1>تاكيد الايميل</h1>
-           <a href=http://localhost:6000/auth/verify/email/${token}>اضغط هنا</a>
+           <a href=http://localhost:6060/auth/confirm/email/${token}>اضغط هنا</a>
        </div>
       `;
     sendMail(user.email, "Verifying email", html);
@@ -96,19 +89,24 @@ const sendVerifyEmail = (req: ISendEmailRequest, res: Response) => {
     console.log(err);
   }
 };
-const verifyAccount = (req: Request, res: Response) => {
+const verifyAccount = async (req: Request, res: Response) => {
   try {
     const token = req.params.token;
     if (!token)
-      return res.send({
+      return res.status(401).send({
         success: false,
         message: "لم يتم توفير توكن لتاكيد الحساب",
       });
-
     const decodedToken = verifyToken(token);
-    console.log(decodedToken.decoded);
+    await User.updateOne({ email: decodedToken.decoded }, {
+      $set: {
+        confirmed: true
+      }
+    });
+    res.status(201).send({success:true,message:"تم تاكيد الحساب"})
   } catch (err) {
     console.log(err);
+    res.status(500).send({success:true,message:"internal server error probarly"})
   }
 };
 const sendResetPasswordEmail = (req: ISendEmailRequest, res: Response) => {

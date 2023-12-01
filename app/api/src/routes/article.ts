@@ -17,7 +17,7 @@ router.get("/", getArticles);
 router.get("/:id", getArticle);
 router.get("/search", searchArticles);
 router.post("/add", isLoggedIn(true), isConfirmed(true), addArticle);
-router.patch("/edit/:id", isLoggedIn(true), isConfirmed(true), isOwner(true), editArticle);
+router.patch("/edit/:id", isLoggedIn(true), isOwner(true), editArticle);
 router.delete("/delete/:id", isLoggedIn(true), isConfirmed(true), isOwner(true), deleteArticle);
 router.patch("/like/:id", isLoggedIn(true), isConfirmed(true), likeArticle);
 router.patch("/save/:id", isLoggedIn(true), isConfirmed(true), saveArticle);

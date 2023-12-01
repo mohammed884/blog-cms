@@ -10,13 +10,13 @@ const router = Router();
 router.post("/register", isLoggedIn(false), register);
 router.post("/login", isLoggedIn(false), login);
 router.post(
-  "/send/verify-email",
+  "/confirm/send-email",
   isLoggedIn(true),
   isConfirmed(false),
   sendVerifyEmail
 );
 router.get(
-  "/verify/account",
+  "/confirm/email/:token",
   isLoggedIn(true),
   isConfirmed(false),
   verifyAccount
