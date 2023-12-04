@@ -12,10 +12,10 @@ then if the user wants to be in that article he will accept else he will refuse 
 if the user accept the request he will be allowed to edit.
 we will create a speical route for the accepting the request by editing that detail in the article collbrations list list
 */
-import Article from "../models/article";
+import Article from "../article/model";
 import { IRequestWithUser } from "../interfaces/global";
 import { Response } from "express";
-//Person who wants to add a collaboration
+//send, cancle sending a collaboration
 const addCollaboration = async (req: IRequestWithUser, res: Response) => {
     try {
         const user = req.user;
@@ -37,10 +37,9 @@ const addCollaboration = async (req: IRequestWithUser, res: Response) => {
         res.status(201).send({ success: true, message: "تم اضافة المستخدم الى قائمة التعاون" })
     } catch (err) {
         console.log(err);
-        return res.status(500).send({ success: false, message: "Internal server error" })
-
+        res.status(500).send({ success: false, message: "Internal server error" })
     }
-}
+};
 const cancleCollaboration = async (req: IRequestWithUser, res: Response) => {
     try {
         const { collaboratorId, articleId } = req.body;
@@ -58,8 +57,8 @@ const cancleCollaboration = async (req: IRequestWithUser, res: Response) => {
         console.log(err);
         return res.status(500).send({ success: false, message: "Internal server error" })
     }
-}
-//Person who wants to accept a collaboration
+};
+//accept, deny a collaboration
 const acceptCollaboration = async (req: IRequestWithUser, res: Response) => {
     try {
         const user = req.user;
@@ -76,7 +75,7 @@ const acceptCollaboration = async (req: IRequestWithUser, res: Response) => {
         console.log(err);
         return res.status(500).send({ success: false, message: "Internal server error" })
     }
-}
+};
 const denyCollaboration = async (req: IRequestWithUser, res: Response) => {
     try {
         const user = req.user;
@@ -95,7 +94,7 @@ const denyCollaboration = async (req: IRequestWithUser, res: Response) => {
         console.log(err);
         return res.status(500).send({ success: false, message: "Internal server error" })
     }
-}
+};
 export {
     addCollaboration,
     cancleCollaboration,

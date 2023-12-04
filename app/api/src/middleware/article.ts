@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import Article from "../models/article";
+import Article from "../article/model";
 import { IRequestWithArticle } from "interfaces/global";
 export const isOwner = (expectedStatus: boolean) => {
     try {

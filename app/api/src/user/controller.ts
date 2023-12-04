@@ -1,7 +1,7 @@
-import User from "../models/user";
+import User from "./model";
 import { Request, Response } from "express";
 import { uploadSingle } from "../helpers/fileopreations";
-import { IRequestWithUser } from "interfaces/global";
+import { IRequestWithUser } from "../interfaces/global";
 import Follow from "../models/follow";
 const getUser = async (req: Request, res: Response) => {
   try {

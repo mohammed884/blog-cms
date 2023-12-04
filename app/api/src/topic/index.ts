@@ -6,7 +6,7 @@ import {
   editTopic,
   deleteTopic,
   deleteSubTopic,
-} from "../controllers/topic";
+} from "./controller";
 import { isLoggedIn, role } from "../middleware/auth";
 const router = Router();
 router.get("/", getTopics);

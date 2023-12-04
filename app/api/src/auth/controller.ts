@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../models/user";
+import User from "../user/model";
 import { signToken, verifyToken } from "../helpers/jwt";
 import { hash, compare } from "../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../validation/auth";
@@ -119,7 +119,7 @@ const sendResetPasswordEmail = (req: ISendEmailRequest, res: Response) => {
            <a href=http://localhost:6000/auth/verify/email/${token}>اضغط هنا</a>
        </div>
       `;
-    sendMail(user.email, "Verifying email", html);
+    sendMail(user.email, "اعادة تعين الباسسورد", html);
     res.send({ success: true, message: "الرجاء تفقد الايميل" });
   } catch (err) {
     console.log(err);

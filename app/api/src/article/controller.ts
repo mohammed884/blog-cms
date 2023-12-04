@@ -1,8 +1,8 @@
 import { Response, Request } from "express";
 import { addArticleSchema } from "../validation/article";
-import Article from "../models/article";
+import Article from "./model";
 import Like from "../models/like";
-import { IRequestWithArticle, IRequestWithUser } from "interfaces/global";
+import { IRequestWithArticle, IRequestWithUser } from "../interfaces/global";
 import { ObjectId } from "mongodb";
 import { uploadSingle, deleteSingle } from "../helpers/fileopreations";
 interface IAddPostBody {
@@ -177,7 +177,7 @@ const likeArticle = async (req: IRequestWithUser, res: Response) => {
         likesBucket.likes = likesBucket.likes.filter(like => String(like.user) !== String(user._id));
         likesBucket.likesCount--;
         article.likesCount--;
-        await likesBucket.save()
+        await likesBucket.save();
         await article.save();
         return res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
       case !isLikedBefore:
@@ -190,74 +190,6 @@ const likeArticle = async (req: IRequestWithUser, res: Response) => {
       default:
         return res.status(401).send({ success: false, message: "حدث خطأ ما" })
     }
-    // //if the user didn't like the article before
-    // const updateStatus = await Like.updateOne(
-    //   {
-    //     article: articleId,
-    //     "likes.user": { $ne: user._id },
-    //     count: {
-    //       $lt: 50,
-    //     },
-    //   },
-    //   {
-    //     $push: {
-    //       likes: {
-    //         user: user._id,
-    //         createdAt: new Date(),
-    //       },
-    //     },
-    //     $inc: {
-    //       likesCount: 1,
-    //     },
-    //   }
-    // );
-    // if (updateStatus.modifiedCount === 1) {
-    //   article.likesCount++;
-    //   await article.save();
-    //   res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
-    // } else {
-    //   //if the user liked the article before
-    //   const updateStatus = await Like.updateOne(
-    //     {
-    //       article: articleId,
-    //       "likes.user": user._id,
-    //       count: {
-    //         $lt: 50,
-    //       },
-    //     },
-    //     {
-    //       $pull: {
-    //         likes: {
-    //           user: user._id,
-    //         },
-    //       },
-    //       $inc: {
-    //         likesCount: -1,
-    //       },
-    //     }
-    //   );
-    //   if (updateStatus.modifiedCount === 1) {
-    //     article.likesCount--;
-    //     await article.save();
-    //     res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
-    //   } else {
-    //     //if there is no bucket and the user didn't like the article before
-    //     console.log("create a bucket");
-    //     await Like.create({
-    //       article: articleId,
-    //       likes: [
-    //         {
-    //           user: user._id,
-    //           createdAt: new Date(),
-    //         },
-    //       ],
-    //       likesCount: 1,
-    //     });
-    //     article.likesCount++;
-    //     await article.save();
-    //     res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
-    //   }
-    // }
   } catch (err) {
     console.log(err);
   }

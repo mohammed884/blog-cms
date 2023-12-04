@@ -4,7 +4,7 @@ import {
   login,
   verifyAccount,
   sendVerifyEmail,
-} from "../controllers/auth";
+} from "./controller";
 import { isLoggedIn, isConfirmed } from "../middleware/auth";
 const router = Router();
 router.post("/register", isLoggedIn(false), register);

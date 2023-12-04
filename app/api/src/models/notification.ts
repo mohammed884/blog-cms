@@ -1,44 +1,49 @@
 import mongoose from "mongoose";
 //Bucket design the notifications limt foreach document is 50 
 const Schema = new mongoose.Schema({
-    notificationTo: {
+    receiver: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required:true
     },
     notifications: {
         type: [
             {
-                notificationBy: {
+                sender: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User',
                     required: true
                 },
-                message: {
+                retrieveId: {
                     type: String,
                     required: true
                 },
                 article: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Article',
+                    required: true
                 },
-                notificationType:{
-                    type:String,
-                    enum:["like", "comment"]
+                seen: {
+                    type: Boolean,
+                    default: false
                 },
-                createdAt:{
-                    type:Date,
+                type: {
+                    type: String,
+                    enum: ["comment", "reply", "collaboration"]
+                },
+                createdAt: {
+                    type: Date,
                     required: true
                 }
             }
         ],
     },
-    count:{
-        type:Number,
-        default:50
+    notificationsCount: {
+        type: Number,
+        default: 1
     },
 });
 Schema.set("timestamps", true);
-
 type NotificationType = mongoose.InferSchemaType<typeof Schema>;
 const Notification = mongoose.model<NotificationType>('Notification', Schema);
 export default Notification;

@@ -7,7 +7,7 @@ import {
     likeArticle,
     saveArticle,
     searchArticles,
-} from "../controllers/article";
+} from "./controller";
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../middleware/auth";
 import { isOwner } from "../middleware/article";
