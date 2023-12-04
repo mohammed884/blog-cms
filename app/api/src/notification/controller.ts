@@ -1,7 +1,7 @@
-import Notification from "../models/notification";
+import Notification from "./model";
 import { Types } from "mongoose";
 /*
-1- send notifiction
+1- send Notifications
 DATA TO SHOW
 A-it's a comment
 article image, a message, sender (username & image)
@@ -10,31 +10,30 @@ article image, a message, sender (username & image)
 C-it's a collaboration
 article image, a message, sender (username & image)
 NEEDS 
-receiver, sender, message, article, notifiction retrieveId field, type
+receiver, sender, message, article, Notifications retrieveId field, type
 ---
-2-delete notifiction
+2-delete Notifications
 NEEDS
 retrieveId,receiver
 first we use the receiver id to minimize the documents 
 then we use the retrieveId to delete it
 */
-interface ISendNotifiction {
+interface ISendNotifications {
     receiver: Types.ObjectId;
     sender: Types.ObjectId;
     article: Types.ObjectId;
     retrieveId: string;
     type: "comment" | "reply" | "collaboration";
 }
-interface IDeleteNotifiction {
-    receiver: Types.ObjectId,
-    retrieveId: Types.ObjectId,
-    // type: "comment" | "reply" | "collaboration";
+interface IDeleteNotifications {
+    receiver: Types.ObjectId;
+    retrieveId: Types.ObjectId;
 }
-const sendNotifiction = async ({ receiver, sender, article, retrieveId, type }: ISendNotifiction) => {
+const sendNotifications = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
     try {
         if (receiver === sender) return {
-            success:false,
-            message:"you can't send notifiction to your account"
+            success: false,
+            err: "you can't send Notifications to your account"
         };
         const updateStatus = await Notification.updateOne(
             {
@@ -68,13 +67,7 @@ const sendNotifiction = async ({ receiver, sender, article, retrieveId, type }: 
             });
             return {
                 success: true,
-                message: "notifiction pushed"
-            };
-        } else {
-
-            return {
-                success: true,
-                message: "notifiction pushed"
+                err: "Notifications pushed"
             };
         }
     } catch (err) {
@@ -85,12 +78,9 @@ const sendNotifiction = async ({ receiver, sender, article, retrieveId, type }: 
         };
     }
 };
-const deleteNotifiction = async ({ receiver, retrieveId }: IDeleteNotifiction) => {
+const deleteNotifications = async ({ receiver, retrieveId }: IDeleteNotifications) => {
     try {
-        console.log(retrieveId);
-        
-        //i need to make the query more specific depending on the type
-        const updateStatus = await Notification.updateOne({ receiver, "notifications.retrieveId":retrieveId },
+        const updateStatus = await Notification.updateOne({ receiver, "notifications.retrieveId": retrieveId },
             {
                 $pull: {
                     notifications: {
@@ -104,22 +94,22 @@ const deleteNotifiction = async ({ receiver, retrieveId }: IDeleteNotifiction) =
         if (updateStatus.modifiedCount === 0) {
             return {
                 success: false,
-                message: "unable to delete the notifiction"
+                err: "unable to delete the Notifications"
             };
         }
         return {
             success: true,
-            message: "notifiction deleted"
+            err: "Notifications deleted"
         };
     } catch (err) {
         console.log(err);
         return {
             success: false,
-            message: err.message,
+            err: err.message,
         };
     }
 }
 export {
-    sendNotifiction,
-    deleteNotifiction,
+    sendNotifications,
+    deleteNotifications,
 }
