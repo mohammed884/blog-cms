@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import { addArticleSchema } from "../validation/article";
-import Article from "./model";
-import Like from "../models/like";
+import Article from "./models/article";
+import Like from "./models/like";
 import { IRequestWithArticle, IRequestWithUser } from "../interfaces/global";
 import { ObjectId } from "mongodb";
 import { uploadSingle, deleteSingle } from "../helpers/fileopreations";

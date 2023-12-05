@@ -29,7 +29,7 @@ const Schema = new mongoose.Schema({
                 },
                 type: {
                     type: String,
-                    enum: ["comment", "reply", "collaboration"]
+                    enum: ["comment", "reply", "collaboration-request","collaboration-accept","collaboration-deny"]
                 },
                 createdAt: {
                     type: Date,

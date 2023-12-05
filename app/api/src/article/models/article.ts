@@ -17,6 +17,10 @@ const Schema = new mongoose.Schema({
   collaborators: {
     type: [
       {
+        _id:{
+          type: mongoose.Schema.Types.ObjectId,
+          auto:true,
+        },
         collaborator: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",

@@ -1,7 +1,7 @@
 import { Response } from "express";
-import Article from "../article/model";
+import Article from "../article/models/article";
 import Comment from "./model";
-import { deleteNotifications, sendNotifications } from "../notification/controller";
+import { deleteNotification, sendNotification } from "../notification/controller";
 import { IRequestWithUser } from "../interfaces/global";
 const addComment = async (req: IRequestWithUser, res: Response) => {
   try {
@@ -71,7 +71,7 @@ const addComment = async (req: IRequestWithUser, res: Response) => {
     };
     console.log(comments);
 
-    const notificationStatus = await sendNotifications({
+    const notificationStatus = await sendNotification({
       receiver: article.publisher,
       sender: user._id,
       article: articleId,
@@ -126,7 +126,7 @@ const deleteComment = async (req: IRequestWithUser, res: Response) => {
         },
       }
     );
-    const deleteNotifictionStatus = await deleteNotifications({ receiver: articlePublisher, retrieveId: commentId })
+    const deleteNotifictionStatus = await deleteNotification({ receiver: articlePublisher, retrieveId: commentId })
     if (deleteNotifictionStatus.success === false) {
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
     };
@@ -221,7 +221,7 @@ const addReply = async (req: IRequestWithUser, res: Response) => {
     const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;
     console.log(replies);
 
-    const notificationStatus = await sendNotifications({
+    const notificationStatus = await sendNotification({
       receiver: commentAuthor,
       sender: user._id,
       article: articleId,
@@ -257,9 +257,9 @@ const deleteReply = async (req: IRequestWithUser, res: Response) => {
     );
     if (updateStatus.modifiedCount !== 1)
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
-    const deletionStatus = await deleteNotifications({ receiver: commentAuthor, retrieveId: replyId });
+    const deletionStatus = await deleteNotification({ receiver: commentAuthor, retrieveId: replyId });
     if (!deletionStatus.success) {
-      return res.status(401).send({success:false,message:deletionStatus.err})
+      return res.status(401).send({ success: false, message: deletionStatus.err })
     }
     res.status(201).send({ success: true, message: "تم حذف الرد" });
   } catch (err) {

@@ -23,13 +23,13 @@ interface ISendNotifications {
     sender: Types.ObjectId;
     article: Types.ObjectId;
     retrieveId: string;
-    type: "comment" | "reply" | "collaboration";
+    type: "comment" | "reply" | "collaboration-request" | "collaboration-accept" | "collaboration-deny";
 }
 interface IDeleteNotifications {
     receiver: Types.ObjectId;
     retrieveId: Types.ObjectId;
 }
-const sendNotifications = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
+const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
     try {
         if (receiver === sender) return {
             success: false,
@@ -65,11 +65,11 @@ const sendNotifications = async ({ receiver, sender, article, retrieveId, type }
                 },
                 notificationsCount: 1
             });
-            return {
-                success: true,
-                err: "Notifications pushed"
-            };
         }
+        return {
+            success: true,
+            err: "Notifications pushed"
+        };
     } catch (err) {
         console.log(err);
         return {
@@ -78,7 +78,7 @@ const sendNotifications = async ({ receiver, sender, article, retrieveId, type }
         };
     }
 };
-const deleteNotifications = async ({ receiver, retrieveId }: IDeleteNotifications) => {
+const deleteNotification = async ({ receiver, retrieveId }: IDeleteNotifications) => {
     try {
         const updateStatus = await Notification.updateOne({ receiver, "notifications.retrieveId": retrieveId },
             {
@@ -110,6 +110,6 @@ const deleteNotifications = async ({ receiver, retrieveId }: IDeleteNotification
     }
 }
 export {
-    sendNotifications,
-    deleteNotifications,
+    sendNotification,
+    deleteNotification,
 }
