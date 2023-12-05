@@ -87,7 +87,7 @@ const Schema = new mongoose.Schema({
       type: Date,
     },
   },
-  blockedUsers: {
+  blocked: {
     type: [
       {
         user: {

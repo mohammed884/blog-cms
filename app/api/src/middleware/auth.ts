@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { verifyToken } from "../helpers/jwt";
-import User from "../user/models/user";
+import User from "../domains/user/models/user";
 import { IRequestWithUser } from "interfaces/global";
 const isLoggedIn = (expectedStatus: boolean) => {
   try {

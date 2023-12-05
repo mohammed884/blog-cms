@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import User from "../user/models/user";
-import { signToken, verifyToken } from "../helpers/jwt";
-import { hash, compare } from "../helpers/bcrypt";
-import { loginSchema, registerSchema } from "../validation/auth";
-import { sendMail } from "../helpers/nodemailer";
-import { ISendEmailRequest } from "../interfaces/global";
-import { IRegisterBody, ILoginBody } from "../interfaces/body";
+import { signToken, verifyToken } from "../../helpers/jwt";
+import { hash, compare } from "../../helpers/bcrypt";
+import { loginSchema, registerSchema } from "../../validation/auth";
+import { sendMail } from "../../helpers/nodemailer";
+import { ISendEmailRequest } from "../../interfaces/global";
+import { IRegisterBody, ILoginBody } from "../../interfaces/body";
 const register = async (req: Request, res: Response) => {
   try {
     const body: IRegisterBody = req.body;

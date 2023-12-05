@@ -1,7 +1,7 @@
 import User from "./models/user";
 import { Request, Response } from "express";
-import { uploadSingle } from "../helpers/fileopreations";
-import { IRequestWithUser } from "../interfaces/global";
+import { uploadSingle } from "../../helpers/fileopreations";
+import { IRequestWithUser } from "../../interfaces/global";
 import Follow from "./models/follow";
 const getUser = async (req: Request, res: Response) => {
   try {
@@ -12,6 +12,59 @@ const getUser = async (req: Request, res: Response) => {
   } catch (err) {
     console.log(err);
   };
+};
+const blockUser = async (req: IRequestWithUser, res: Response) => {
+  try {
+    const user = req.user;
+    const userIdToBlock = req.params.id;
+    // Check && Add the user ID to the blocked list
+    const updatedStatus = await User.updateOne(
+      { _id: user._id, "blocked.user": { $ne: userIdToBlock } },
+      {
+        $push: {
+          blocked: {
+            user: userIdToBlock,
+            createdAt: new Date(),
+          }
+        }
+      }
+    );
+    if (updatedStatus.modifiedCount === 0) {
+      return res
+        .status(401)
+        .send({ success: false, message: "حدث خطأ أثناء حظر المستخدم" });
+    }
+    res.status(201).send({ success: true, message: "تم حظر المستخدم بنجاح" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ success: false, message: "Internal Server error" });
+  }
+};
+const unBlockUser = async (req: IRequestWithUser, res: Response) => {
+  try {
+    const user = req.user;
+    const userIdToUnBlock = req.params.id;
+    // Check && Add the user ID to the blocked list
+    const updatedStatus = await User.updateOne(
+      { _id: user._id },
+      {
+        $pull: {
+          blocked: {
+            user: userIdToUnBlock
+          }
+        }
+      }
+    );
+    if (updatedStatus.modifiedCount === 0) {
+      return res
+        .status(401)
+        .send({ success: false, message: "حدث خطأ أثناء فك الحظر على المستخدم" });
+    }
+    res.status(201).send({ success: true, message: "تم فك الحظر على المستخدم بنجاح" });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ success: false, message: "Internal Server error" });
+  }
 };
 const searchUser = async (req: Request, res: Response) => {
   try {
@@ -122,6 +175,8 @@ const followUser = async (req: IRequestWithUser, res: Response) => {
 };
 export {
   getUser,
+  blockUser,
+  unBlockUser,
   searchUser,
   editUser,
   followUser,

@@ -1,8 +1,8 @@
 import { Response } from "express";
-import Article from "../article/models/article";
+import Article from "../models/article";
 import Comment from "./model";
-import { deleteNotification, sendNotification } from "../notification/controller";
-import { IRequestWithUser } from "../interfaces/global";
+import { deleteNotification, sendNotification } from "../../notification/controller";
+import { IRequestWithUser } from "../../../interfaces/global";
 const addComment = async (req: IRequestWithUser, res: Response) => {
   try {
     //send notifiction to the user about the comment

@@ -12,9 +12,9 @@ then if the user wants to be in that article he will accept else he will refuse 
 if the user accept the request he will be allowed to edit.
 we will create a speical route for the accepting the request by editing that detail in the article collbrations list list
 */
-import { deleteNotification, sendNotification } from "../notification/controller";
-import Article from "../article/models/article";
-import { IRequestWithUser } from "../interfaces/global";
+import { deleteNotification, sendNotification } from "../../notification/controller";
+import Article from "../models/article";
+import { IRequestWithUser } from "../../../interfaces/global";
 import { Response } from "express";
 //send, cancle sending a collaboration
 const addCollaboration = async (req: IRequestWithUser, res: Response) => {

@@ -1,10 +1,10 @@
 import { Response, Request } from "express";
-import { addArticleSchema } from "../validation/article";
+import { addArticleSchema } from "../../validation/article";
 import Article from "./models/article";
 import Like from "./models/like";
-import { IRequestWithArticle, IRequestWithUser } from "../interfaces/global";
+import { IRequestWithArticle, IRequestWithUser } from "../../interfaces/global";
 import { ObjectId } from "mongodb";
-import { uploadSingle, deleteSingle } from "../helpers/fileopreations";
+import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 interface IAddPostBody {
   title: string;
   content: object;
@@ -239,18 +239,15 @@ const deleteArticle = async (req: IRequestWithUser, res: Response) => {
       return res
         .status(401)
         .send({ success: true, message: "الرجاء توفير معرف المقالة" });
-    const article = await Article.findOne({
+    const article = await Article.findOneAndDelete({
       _id: articleId,
       $or: [
         { publisher: user._id },
-        { "collaborators.collaborator": user._id, "collaborators.accepted": true, "collaborators.canDelete": true }
+        { "collaborators.accepted": true,"collaborators.collaborator": user._id, "collaborators.canDelete": true }
       ]
     });
     if (!article) res.status(201).send({ success: false, message: "لا يوجد مقالة بهذا المعرف" });
     if (article.cover) deleteSingle(article.cover);
-    const deletionStatus = await Article.deleteOne({ _id: articleId });
-    if (!deletionStatus.acknowledged)
-      return res.status(501).send({ success: false, message: "حدث خطا ما" });
     res.status(201).send({ success: true, message: "تم حذف المقال بنجاح" });
   } catch (err) {
     console.log(err);

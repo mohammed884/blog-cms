@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Topic from "./model";
 import Article from "../article/models/article";
-import topicSchema from "../validation/topic";
+import topicSchema from "../../validation/topic";
 const getTopics = async (req: Request, res: Response) => {
   try {
     const page = req.query.page || 1;

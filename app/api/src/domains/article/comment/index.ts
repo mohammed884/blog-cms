@@ -6,7 +6,7 @@ import {
     deleteReply,
   } from "./controller";
   import { Router } from "express";
-  import { isLoggedIn, isConfirmed } from "../middleware/auth";
+  import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
   const router = Router();
   router.patch("/add", isLoggedIn(true), isConfirmed(true), addComment);
   router.patch("/add/reply", isLoggedIn(true), isConfirmed(true), addReply);

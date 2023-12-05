@@ -7,7 +7,7 @@ import {
   deleteTopic,
   deleteSubTopic,
 } from "./controller";
-import { isLoggedIn, role } from "../middleware/auth";
+import { isLoggedIn, role } from "../../middleware/auth";
 const router = Router();
 router.get("/", getTopics);
 router.use(isLoggedIn(true));

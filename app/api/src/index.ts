@@ -5,12 +5,12 @@ import cors from "cors";
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import compression from "compression";
-import authRouter from "./auth";
-import articleRouter from "./article";
-import collaborationRouter from "./collaboration";
-import commentRouter from "./comment";
-import topicsRouter from "./topic";
-import userRouter from "./user";
+import authRouter from "./domains/auth";
+import articleRouter from "./domains/article";
+import collaborationRouter from "./domains/article/collaboration";
+import commentRouter from "./domains/article/comment";
+import topicsRouter from "./domains/topic";
+import userRouter from "./domains/user";
 import fileUpload from "express-fileupload"
 const app = express();
 // coonect to database
@@ -33,8 +33,8 @@ app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/articles", articleRouter);
-app.use("/collaboration", collaborationRouter);
-app.use("/comments", commentRouter);
+app.use("/articles/comments", commentRouter);
+app.use("/articles/collaboration", collaborationRouter);
 app.use("/topics", topicsRouter);
 //serve the app
 app.listen(process.env.PORT, () => {
