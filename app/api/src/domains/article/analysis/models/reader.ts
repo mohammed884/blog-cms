@@ -9,14 +9,13 @@ const Schema = new mongoose.Schema({
     readers:{
         type:[
             {
-                reader: {
+                user: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User',
                     required: true
                 },
                 data: {
                     createdAt: Date,
-                    readTime: Number,
                     required: true
                 }
             }

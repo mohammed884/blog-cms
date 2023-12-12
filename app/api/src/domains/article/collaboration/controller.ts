@@ -12,12 +12,11 @@ then if the user wants to be in that article he will accept else he will refuse 
 if the user accept the request he will be allowed to edit.
 we will create a speical route for the accepting the request by editing that detail in the article collbrations list list
 */
+import { Request,Response } from "express";
 import { deleteNotification, sendNotification } from "../../notification/controller";
 import Article from "../models/article";
-import { IRequestWithUser } from "../../../interfaces/global";
-import { Response } from "express";
 //send, cancle sending a collaboration
-const addCollaboration = async (req: IRequestWithUser, res: Response) => {
+const addCollaboration = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const { collaboratorId, articleId, canDelete } = req.body;
@@ -51,7 +50,7 @@ const addCollaboration = async (req: IRequestWithUser, res: Response) => {
         res.status(500).send({ success: false, message: "Internal server error" })
     }
 };
-const cancleCollaboration = async (req: IRequestWithUser, res: Response) => {
+const cancleCollaboration = async (req: Request, res: Response) => {
     try {
         const { collaboratorId, collaborationId, articleId } = req.body;
         const updateStatus = await Article.updateOne({ _id: articleId, "collaborators.collaborator": collaboratorId, "collaborators.accepted": false }, {
@@ -77,7 +76,7 @@ const cancleCollaboration = async (req: IRequestWithUser, res: Response) => {
     }
 };
 //accept, deny a collaboration
-const acceptCollaboration = async (req: IRequestWithUser, res: Response) => {
+const acceptCollaboration = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const { articleId, collaborationId, articlePublisher } = req.body;
@@ -104,7 +103,7 @@ const acceptCollaboration = async (req: IRequestWithUser, res: Response) => {
         return res.status(500).send({ success: false, message: "Internal server error" })
     }
 };
-const denyCollaboration = async (req: IRequestWithUser, res: Response) => {
+const denyCollaboration = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const { articleId, collaborationId } = req.body;
@@ -118,7 +117,7 @@ const denyCollaboration = async (req: IRequestWithUser, res: Response) => {
         if (updateStatus.modifiedCount === 0)
             return res.status(401).send({ success: false, message: "حدث خطا ما" })
         const notificationStatus = await deleteNotification({
-            receiver: user._id,
+            receiver: String(user._id),
             retrieveId: collaborationId,
         });
         if (!notificationStatus.success) {

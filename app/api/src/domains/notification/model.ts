@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 //Bucket design the notifications limt foreach document is 50 
 const Schema = new mongoose.Schema({
     receiver: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required:true
+        type: String,
+        index:true,
+        required:true,
     },
     notifications: {
         type: [
@@ -21,7 +21,6 @@ const Schema = new mongoose.Schema({
                 article: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'Article',
-                    required: true
                 },
                 seen: {
                     type: Boolean,
@@ -29,7 +28,7 @@ const Schema = new mongoose.Schema({
                 },
                 type: {
                     type: String,
-                    enum: ["comment", "reply", "collaboration-request","collaboration-accept","collaboration-deny"]
+                    enum: ["follow","comment", "reply", "collaboration-request","collaboration-accept","collaboration-deny"]
                 },
                 createdAt: {
                     type: Date,

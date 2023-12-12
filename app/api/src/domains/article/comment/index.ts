@@ -4,15 +4,19 @@ import {
     likeComment,
     addReply,
     deleteReply,
+    getComments,
   } from "./controller";
   import { Router } from "express";
   import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
+  import { isBlocked } from "../../../middleware/user";
   const router = Router();
-  router.patch("/add", isLoggedIn(true), isConfirmed(true), addComment);
-  router.patch("/add/reply", isLoggedIn(true), isConfirmed(true), addReply);
-  router.patch("/like", isLoggedIn(true), isConfirmed(true), likeComment);
-  router.patch("/delete", isLoggedIn(true), deleteComment);
-  router.patch("/delete/reply", isLoggedIn(true), deleteReply);
+  // router.use(isBlocked);
+  router.get("/:articleId", getComments);
+  router.patch("/add/:articleId", isLoggedIn(true), isConfirmed(true), addComment);
+  router.patch("/add/reply/:commentId", isLoggedIn(true), isConfirmed(true), addReply);
+  router.patch("/like/:commentId", isLoggedIn(true), isConfirmed(true), likeComment);
+  router.patch("/delete/:commentId", isLoggedIn(true), deleteComment);
+  router.patch("/delete/reply/commentId", isLoggedIn(true), deleteReply);
   
   export default router;
   

@@ -4,6 +4,7 @@ import {
   login,
   verifyAccount,
   sendVerifyEmail,
+  logout
 } from "./controller";
 import { isLoggedIn, isConfirmed } from "../../middleware/auth";
 const router = Router();
@@ -15,6 +16,7 @@ router.post(
   isConfirmed(false),
   sendVerifyEmail
 );
+router.post("/logout", isLoggedIn(true), logout)
 router.get(
   "/confirm/email/:token",
   isLoggedIn(true),

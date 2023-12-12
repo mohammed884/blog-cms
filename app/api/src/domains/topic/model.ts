@@ -17,6 +17,7 @@ const Schema = new mongoose.Schema({
         },
         _id: {
           type: mongoose.Schema.Types.ObjectId,
+          auto:true,
         },
       },
     ],

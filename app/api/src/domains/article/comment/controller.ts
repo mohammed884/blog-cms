@@ -1,25 +1,32 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import Article from "../models/article";
 import Comment from "./model";
 import { deleteNotification, sendNotification } from "../../notification/controller";
-import { IRequestWithUser } from "../../../interfaces/global";
-const addComment = async (req: IRequestWithUser, res: Response) => {
+import pagination from "../../../helpers/pagination";
+const getComments = async (req: Request, res: Response) => {
+  try {
+    const articleId = req.params.articleId;
+    if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
+    const page = Number(req.query.page) || 1;
+    const matchQuery = { article: articleId };
+    const result = await pagination({ matchQuery, Model: Comment, page, countArrayElements: "comments" });
+    res.status(201).send({ success: true, comments: result.data, count: result.totalArrayElementsCount });
+  } catch (err) {
+    console.log(err);
+  }
+}
+const addComment = async (req: Request, res: Response) => {
   try {
     //send notifiction to the user about the comment
+    const articleId = req.params.articleId;
     const user = req.user;
-    const articleId = req.body.articleId;
-    const text = req.body.text;
+    const { articlePublisher, text } = req.body.text;
 
-    if (!text || !articleId)
+    if (!text || !articleId || !articlePublisher)
       return res
         .status(401)
-        .send({ success: false, message: "الرجاء كتابة تعليق اولا" });
+        .send({ success: false, message: "الرجاء مراعاة المعطيات" });
 
-    const article = await Article.findOne({ _id: articleId });
-    if (!article)
-      return res
-        .status(401)
-        .send({ success: false, message: "لم يتم العثور على المقالة" });
     //using the comment var we will assign the comments array
     let comments;
     const updateCommentBucket = await Comment.findOneAndUpdate(
@@ -44,12 +51,10 @@ const addComment = async (req: IRequestWithUser, res: Response) => {
         },
       },
       {
-        returnOriginal: false,
+        new: true,
       }
     ).lean();
     if (updateCommentBucket) {
-      article.commentsCount++;
-      await article.save();
       comments = updateCommentBucket.comments;
     } else {
       const commentBucket = await Comment.create({
@@ -65,14 +70,10 @@ const addComment = async (req: IRequestWithUser, res: Response) => {
         ],
         commentsCount: 1,
       });
-      article.commentsCount++;
-      await article.save();
       comments = commentBucket.comments;
     };
-    console.log(comments);
-
     const notificationStatus = await sendNotification({
-      receiver: article.publisher,
+      receiver: articlePublisher,
       sender: user._id,
       article: articleId,
       type: "comment",
@@ -87,10 +88,11 @@ const addComment = async (req: IRequestWithUser, res: Response) => {
     res.status(500).send({ success: true, message: "Internal server error" });
   }
 };
-const deleteComment = async (req: IRequestWithUser, res: Response) => {
+const deleteComment = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    const { articlePublisher, commentId, articleId } = req.body;
+    const commentId = req.params.commentId;
+    const { articlePublisher, articleId } = req.body;
     if (!commentId || !articleId)
       return res.status(401).send({
         success: false,
@@ -113,8 +115,6 @@ const deleteComment = async (req: IRequestWithUser, res: Response) => {
         },
       }
     );
-    console.log(updateStatus);
-
     if (updateStatus.modifiedCount === 0) {
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
     }
@@ -136,14 +136,14 @@ const deleteComment = async (req: IRequestWithUser, res: Response) => {
     res.status(500).send({ success: false, message: "حدث خطا ما" });
   }
 };
-const likeComment = async (req: IRequestWithUser, res: Response) => {
+const likeComment = async (req: Request, res: Response) => {
   try {
     /*
         first create an update statement that expext no user  
         then if there is user create an update request with a query that expect the user 
         dosen't exist return response
     */
-    const commentId = req.body.commentId;
+    const commentId = req.params.commentId;
     const user = req.user;
     const updateStatus = await Comment.updateOne(
       {
@@ -188,12 +188,13 @@ const likeComment = async (req: IRequestWithUser, res: Response) => {
     console.log(err);
   }
 };
-const addReply = async (req: IRequestWithUser, res: Response) => {
+const addReply = async (req: Request, res: Response) => {
   try {
     //also add notifiction to the user that got the reply 
     //reciver = comment owner
     const user = req.user;
-    const { commentAuthor, commentId, articleId } = req.body
+    const articleId = req.params.articleId
+    const { commentAuthor, commentId } = req.body
     const text = req.body.text;
 
     if (!text || !commentId || !articleId || !commentAuthor)
@@ -238,10 +239,11 @@ const addReply = async (req: IRequestWithUser, res: Response) => {
     console.log(err);
   }
 };
-const deleteReply = async (req: IRequestWithUser, res: Response) => {
+const deleteReply = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    const { commentAuthor, replyId } = req.body;
+    const replyId = req.params.replyId;
+    const { commentAuthor } = req.body;
     const updateStatus = await Comment.updateOne(
       {
         "comments.replies._id": replyId,
@@ -266,4 +268,4 @@ const deleteReply = async (req: IRequestWithUser, res: Response) => {
     console.log(err);
   }
 };
-export { addComment, deleteComment, likeComment, deleteReply, addReply };
+export { getComments, addComment, deleteComment, likeComment, deleteReply, addReply };

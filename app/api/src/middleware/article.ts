@@ -1,9 +1,8 @@
-import { Response, NextFunction } from "express";
+import { Request,Response, NextFunction } from "express";
 import Article from "../domains/article/models/article";
-import { IRequestWithArticle } from "interfaces/global";
 export const isOwner = (expectedStatus: boolean) => {
     try {
-        return async (req: IRequestWithArticle, res: Response, next: NextFunction) => {
+        return async (req: Request, res: Response, next: NextFunction) => {
             const user = req.user;
             const articleId = req.params.id;
             const article = await Article.findOne({

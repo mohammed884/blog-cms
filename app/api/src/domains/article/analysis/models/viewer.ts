@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 //Bucket design the viewers limt foreach document is 100 
 const Schema = new mongoose.Schema({
     article: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Article',
+        type: String,
+        index:true,
         required: true
     },
     viewers:{
         type:[{
-            viewer:{
+            user:{
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'User',
                 required: true

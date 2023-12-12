@@ -8,6 +8,7 @@ const Schema = new mongoose.Schema({
   publisher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    index:true,
     required: true,
   },
   content: {
@@ -44,9 +45,13 @@ const Schema = new mongoose.Schema({
   topics: {
     type: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Topic",
-        required: true,
+        mainTopic:{
+          type:String,
+          required:true
+        },
+        subTopic:{
+          type:String,
+        }
       },
     ],
   },
@@ -57,21 +62,15 @@ const Schema = new mongoose.Schema({
   },
   cover: {
     type: String,
-  },
-  likesCount: {
-    type: Number,
-    default: 0,
+    default:"",
   },
   savedCount: {
     type: Number,
     default: 0,
   },
-  commentsCount: {
-    type: Number,
-    default: 0,
-  },
 });
 Schema.set("timestamps", true);
+
 type ArticleType = mongoose.InferSchemaType<typeof Schema>;
 const Article = mongoose.model<ArticleType>("Article", Schema);
 export default Article;

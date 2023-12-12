@@ -19,21 +19,20 @@ first we use the receiver id to minimize the documents
 then we use the retrieveId to delete it
 */
 interface ISendNotifications {
-    receiver: Types.ObjectId;
+    receiver: string;
     sender: Types.ObjectId;
-    article: Types.ObjectId;
+    article?: Types.ObjectId | string;
     retrieveId: string;
-    type: "comment" | "reply" | "collaboration-request" | "collaboration-accept" | "collaboration-deny";
+    type: "follow" | "comment" | "reply" | "collaboration-request" | "collaboration-accept" | "collaboration-deny";
 }
 interface IDeleteNotifications {
-    receiver: Types.ObjectId;
-    retrieveId: Types.ObjectId;
+    receiver: string;
+    retrieveId: Types.ObjectId | string;
 }
 const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
     try {
-        if (receiver === sender) return {
-            success: false,
-            err: "you can't send Notifications to your account"
+        if (receiver === String(sender)) return {
+            success: true,
         };
         const updateStatus = await Notification.updateOne(
             {

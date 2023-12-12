@@ -3,7 +3,7 @@ import {
   getTopics,
   addTopic,
   addMultipleTopic,
-  editTopic,
+  // editTopic,
   deleteTopic,
   deleteSubTopic,
 } from "./controller";
@@ -14,7 +14,7 @@ router.use(isLoggedIn(true));
 router.use(role("moderator"))
 router.post("/add", addTopic);
 router.post("/add/multiple", addMultipleTopic);
-router.patch("/edit/:id", editTopic);
+// router.patch("/edit/:id", editTopic);
 router.delete("/delete/:id", deleteTopic);
 router.delete("/delete/sub/:id", deleteSubTopic);
 export default router;

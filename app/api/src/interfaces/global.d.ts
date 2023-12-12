@@ -1,4 +1,3 @@
-import { Request } from "express";
 import { ObjectId } from "bson";
 export interface IUser {
   _id: ObjectId;
@@ -9,36 +8,36 @@ export interface IUser {
   birthdate: string;
   confirmed: boolean;
   saved: Array<{ createdAt: Date; article: ObjectId }>;
-  save: () => {};
+  save?: () => {};
   role: "user" | "admin" | "moderator";
   avatar?: string;
   cover?: string;
   bio?: {
     title?: string;
     text?: string;
-  }
-}
-export interface IRequestWithUser extends Request {
-  user: IUser;
+  };
+  topics: Array<{ title: string }>
+  blocked: Array<{
+    user:ObjectId,
+    createdAt:Date
+  }>
 }
 export interface IArticle {
   _id: ObjectId;
   title: string;
   publisher: ObjectId;
   content: object;
-  topics: Array<{ _id: ObjectId }>;
+  topics: Array<{ mainTopic: string; subTopic?: string }>;
   estimatedReadTime: string;
-  likesCount: number;
-  commentsCount: number;
   savedCount: number;
   cover?: string;
   save: () => {};
-  // remove: () => {};
 }
-export interface IRequestWithArticle extends Request {
-  user: IUser;
-  article: IArticle;
+declare module 'express' {
+  interface Request {
+    user: IUser;
+    requestedUser:IUser;
+    article: IArticle;
+  }
 }
-export interface ISendEmailRequest extends Request {
-  user: IUser;
-}
+

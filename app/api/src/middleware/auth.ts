@@ -1,14 +1,17 @@
-import { Response, NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "../helpers/jwt";
 import User from "../domains/user/models/user";
-import { IRequestWithUser } from "interfaces/global";
-const isLoggedIn = (expectedStatus: boolean) => {
+const isLoggedIn = (expectedStatus: boolean | "_", onlySetStatus: boolean = false) => {
   try {
-    return async (req: IRequestWithUser, res: Response, next: NextFunction) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
       const token = req.cookies.access_token;
-      const validateToken = verifyToken(token);      
-      const user = await User.findOne({ _id:validateToken.decoded });
-      switch (true) {
+      const validateToken = verifyToken(token);
+      const user = await User.findById(validateToken.decoded);
+      if (onlySetStatus) {
+        req.user = user;
+        return next();
+      }
+      switch (expectedStatus) {
         case !user && expectedStatus:
           return res
             .status(401)
@@ -32,7 +35,7 @@ const isLoggedIn = (expectedStatus: boolean) => {
 };
 const isConfirmed = (expectedStatus: boolean) => {
   try {
-    return (req: IRequestWithUser, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const user = req.user;
       switch (true) {
         case user.confirmed && expectedStatus:
@@ -57,7 +60,7 @@ const isConfirmed = (expectedStatus: boolean) => {
 };
 const role = (expectedRole: "user" | "admin" | "moderator") => {
   try {
-    return (req: IRequestWithUser, res: Response, next: NextFunction) => {
+    return (req: Request, res: Response, next: NextFunction) => {
       const user = req.user;
       if (user.role !== expectedRole)
         return res.status(401).send({ success: false, message: "غير مصرح" });

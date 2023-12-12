@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Topic from "./model";
 import Article from "../article/models/article";
 import topicSchema from "../../validation/topic";
+import User from "../user/models/user";
 const getTopics = async (req: Request, res: Response) => {
   try {
     const page = req.query.page || 1;
@@ -64,57 +65,57 @@ const addMultipleTopic = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
-const editTopic = async (req: Request, res: Response) => {
-  try {
-    const topicId = req.params.id
-    const {
-      title,
-      subTopics,
-    } =
-      req.body;
-    if (!title && !Array.isArray(subTopics))
-      return res
-        .status(401)
-        .send({ success: false, message: "الرجاء تفقد البيانات المعطاة" });
+// const editTopic = async (req: Request, res: Response) => {
+//   try {
+//     const topicId = req.params.id
+//     const {
+//       title,
+//       subTopics,
+//     } =
+//       req.body;
+//     if (!title && !Array.isArray(subTopics))
+//       return res
+//         .status(401)
+//         .send({ success: false, message: "الرجاء تفقد البيانات المعطاة" });
 
-    const topic = await Topic.findOne({ _id: topicId });
-    if (!topic)
-      return res
-        .status(401)
-        .send({ success: false, message: "لا يوجد موضوع بهذا المعرف" });
-    const updateQuery = { $set: {} };
-    if (title && title !== topic.title)
-      updateQuery.$set = { ...updateQuery.$set, title };
-    if (subTopics && String(subTopics) !== String(topic.subTopics))
-      updateQuery.$set = { ...updateQuery.$set, subTopics };
-    if (JSON.stringify(updateQuery) === "{$set:{}}")
-      return res
-        .status(401)
-        .send({ success: false, message: "لم يتم احداث اي تغير" });
-    const updateStatus = await Topic.updateOne({ _id: topicId }, updateQuery);
-    if (updateStatus.matchedCount !== 1)
-      return res
-        .status(401)
-        .send({ success: false, message: "لم يتم العثور على الموضوع" });
-    res.status(201).send({ success: true, message: "تم اجراء التغيرات" });
-  } catch (err) {
-    console.log(err);
-    if (err.code === 11000) {
-      const field = Object.entries(err.keyValue).flat();
-      if (field[0] === "title") {
-        res.status(401).send({
-          success: false,
-          message: `يوجد موضوع بهذا العنوان مسبقا (${field[1]})`,
-        });
-      } else {
-        res.status(401).send({
-          success: false,
-          message: `يوجد موضوع فرعي بهذا العنوان مسبقا (${field[1]})`,
-        });
-      }
-    }
-  }
-};
+//     const topic = await Topic.findById({ _id: topicId });
+//     if (!topic)
+//       return res
+//         .status(401)
+//         .send({ success: false, message: "لا يوجد موضوع بهذا المعرف" });
+//     const updateQuery = { $set: {} };
+//     if (title && title !== topic.title)
+//       updateQuery.$set = { ...updateQuery.$set, title };
+//     if (subTopics && String(subTopics) !== String(topic.subTopics))
+//       updateQuery.$set = { ...updateQuery.$set, subTopics };
+//     if (JSON.stringify(updateQuery) === "{$set:{}}")
+//       return res
+//         .status(401)
+//         .send({ success: false, message: "لم يتم احداث اي تغير" });
+//     const updateStatus = await Topic.updateOne({ _id: topicId }, updateQuery);
+//     if (updateStatus.matchedCount !== 1)
+//       return res
+//         .status(401)
+//         .send({ success: false, message: "لم يتم العثور على الموضوع" });
+//     res.status(201).send({ success: true, message: "تم اجراء التغيرات" });
+//   } catch (err) {
+//     console.log(err);
+//     if (err.code === 11000) {
+//       const field = Object.entries(err.keyValue).flat();
+//       if (field[0] === "title") {
+//         res.status(401).send({
+//           success: false,
+//           message: `يوجد موضوع بهذا العنوان مسبقا (${field[1]})`,
+//         });
+//       } else {
+//         res.status(401).send({
+//           success: false,
+//           message: `يوجد موضوع فرعي بهذا العنوان مسبقا (${field[1]})`,
+//         });
+//       }
+//     }
+//   }
+// };
 const deleteTopic = async (req: Request, res: Response) => {
   try {
     const topicId = req.params.id
@@ -122,7 +123,7 @@ const deleteTopic = async (req: Request, res: Response) => {
       return res
         .status(401)
         .send({ success: false, message: "الرجاء توفير معرف الموضوع" });
-    const topic = await Topic.findOne({ _id: topicId });
+    const topic = await Topic.findByIdAndDelete({ _id: topicId });
     if (!topic)
       return res
         .status(401)
@@ -134,11 +135,22 @@ const deleteTopic = async (req: Request, res: Response) => {
       },
       {
         $pull: {
-          topics: { $in: [topicId, ...subTopics] },
+          topics: {
+            "mainTopic": topic.title
+          }
         },
       }
     );
-    await Topic.deleteOne({ _id: topicId });
+    await User.updateMany(
+      { "topics.title": topic.title },
+      {
+        $pull: {
+          topics: {
+            title: topic.title
+          }
+        }
+      }
+    );
     res.send({ success: true, message: "تم حذف الموضوع" });
   } catch (err) {
     console.log(err);
@@ -146,12 +158,13 @@ const deleteTopic = async (req: Request, res: Response) => {
 };
 const deleteSubTopic = async (req: Request, res: Response) => {
   try {
+    //delete the deleted topic from the user interests
     const topicId = req.params.id
     if (!topicId)
       return res
         .status(401)
         .send({ success: false, message: "الرجاء توفير معرف الموضوع الفرعي" });
-    const deleteSubTopicStatus = await Topic.updateOne(
+    const subTopicStatus = await Topic.findOneAndUpdate(
       {
         "subTopics": topicId,
       },
@@ -161,21 +174,21 @@ const deleteSubTopic = async (req: Request, res: Response) => {
         },
       }
     );
-    if (deleteSubTopicStatus.modifiedCount === 0)
+    if (!subTopicStatus)
       return res
         .status(401)
         .send({ success: false, message: "لا يوجد موضوع فرعي بهذا المعرف" });
     await Article.updateMany(
       {
-        "topics._id": topicId,
+        "topics.subTopic": subTopicStatus.title,
       },
       {
-        $pull: {
-          topics: {
-            _id: topicId,
-          },
+        $unset: {
+          "topics.$.subTopic": subTopicStatus.title
         },
-      }
+      },
+      // { arrayFilters: [{ "topic.subTopic": subTopicStatus.title }] }
+
     );
     res.send({ success: true, message: "تم حذف الموضوع الفرعي" });
   } catch (err) {
@@ -186,7 +199,7 @@ export {
   getTopics,
   addTopic,
   addMultipleTopic,
-  editTopic,
+  // editTopic,
   deleteTopic,
   deleteSubTopic,
 };  

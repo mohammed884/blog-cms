@@ -1,12 +1,17 @@
 import mongoose from 'mongoose';
 const Schema = new mongoose.Schema({
-    user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+    owner: {
+        type: String,
+        required: true,
+        index:true
     },
     followers: {
         type: [
             {
+                _id:{
+                    type: mongoose.Schema.Types.ObjectId,
+                    auto: true,
+                },
                 user: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User',

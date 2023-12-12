@@ -4,7 +4,6 @@ import { signToken, verifyToken } from "../../helpers/jwt";
 import { hash, compare } from "../../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../../validation/auth";
 import { sendMail } from "../../helpers/nodemailer";
-import { ISendEmailRequest } from "../../interfaces/global";
 import { IRegisterBody, ILoginBody } from "../../interfaces/body";
 const register = async (req: Request, res: Response) => {
   try {
@@ -73,7 +72,7 @@ const logout = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
-const sendVerifyEmail = (req: ISendEmailRequest, res: Response) => {
+const sendVerifyEmail = (req: Request, res: Response) => {
   try {
     const user = req.user;
     const token = signToken(user.email, {expiresIn:"5m"});
@@ -109,7 +108,7 @@ const verifyAccount = async (req: Request, res: Response) => {
     res.status(500).send({success:true,message:"internal server error probarly"})
   }
 };
-const sendResetPasswordEmail = (req: ISendEmailRequest, res: Response) => {
+const sendResetPasswordEmail = (req: Request, res: Response) => {
   try {
     const user = req.user;
     const token = signToken(user.email);

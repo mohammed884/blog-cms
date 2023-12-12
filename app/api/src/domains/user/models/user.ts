@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
     unique: true,
+    required: true,
   },
   email: {
     type: String,
@@ -71,6 +71,20 @@ const Schema = new mongoose.Schema({
         },
       },
     ],
+    default:[],
+  },
+  blocked: {
+    type: [{
+      user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+      createdAt: {
+        type: Date,
+        required: true,
+      },
+    }],
   },
   blackListed: {
     blackListedBy: {
@@ -87,20 +101,17 @@ const Schema = new mongoose.Schema({
       type: Date,
     },
   },
-  blocked: {
+  topics:{
     type: [
       {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+        title:{
+          type:String,
+          required:true,
         },
-        createdAt: {
-          type: Date,
-          required: true,
-        },
-      },
+      }
     ],
-  },
+    default: [],
+  }
 });
 Schema.set("timestamps", true);
 Schema.index({ email: 1 });

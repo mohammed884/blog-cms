@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 // bucket pattren, 50 is the limt
 const Schema = new mongoose.Schema({
   article: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Article",
+    type:String,
     required: true,
+    index:true,
   },
   comments: {
     type: [
