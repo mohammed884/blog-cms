@@ -1,11 +1,11 @@
 import { Response, Request } from "express";
 import { addArticleSchema } from "../../validation/article";
-import Article from "./models/article";
-import Like from "./models/like";
-import { ObjectId } from "mongodb";
+import Article from "./model";
+import Like from "./like/model";
+import { ObjectId } from "bson";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 import isUserBlocked from "../../helpers/isUserBlocked";
-import pagination from "../../helpers/pagination";
+import { countData, pagination } from "../../helpers/aggregation";
 interface IAddPostBody {
   title: string;
   content: object;
@@ -25,24 +25,36 @@ const getFeed = async (req: Request, res: Response) => {
     console.error(error);
   }
 };
-const getUserArticles = async (req: Request, res: Response) => {
+const getPublisherArticles = async (req: Request, res: Response) => {
   try {
-    const publisherId = req.params.publisher;
+    const publisherId = req.params.publisherId;
     const page = Number(req.query.page) || 1;
 
     if (!publisherId) {
       return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
     }
-
-    const matchQuery = { publisher: publisherId };
-    const result = await pagination({ matchQuery, Model: Article, page, countDocuments: true });
-
-    res.status(201).send({ success: true, publisher: publisherId, articles: result.data, count: result.totalDocumentsCount });
+    const matchQuery = { publisher: new ObjectId(publisherId) };
+    const result = await pagination({ matchQuery, Model: Article, page });
+    res.status(201).send({ success: true, articles: result.data });
   } catch (err) {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal Server Error" });
   }
 };
+const getPublisherArticlesCount = async (req: Request, res: Response) => {
+  try {
+    const publisherId = req.params.publisherId;
+    if (!publisherId) {
+      return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
+    }
+    const matchQuery = { publisher: new ObjectId(publisherId) };
+    const dataCount = await countData({ matchQuery, Model: Article, countDocuments: true });
+    res.status(201).send({ success: true, count: dataCount.documentsCount });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+}
 const getArticle = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.id;
@@ -140,41 +152,6 @@ const editArticle = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
-const likeArticle = async (req: Request, res: Response) => {
-  try {
-    const user = req.user;    
-    const articleId = req.params.id;
-    const likesBucket = await Like.findOne({ article: articleId, likesCount: { $lt: 50 } });
-    if (!likesBucket) {
-      await Like.create({
-        article: articleId,
-        likes: [
-          {
-            user: user._id,
-            createdAt: new Date()
-          }
-        ],
-        likesCount: 1,
-      });
-      return res.status(201).send({ success: true, message: "تم اضافة الاعجاب" })
-    };
-
-    const isLikedBefore = likesBucket.likes.some((like) => String(like.user) === String(user._id));
-    if (isLikedBefore) {
-      likesBucket.likes = likesBucket.likes.filter(like => String(like.user) !== String(user._id));
-      likesBucket.likesCount--;
-      await likesBucket.save();
-      return res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
-    } else {
-      likesBucket.likes = [...likesBucket.likes, { user: user._id, createdAt: new Date() }];
-      likesBucket.likesCount++;
-      await likesBucket.save();
-      return res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
-    }
-  } catch (err) {
-    console.log(err);
-  }
-};
 const saveArticle = async (req: Request, res: Response) => {
   try {
     const user = req.user;
@@ -236,13 +213,13 @@ const deleteArticle = async (req: Request, res: Response) => {
   }
 };
 export {
-  getArticle,
   getFeed,
+  getArticle,
   searchArticles,
   addArticle,
   editArticle,
   deleteArticle,
-  likeArticle,
   saveArticle,
-  getUserArticles
+  getPublisherArticles,
+  getPublisherArticlesCount,
 };

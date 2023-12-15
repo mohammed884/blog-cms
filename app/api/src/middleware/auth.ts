@@ -11,23 +11,40 @@ const isLoggedIn = (expectedStatus: boolean | "_", onlySetStatus: boolean = fals
         req.user = user;
         return next();
       }
-      switch (expectedStatus) {
-        case !user && expectedStatus:
-          return res
-            .status(401)
-            .send({ success: false, message: "لم يتم العثور على المستخدم" });
-        case user && !expectedStatus:
-          return res
-            .status(401)
-            .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
-        case user && expectedStatus:
-          req.user = user;
-          return next();
-        case !user && !expectedStatus:
-          return next();
-        default:
-          next();
+      if (!user && expectedStatus) {
+        return res
+          .status(401)
+          .send({ success: false, message: "لم يتم العثور على المستخدم" });
       }
+      if (user && !expectedStatus) {
+        return res
+          .status(401)
+          .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
+      }
+      if (user && expectedStatus) {
+        req.user = user;
+        return next();
+      }
+      if (!user && !expectedStatus) {
+        return next();
+      }
+      // switch (expectedStatus) {
+      //   case !user && expectedStatus:
+      //     return res
+      //       .status(401)
+      //       .send({ success: false, message: "لم يتم العثور على المستخدم" });
+      //   case user && !expectedStatus:
+      //     return res
+      //       .status(401)
+      //       .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
+      //   case user && expectedStatus:
+      //     req.user = user;
+      //     return next();
+      //   case !user && !expectedStatus:
+      //     return next();
+      //   default:
+      //     next();
+      // }
     };
   } catch (err) {
     console.log(err);

@@ -2,7 +2,7 @@ import User from "./models/user";
 import { Request, Response } from "express";
 import { uploadSingle } from "../../helpers/fileopreations";
 import Follow from "./models/follow";
-import pagination from "../../helpers/pagination";
+import {pagination} from "../../helpers/aggregation";
 import { sendNotification, deleteNotification } from "../notification/controller";
 const getUser = async (req: Request, res: Response) => {
   try {
@@ -143,7 +143,7 @@ const followUser = async (req: Request, res: Response) => {
       return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
     }
 
-    const followersBucket = await Follow.findOne({ owner: bucketOwnerId });
+    const followersBucket = await Follow.findOne({ user: bucketOwnerId });
     if (!followersBucket) {
       const newBucket = await Follow.create({
         user: bucketOwnerId,

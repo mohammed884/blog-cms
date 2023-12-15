@@ -1,16 +1,29 @@
 import { Request, Response } from "express";
-import Article from "../models/article";
+import Article from "../model";
 import Comment from "./model";
 import { deleteNotification, sendNotification } from "../../notification/controller";
-import pagination from "../../../helpers/pagination";
+import { countData, pagination } from "../../../helpers/aggregation";
 const getComments = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
     if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
     const page = Number(req.query.page) || 1;
     const matchQuery = { article: articleId };
-    const result = await pagination({ matchQuery, Model: Comment, page, countArrayElements: "comments" });
-    res.status(201).send({ success: true, comments: result.data, count: result.totalArrayElementsCount });
+    const result = await pagination({ matchQuery, Model: Comment, page });
+    //count total comments
+    const countResult = await countData({ matchQuery, Model: Comment, countArrayElements: "comments" });
+    res.status(201).send({ success: true, comments: result.data, count: countResult.arrayElementsCount });
+  } catch (err) {
+    console.log(err);
+  }
+};
+const getCommentCount = async (req: Request, res: Response) => {
+  try {
+    const articleId = req.params.articleId;
+    if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
+    const matchQuery = { article: articleId };
+    const dataCount = await countData({ matchQuery, Model: Comment, countDocuments: true });
+    res.status(201).send({ success: true, count: dataCount.documentsCount });
   } catch (err) {
     console.log(err);
   }
@@ -20,7 +33,7 @@ const addComment = async (req: Request, res: Response) => {
     //send notifiction to the user about the comment
     const articleId = req.params.articleId;
     const user = req.user;
-    const { articlePublisher, text } = req.body.text;
+    const { articlePublisher, text } = req.body;
 
     if (!text || !articleId || !articlePublisher)
       return res
@@ -218,10 +231,7 @@ const addReply = async (req: Request, res: Response) => {
     //et the comment from the bucket then get the fucking replies list 
     if (!updateStatus)
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
-
     const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;
-    console.log(replies);
-
     const notificationStatus = await sendNotification({
       receiver: commentAuthor,
       sender: user._id,
@@ -268,4 +278,12 @@ const deleteReply = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
-export { getComments, addComment, deleteComment, likeComment, deleteReply, addReply };
+export {
+  getComments,
+  getCommentCount,
+  addComment,
+  deleteComment,
+  likeComment,
+  deleteReply,
+  addReply
+};

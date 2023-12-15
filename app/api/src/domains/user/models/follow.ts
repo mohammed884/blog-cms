@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 const Schema = new mongoose.Schema({
-    owner: {
+    user: {
         type: String,
         required: true,
         index:true

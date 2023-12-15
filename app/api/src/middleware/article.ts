@@ -1,5 +1,5 @@
-import { Request,Response, NextFunction } from "express";
-import Article from "../domains/article/models/article";
+import { Request, Response, NextFunction } from "express";
+import Article from "../domains/article/model";
 export const isOwner = (expectedStatus: boolean) => {
     try {
         return async (req: Request, res: Response, next: NextFunction) => {
@@ -8,7 +8,7 @@ export const isOwner = (expectedStatus: boolean) => {
             const article = await Article.findOne({
                 _id: articleId,
                 $or: [{ publisher: user._id },
-                { "collaborators.collaborator": user._id, "collaborators.accepted": true }]
+                { "collaborators.accepted": true, "collaborators.collaborator": user._id }]
             });
             switch (true) {
                 case article && expectedStatus:

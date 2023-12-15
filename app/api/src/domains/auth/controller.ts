@@ -37,17 +37,17 @@ const register = async (req: Request, res: Response) => {
 };
 const login = async (req: Request, res: Response) => {
   try {
-
     const body: ILoginBody = req.body;
     await loginSchema.validateAsync(body);
     const user = await User.findOne({ email: body.email });
+    
     if (!user)
       return res.status(401).send({
         succesfull: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
 
-    const comparePasswords = await compare(body.password, user.password);
+  const comparePasswords = await compare(body.password, user.password);
     if (!comparePasswords)
       return res.status(401).send({
         succesfull: false,

@@ -1,3 +1,5 @@
+import { Request, Response } from "express";
+import { countData, pagination } from "../../helpers/aggregation";
 import Notification from "./model";
 import { Types } from "mongoose";
 /*
@@ -28,6 +30,22 @@ interface ISendNotifications {
 interface IDeleteNotifications {
     receiver: string;
     retrieveId: Types.ObjectId | string;
+}
+const getNotifications = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        const page = Number(req.query.page) || 1;
+        const matchQuery = {
+            receiver: user._id
+        };
+        const result = await pagination({ matchQuery, page, Model: Notification });
+        const count = await countData({ matchQuery, Model: Notification, countUnSeenNotifications:true });
+        //provide unseen count
+        res.status(401).send({ success: true, notifications: result.data, unSeencount: count.unSeenNotifications });
+    } catch (err) {
+        console.log(err);
+
+    }
 }
 const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
     try {

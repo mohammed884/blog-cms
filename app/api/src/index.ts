@@ -9,11 +9,11 @@ import authRouter from "./domains/auth";
 import articleRouter from "./domains/article";
 import collaborationRouter from "./domains/article/collaboration";
 import commentRouter from "./domains/article/comment";
+import likeRouter from "./domains/article/like";
 import topicsRouter from "./domains/topic";
 import userRouter from "./domains/user";
 import fileUpload from "express-fileupload";
-import session from "express-session";
-import { IUser, IArticle } from "./interfaces/global";
+import { IUser,IArticle } from "interfaces/global";
 const app = express();
 // coonect to database
 mongoose.set("strictQuery", true);
@@ -30,17 +30,19 @@ app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 },
 }))
 app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true
-}));
-
+declare module 'express' {
+  interface Request {
+    user: IUser;
+    requestedUser:IUser;
+    article: IArticle;
+  }
+}
 // routes
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
 app.use("/articles", articleRouter);
 app.use("/articles/comments", commentRouter);
+app.use("/articles/likes", likeRouter);
 app.use("/articles/collaboration", collaborationRouter);
 app.use("/topics", topicsRouter);
 //serve the app

@@ -14,7 +14,7 @@ we will create a speical route for the accepting the request by editing that det
 */
 import { Request,Response } from "express";
 import { deleteNotification, sendNotification } from "../../notification/controller";
-import Article from "../models/article";
+import Article from "../model";
 //send, cancle sending a collaboration
 const addCollaboration = async (req: Request, res: Response) => {
     try {
