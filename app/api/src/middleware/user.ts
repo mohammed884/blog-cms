@@ -15,6 +15,10 @@ interface IOptions {
     dataHolder: "params" | "body";
     requestedUserInfoField: string;
 }
+interface ISearchQuery {
+    _id?: string;
+    username?: string;
+}
 /*
     requestedUserInfo will be the field name that contains the data in the params or the body
     that will be assigned to the queryField to get the requestedUser from the database
@@ -67,15 +71,15 @@ const buildSearchQuery = (queryField: string, requestedUserInfoField: string, re
     return { [field]: requestedUserInfo };
 };
 
-const isValidSearchQuery = (searchQuery: any) => {
+const isValidSearchQuery = (searchQuery: ISearchQuery) => {
     return searchQuery._id || searchQuery.username;
 };
 
-const isSameUser = (searchQuery: any, user: any) => {
+const isSameUser = (searchQuery: ISearchQuery, user: any) => {
     return searchQuery._id === user._id || searchQuery.username === user.username;
 };
 
-const checkIfBlocked = async (searchQuery: any, user: any, queryField: string) => {
+const checkIfBlocked = async (searchQuery: ISearchQuery, user: any, queryField: string) => {
     let isBlocked = false;
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
     const cachedBlockedFromList: Array<{ _id: string, username: string }> = cache.get(String(user._id)) || [];
@@ -94,7 +98,7 @@ const checkIfBlocked = async (searchQuery: any, user: any, queryField: string) =
     return isBlocked;
 };
 
-const findRequestedUser = async (searchQuery: any) => {
+const findRequestedUser = async (searchQuery: ISearchQuery) => {
     return searchQuery._id ?
         await User.findById(searchQuery._id).lean() :
         await User.findOne({ username: searchQuery.username }).lean();
