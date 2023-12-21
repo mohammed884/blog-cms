@@ -1,7 +1,6 @@
 import { Response, Request } from "express";
 import { addArticleSchema } from "../../validation/article";
 import Article from "./model";
-import Like from "./like/model";
 import { ObjectId } from "bson";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 import isUserBlocked from "../../helpers/isUserBlocked";

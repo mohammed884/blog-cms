@@ -15,7 +15,11 @@ router.get("/:articleId", getComments);
 router.patch("/add/:articleId",
   isLoggedIn(true),
   isConfirmed(true),
-  isBlocked({ dataHolder: "body", requestedUserInfoField: "articlePublisher", queryField: "_id" }),
+  isBlocked({
+    dataHolder: "body",
+    requestedUserInfoField: "articlePublisher",
+    queryField: "_id"
+  }),
   addComment
 );
 router.patch("/add/reply/:commentId",

@@ -1,50 +1,33 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken } from "../helpers/jwt";
-import User from "../domains/user/models/user";
-const isLoggedIn = (expectedStatus: boolean | "_", onlySetStatus: boolean = false) => {
+import { getUserFromToken } from "../helpers/jwt";
+ 
+const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = false) => {
   try {
     return async (req: Request, res: Response, next: NextFunction) => {
       const token = req.cookies.access_token;
-      const validateToken = verifyToken(token);
-      const user = await User.findById(validateToken.decoded);
-      if (onlySetStatus) {
+      const user = await getUserFromToken(token);
+      if (setStatusOnly) {
         req.user = user;
         return next();
       }
-      if (!user && expectedStatus) {
+
+      if (!user && isAuthRequired) {
         return res
           .status(401)
           .send({ success: false, message: "لم يتم العثور على المستخدم" });
       }
-      if (user && !expectedStatus) {
+      if (user && !isAuthRequired) {
         return res
           .status(401)
           .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
       }
-      if (user && expectedStatus) {
+      if (user && isAuthRequired) {
         req.user = user;
         return next();
       }
-      if (!user && !expectedStatus) {
+      if (!user && !isAuthRequired) {
         return next();
       }
-      // switch (expectedStatus) {
-      //   case !user && expectedStatus:
-      //     return res
-      //       .status(401)
-      //       .send({ success: false, message: "لم يتم العثور على المستخدم" });
-      //   case user && !expectedStatus:
-      //     return res
-      //       .status(401)
-      //       .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
-      //   case user && expectedStatus:
-      //     req.user = user;
-      //     return next();
-      //   case !user && !expectedStatus:
-      //     return next();
-      //   default:
-      //     next();
-      // }
     };
   } catch (err) {
     console.log(err);

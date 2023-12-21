@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../user/models/user";
+import User from "../user/model";
 import { signToken, verifyToken } from "../../helpers/jwt";
 import { hash, compare } from "../../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../../validation/auth";

@@ -1,7 +1,8 @@
-import User from "../domains/user/models/user";
+import User from "../domains/user/model";
 import { Request, Response, NextFunction } from "express";
 import { getUserFromToken } from "../helpers/jwt";
 import NodeCache from "node-cache";
+//BUG SPOTTED I NEED TO CHECK IF THE REQUESTED USER IS THE OWNER OF THE CONTENT
 /*
     *NOTE
     THIS FUNCTION SHOULD BE ONLY USED BEFORE ANY ROUTE THAT CONTAINS A LOT OF RETRIEVED DATA BECAUSE POPULATE THEM WILL BE SLOW
@@ -9,6 +10,14 @@ import NodeCache from "node-cache";
     *NOTE 
     if the requestedUserInfoField is the same as the queryField then this function don't need the queryField
     
+*/
+/*
+check content ownership first then check if the requested user blocked him
+get the article
+populate the publisher field
+check if the publisher wich is the requested user had blocked the user
+use that in the routes that need to opreat on the content of the requested user 
+i also need to add a way to know how to check if route need content ownership checking 
 */
 interface IOptions {
     queryField?: "_id" | "username";
@@ -28,7 +37,7 @@ first check if the requestedUser is in the user blockedFrom list
 second check if the requestedUser is in the user blocked list and cache the user
 
 */
-const cache = new NodeCache({});
+const cache = new NodeCache();
 const isBlocked = ({
     queryField,
     dataHolder,
@@ -45,7 +54,6 @@ const isBlocked = ({
             if (!isValidSearchQuery(searchQuery)) {
                 return res.status(401).json({ success: false, message: "User not found" });
             }
-
             if (isSameUser(searchQuery, userToCheck)) {
                 if (!req.user) req.user = userToCheck;
                 return next();
@@ -53,7 +61,7 @@ const isBlocked = ({
 
             const isUserBlocked = await checkIfBlocked(searchQuery, userToCheck, queryField);
             if (isUserBlocked) {
-                return res.status(401).json({ success: false, isBlocked: true, message: "You are blocked from this article" });
+                return res.status(401).json({ success: false, isBlocked: true, message: "You are blocked from this content" });
             }
             next();
         } catch (err) {
@@ -61,7 +69,6 @@ const isBlocked = ({
         }
     }
 };
-
 const getRequestedUserInfo = (req: Request, holder: string, field: string) => {
     return holder === "params" ? req.params[field] : req.body[field];
 };
@@ -83,7 +90,7 @@ const checkIfBlocked = async (searchQuery: ISearchQuery, user: any, queryField: 
     let isBlocked = false;
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
     const cachedBlockedFromList: Array<{ _id: string, username: string }> = cache.get(String(user._id)) || [];
-    isBlocked = cachedBlockedFromList.some(u => String(u[queryField]) === searchQuery[queryField]);
+    isBlocked = cachedBlockedFromList?.some(u => String(u[queryField]) === searchQuery[queryField]);
 
     if (isBlocked) return true;
 

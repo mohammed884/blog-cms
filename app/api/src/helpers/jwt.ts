@@ -1,5 +1,5 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "../domains/user/models/user"
+import User from "../domains/user/model"
 const JWT_SECRET = process.env.JWT_SECRET;
 interface verifyInterface {
     success: boolean,

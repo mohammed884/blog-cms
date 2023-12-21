@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import Article from "../domains/article/model";
-export const isOwner = (expectedStatus: boolean) => {
+export const isOwner = (expectedStatus: boolean, expectedOwner?: string) => {
     try {
         return async (req: Request, res: Response, next: NextFunction) => {
             const user = req.user;
             const articleId = req.params.id;
             const article = await Article.findOne({
                 _id: articleId,
-                $or: [{ publisher: user._id },
-                { "collaborators.accepted": true, "collaborators.collaborator": user._id }]
+                $or: [{ publisher: expectedOwner || user._id },
+                { "collaborators.accepted": true, "collaborators.collaborator": expectedOwner || user._id }]
             });
             switch (true) {
                 case article && expectedStatus:

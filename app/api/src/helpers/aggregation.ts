@@ -1,11 +1,30 @@
+/*
+ $lookup: {
+      from: "orders", collection to lokup from
+      localField: "customerId", field that have the collection refrence
+      foreignField: "_id", the field that have the refrence in the other collection
+      as: "customerOrders", field name to display the results
+    }
+*/
 interface IPaginationOptions {
     Model: any,
     page: number,
     limt?: number
     matchQuery?: {},
-    populate?:string
+    populate?: {
+        from: string,
+        localField: string,
+        as: string,
+        readonly foreignField: "_id",
+        select?: {
+            _id?: 1 | 0,
+            username?: 1 | 0
+            avatar?: 1 | 0
+            blocked?: 1 | 0
+            createdAt?: 1 | 0
+        },
+    },
 };
-
 interface ICountDataOptions {
     Model: any,
     matchQuery?: {},
@@ -13,24 +32,67 @@ interface ICountDataOptions {
     countArrayElements?: "comments" | "likes" | "followers" | "notifications",
     countUnSeenNotifications?: boolean
 }
-export const pagination = async ({ matchQuery, Model, page = 1, limt = 10 }: IPaginationOptions) => {
+export const pagination = async ({ matchQuery, Model, page = 1, limt = 10, populate }: IPaginationOptions) => {
     const skip = (Number(page) - 1) * limt;
-    const pipeline = [
+    const pipeline: any = [
         { $match: matchQuery },
         {
-            $facet: {
-                data: [
-                    {
-                        $skip: skip,
-                    },
-                    {
-                        $limit: limt,
-                    },
-                ],
-            },
-        }
+            $lookup:
+            // populate.select
+            // ?
+            {
+                ...populate,
+                // pipleline: {
+                //     $project: { ...populate.select }
+                // }
+            }
+            // :
+            // populate
+        },
+        // {
+        //     $facet: {
+        //         data: [
+        //             // {
+        //             //     $lookup:
+        //             //     // populate.select
+        //             //     // ?
+        //             //     {
+        //             //         ...populate,
+        //             //         // pipleline: {
+        //             //         //     $project: { ...populate.select }
+        //             //         // }
+        //             //     }
+        //             // },
+        //             {
+        //                 $skip: skip,
+        //             },
+        //             {
+        //                 $limit: limt,
+        //             },
+        //         ],
+        //     },
+        // }
     ];
-    const result = await Model.aggregate(pipeline);
+    // if (populate) {
+    //     pipeline[0] = {
+    //         $lookup:
+    //             populate.select
+    //                 ?
+    //                 {
+    //                     ...populate,
+    //                     pipleline: {
+    //                         $project: populate.select
+    //                     }
+    //                 }
+    //                 :
+    //                 populate
+    //     }
+    // }
+    console.log(pipeline);
+    
+    const result = await Model.aggregate(pipeline);  
+    console.log(result);
+      
     return { data: result[0].data };
 }
 export const countData = async ({ matchQuery, Model, countDocuments = false, countArrayElements, countUnSeenNotifications = false }: ICountDataOptions) => {

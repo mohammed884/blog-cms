@@ -9,10 +9,15 @@ const getComments = async (req: Request, res: Response) => {
     if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
     const page = Number(req.query.page) || 1;
     const matchQuery = { article: articleId };
-    const result = await pagination({ matchQuery, Model: Comment, page });
+    const result = await pagination({
+      matchQuery, 
+      page,
+      limt: 2,
+      Model: Comment,
+    });
     //count total comments
     const countResult = await countData({ matchQuery, Model: Comment, countArrayElements: "comments" });
-    res.status(201).send({ success: true, comments: result.data, count: countResult.arrayElementsCount });
+    res.status(201).send({ success: true, comments: result.data });
   } catch (err) {
     console.log(err);
   }
@@ -46,7 +51,7 @@ const addComment = async (req: Request, res: Response) => {
       {
         article: articleId,
         commentsCount: {
-          $lt: 50,
+          $lt: 5,
         },
       },
       {

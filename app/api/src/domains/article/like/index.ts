@@ -10,7 +10,7 @@ import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
 import { isBlocked } from "../../../middleware/user";
 router.get("/:articleId", getLikes);
 router.get("/count/:articleId", getLikesCount);
-router.patch("/like/:id",
+router.patch("/article/:id",
     isLoggedIn(true),
     isConfirmed(true),
     isBlocked({ dataHolder: "body", requestedUserInfoField: "articlePublisher", queryField: "_id" }),

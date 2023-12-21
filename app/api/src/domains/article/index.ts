@@ -17,7 +17,11 @@ const router = Router();
 router.get("/feed", isLoggedIn("_", true), getFeed);
 router.get("/search", searchArticles);
 router.get("/publisher/:publisherId",
-    isBlocked({ dataHolder: "params", requestedUserInfoField: "publisherId", queryField: "_id" }),
+    isBlocked({
+        dataHolder: "params",
+        requestedUserInfoField: "publisherId",
+        queryField: "_id"
+    }),
     getPublisherArticles,
 );
 router.get("/:id", getArticle);

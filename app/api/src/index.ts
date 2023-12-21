@@ -12,6 +12,7 @@ import commentRouter from "./domains/article/comment";
 import likeRouter from "./domains/article/like";
 import topicsRouter from "./domains/topic";
 import userRouter from "./domains/user";
+import followRouter from "./domains/user/follow";
 import fileUpload from "express-fileupload";
 import { IUser,IArticle } from "interfaces/global";
 const app = express();
@@ -39,11 +40,12 @@ declare module 'express' {
 }
 // routes
 app.use("/auth", authRouter);
-app.use("/users", userRouter);
-app.use("/articles", articleRouter);
-app.use("/articles/comments", commentRouter);
-app.use("/articles/likes", likeRouter);
-app.use("/articles/collaboration", collaborationRouter);
+app.use("/user", userRouter);
+app.use("/user", followRouter);
+app.use("/article", articleRouter);
+app.use("/article/comment", commentRouter);
+app.use("/article/likes", likeRouter);
+app.use("/article/collaboration", collaborationRouter);
 app.use("/topics", topicsRouter);
 //serve the app
 app.listen(process.env.PORT, () => {

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 // bucket pattren, 50 is the limt
 const Schema = new mongoose.Schema({
+  //if you add the article publisher you can do content checking with ease
   article: {
     type:String,
     required: true,
@@ -51,6 +52,7 @@ const Schema = new mongoose.Schema({
   commentsCount: {
     type: Number,
     default: 0,
+    max:5,
   },
 });
 Schema.set("timestamps", true);

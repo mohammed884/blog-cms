@@ -1,5 +1,8 @@
+//change the architecture
+//
 import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
+  //i need to put the article owner for lock checking
   title: {
     type: String,
     trim: true,

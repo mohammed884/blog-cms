@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Topic from "./model";
 import Article from "../article/model";
 import topicSchema from "../../validation/topic";
-import User from "../user/models/user";
+import User from "../user/model";
 const getTopics = async (req: Request, res: Response) => {
   try {
     const page = req.query.page || 1;
