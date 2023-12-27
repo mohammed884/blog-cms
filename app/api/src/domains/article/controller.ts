@@ -15,6 +15,7 @@ interface IAddPostBody {
 }
 const getFeed = async (req: Request, res: Response) => {
   try {
+//test getFeed option
     const user = req.user;
     const page = Number(req.query.page) || 1;
     const matchQuery = {

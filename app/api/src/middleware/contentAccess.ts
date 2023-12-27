@@ -12,59 +12,8 @@ import {
     checkCache,
     buildSearchQuery,
     isValidSearchQuery,
-    isSameUser,
     checkBlockedList
 } from "../helpers/block"
-//here i will write a middleware to use in the routes that return data 
-//BUG SPOTTED I NEED TO CHECK IF THE REQUESTED USER IS THE OWNER OF THE CONTENT
-/*
-    *NOTE
-    THIS FUNCTION SHOULD BE ONLY USED BEFORE ANY ROUTE THAT CONTAINS A LOT OF RETRIEVED DATA BECAUSE POPULATE THEM WILL BE SLOW
-    this function will check the user that is making a request to do something if he is blocked
-    *NOTE 
-    if the requestedUserInfoField is the same as the queryField then this function don't need the queryField
-    
-*/
-/*
-check content ownership first then check if the requested user blocked him
-get the article
-populate the publisher field
-check if the publisher wich is the requested user had blocked the user
-use that in the routes that need to opreat on the content of the requested user 
-i also need to add a way to know how to check if route need content ownership checking 
-*/
-/*
-content checking
-*NOTE -> i need to check the cached users first
-for getting all of the content i need to check the user or the article
-
-for example 
--getting the followers count
-i need to check if the user is blocked which is the default
-
--getting the article likes , getting the article comments, add like
-i need to get the article and then populate the user
-and check the owner of the article and check if the user is blocked
-requirements (article id, and userToCheck)
-
--add comment 
-i need to get the comments bucket, 
-then check if the requestedUser is the owner of the comments bucket
-then check if the user is blocked
-
--add reply
-i need to get the comments author then populate him then 
-check if the userToCheck is blocked
-*/
-
-/*
-    middleware requires:
-    content type (get-comments, get-likes, add-like, add-comment, add-reply)
-    providedId (article id, comment author id, comment bucket id)
-    queryField (article id, comment author id, comment bucket id)
-    dataHolder (params, body)
-    
-*/
 type ContentType =
     "get-comments" |
     "get-likes" |
@@ -85,19 +34,6 @@ interface ICheckIfBlockedOpts {
     userIdToCheck: string;
     contentId: string
 }
-/*
-    requestedUserInfo will be the field name that contains the data in the params or the body
-    that will be assigned to the queryField to get the requestedUser from the database
-
-    first check if the requestedUser is in the user blockedFrom list
-    second check if the requestedUser is in the user blocked list and cache the user
-
-*/
-/*
-first check the cache
-then check the content
-then check the user
-*/
 const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpts) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -122,7 +58,6 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpt
                 req.articlePublisherId = articlePublisherId;
             }
             if (commentAuthorId) {
-                console.log("comment author id", commentAuthorId);
                 req.commentAuthorId = commentAuthorId;
             }
             next();
@@ -155,7 +90,6 @@ const checkIfBlocked = async ({
             }
             const publisher: any = article.publisher;
             if (publisher.id === userIdToCheck) {
-                console.log("same user");
                 return { isBlocked: false, articlePublisherId: contentType === "add-comment" ? publisher.id : "" };
             };
             const cacheResult = checkCache({ _id: publisher.id }, userIdToCheck, "_id");
@@ -220,7 +154,6 @@ const checkIfBlocked = async ({
             const author = authorDetails[0].data[0];
             const authorId = String(author._id);            
             if (authorId === userIdToCheck) {
-                console.log("same user");
                 return { isBlocked: false, commentAuthorId: authorId };
             };
             const cacheResult2 = checkCache({ _id: authorId }, userIdToCheck, "_id");
