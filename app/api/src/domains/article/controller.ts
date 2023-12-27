@@ -1,24 +1,49 @@
+import Article from "./model";
+import Like from "./like/model";
+import Comment from "./comment/model";
 import { Response, Request } from "express";
 import { addArticleSchema } from "../../validation/article";
-import Article from "./model";
+import { getCache, setCache } from "../../helpers/node-cache";
 import { ObjectId } from "bson";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
-import isUserBlocked from "../../helpers/isUserBlocked";
+import { checkBlockedList } from "../../helpers/block";
 import { countData, pagination } from "../../helpers/aggregation";
 interface IAddPostBody {
   title: string;
   content: object;
   topics: [];
 }
-
 const getFeed = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     const page = Number(req.query.page) || 1;
     const matchQuery = {
-      "topics.mainTopic": { $in: user.topics.map(topic => topic.title) },
-    };
-    const result = await pagination({ matchQuery, Model: Article, page });
+      $expr: {
+        $cond: {
+          if: {
+            "topics.mainTopic": { $in: user.topics.map(topic => topic.title) },
+            then: true,
+            else: {}
+          }
+        }
+      }
+    }
+    const result = await pagination({
+      matchQuery,
+      page,
+      populate: {
+        from: "users",
+        foreignField: "_id",
+        localField: "publisher",
+        select: {
+          username: 1,
+          avatar: 1
+        },
+        as: "publisher"
+      },
+      articleBlockChecking: { userIdToCheck: user._id },
+      Model: Article,
+    });
     res.status(201).send({ success: true, articles: result.data });
   } catch (error) {
     console.error(error);
@@ -57,6 +82,9 @@ const getPublisherArticlesCount = async (req: Request, res: Response) => {
 const getArticle = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.id;
+    const currUser = req.user;
+    console.log(currUser);
+
     if (!articleId)
       return res.status(401).send({ message: "لم يتم العثور على مقالة" });
 
@@ -67,9 +95,17 @@ const getArticle = async (req: Request, res: Response) => {
         .send({ success: false, message: "لم يتم العثور على هذه المقالة" });
     const publisher: any = article.publisher;
 
-    if (req.user && req.user._id !== article.publisher._id) {
-      const isBlocked = isUserBlocked(publisher.blocked, String(req.user._id));
-      if (isBlocked) return res.status(401).send({ success: false, isBlocked: true, message: "لقد تم حظرك من هذه المقالة" });
+    if (currUser && currUser._id !== article.publisher._id) {
+      const isBlocked = checkBlockedList(publisher.blocked, String(currUser._id));
+      if (isBlocked) {
+        const cachedBlockedFromList: any = getCache(String(currUser._id)) || [];
+        setCache({
+          key: String(currUser._id),
+          value: [...cachedBlockedFromList, { _id: publisher._id, username: publisher.username }],
+          ttl: "30-days"
+        });
+        return res.status(401).send({ success: false, isBlocked: true, message: "لقد تم حظرك من هذه المقالة" });
+      }
     }
     res.status(201).send({ success: true, article, publisher });
   } catch (err) {
@@ -203,8 +239,10 @@ const deleteArticle = async (req: Request, res: Response) => {
         { "collaborators.accepted": true, "collaborators.collaborator": user._id, "collaborators.canDelete": true }
       ]
     });
-    if (!article) res.status(201).send({ success: false, message: "لا يوجد مقالة بهذا المعرف" });
+    if (!article) return res.status(201).send({ success: false, message: "الرجاء التاكد من المعلومات المعطاة" });
     if (article.cover) deleteSingle(article.cover);
+    await Like.deleteMany({ article: articleId });
+    await Comment.deleteMany({ article: articleId });
     res.status(201).send({ success: true, message: "تم حذف المقال بنجاح" });
   } catch (err) {
     console.log(err);

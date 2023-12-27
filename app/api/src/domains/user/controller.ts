@@ -1,20 +1,11 @@
 import User from "./model";
 import { Request, Response } from "express";
 import { uploadSingle } from "../../helpers/fileopreations";
-import Follow from "./follow/model";
 import { pagination } from "../../helpers/aggregation";
-import { sendNotification, deleteNotification } from "../notification/controller";
+import Article from "../article/model";
 const getUser = async (req: Request, res: Response) => {
   try {
-    /*
-      pirority for getting the user
-      1. requestedUser
-      2. req.user
-      3. query the username
-    */
-
-    const requestedUser = req.requestedUser;
-    const user = requestedUser || req.user || await User.findOne({ username: req.params.username }).lean();
+    const user = req.user || await User.findOne({ username: req.params.username }).lean();
     res.status(201).send({ success: true, user })
   } catch (err) {
     console.log(err);
@@ -30,7 +21,7 @@ const blockUser = async (req: Request, res: Response) => {
         .send({ success: false, message: "لا يمكنك حظر نفسك" });
     }
     // Check && Add the user ID to the blocked list
-    const updatedStatus = await User.updateOne(
+    const blockStatus = await User.updateOne(
       { _id: user._id, "blocked.user": { $ne: userIdToBlock } },
       {
         $push: {
@@ -41,11 +32,25 @@ const blockUser = async (req: Request, res: Response) => {
         }
       }
     );
-    if (updatedStatus.modifiedCount === 0) {
+    if (blockStatus.modifiedCount === 0) {
       return res
         .status(401)
         .send({ success: false, message: "حدث خطأ أثناء حظر المستخدم" });
-    }
+    };
+    const deleteUnAcceptedCollaborations = await Article.updateOne(
+      {
+        publisher: { $in: [userIdToBlock, user._id] },
+        "collaborators.accepted": false,
+        "collaborators.collaborator": { $in: [userIdToBlock, user._id] },
+      },
+      {
+        $pull: {
+          collaborators: {
+            collaborator: userIdToBlock
+          }
+        }
+      }
+    );
     res.status(201).send({ success: true, message: "تم حظر المستخدم بنجاح" });
   } catch (err) {
     console.log(err);

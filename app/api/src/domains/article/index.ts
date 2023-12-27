@@ -11,13 +11,14 @@ import {
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../middleware/auth";
 import { isOwner } from "../../middleware/article";
-import { isBlocked } from "../../middleware/user";
+import userDataAccess from "../../middleware/userDataAccess";
+import contentAccess from "../../middleware/contentAccess";
 const router = Router();
 //articles functionality 
 router.get("/feed", isLoggedIn("_", true), getFeed);
 router.get("/search", searchArticles);
 router.get("/publisher/:publisherId",
-    isBlocked({
+    userDataAccess({
         dataHolder: "params",
         requestedUserInfoField: "publisherId",
         queryField: "_id"
@@ -43,8 +44,13 @@ router.delete("/delete/:id",
 router.patch("/save/:id",
     isLoggedIn(true),
     isConfirmed(true),
-    isBlocked({ dataHolder: "body", requestedUserInfoField: "articlePublisher", queryField: "_id" }),
-    saveArticle
+    contentAccess({
+        contentType: "save-article",
+        dataHolder: "params",
+        contentIdField: "id",
+        queryField: "_id"
+    }),
+    saveArticle,
 );
 
 export default router;

@@ -8,30 +8,50 @@ import {
 } from "./controller";
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
-import { isBlocked } from "../../../middleware/user";
+import userDataAccess from "../../../middleware/userDataAccess";
+import contentAccess from "../../../middleware/contentAccess"
 const router = Router();
 // router.use(isBlocked);
-router.get("/:articleId", getComments);
+router.get("/:articleId",
+  contentAccess({
+    contentType: "get-comments",
+    dataHolder: "params",
+    contentIdField: "articleId",
+    queryField: "_id"
+  }),
+  getComments
+);
 router.patch("/add/:articleId",
   isLoggedIn(true),
   isConfirmed(true),
-  isBlocked({
-    dataHolder: "body",
-    requestedUserInfoField: "articlePublisher",
-    queryField: "_id"
+  contentAccess({
+    contentType: "add-comment",
+    dataHolder: "params",
+    contentIdField: "articleId",
+    queryField: "_id",
   }),
   addComment
 );
 router.patch("/add/reply/:commentId",
   isLoggedIn(true),
   isConfirmed(true),
-  isBlocked({ dataHolder: "body", requestedUserInfoField: "replyAuthor", queryField: "_id" }),
+  contentAccess({
+    contentType: "add-reply",
+    dataHolder: "params",
+    contentIdField: "commentId",
+    queryField: "_id"
+  }),
   addReply,
 );
 router.patch("/like/:commentId",
   isLoggedIn(true),
   isConfirmed(true),
-  isBlocked({ dataHolder: "body", requestedUserInfoField: "commentAuthor", queryField: "_id" }),
+  contentAccess({
+    contentType: "add-comment-like",
+    dataHolder: "params",
+    contentIdField: "commentId",
+    queryField: "_id"
+  }),
   likeComment
 );
 router.patch("/delete/:commentId",
@@ -40,7 +60,6 @@ router.patch("/delete/:commentId",
 );
 router.patch("/delete/reply/commentId",
   isLoggedIn(true),
-  isBlocked({ dataHolder: "body", requestedUserInfoField: "replyAuthor", queryField: "_id" }),
   deleteReply
 );
 

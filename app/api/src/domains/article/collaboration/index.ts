@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { isConfirmed, isLoggedIn } from "../../../middleware/auth";
 import { addCollaboration, cancleCollaboration, acceptCollaboration, denyCollaboration } from "./controller";
-import { isBlocked } from "../../../middleware/user";
+import userDataAccess from "../../../middleware/userDataAccess";
 const router = Router();
 router.use(
     isLoggedIn(true),
     isConfirmed(true))
 router.patch(
     "/request",
-    isBlocked({
+    userDataAccess({
         dataHolder: "body",
         requestedUserInfoField: "collaboratorId",
         queryField: "_id"
@@ -17,16 +17,11 @@ router.patch(
 )
 router.patch(
     "/cancle",
-    isBlocked({
-        dataHolder: "body",
-        requestedUserInfoField: "collaboratorId",
-        queryField: "_id"
-    }),
     cancleCollaboration
 )
 router.patch(
     "/accept",
-    acceptCollaboration
+    acceptCollaboration,
 );
 router.patch("/deny", denyCollaboration);
 export default router;

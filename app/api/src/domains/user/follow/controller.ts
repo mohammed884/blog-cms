@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { sendNotification, deleteNotification } from "../../notification/controller";
 import Follow from "./model";
 import { countData, pagination } from "../../../helpers/aggregation";
+import { ObjectId } from "bson";
 const followActions = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        const userToOpreateOn = req.params.user;
+        const userToOpreateOn = req.params.userId;
         const action = req.query.action;
         if (String(user._id) === userToOpreateOn) {
             return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
@@ -63,11 +64,21 @@ const getFollowing = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const page = Number(req.query.page) || 1;
-        const matchQuery = { followedBy: userId };
+        const matchQuery = { followedBy: new ObjectId(userId) };
         const result = await pagination({
             page,
             matchQuery,
-            limt: 5,
+            limit: 5,
+            populate: {
+                from: "users",
+                foreignField:"_id",
+                localField: "user",
+                select: {
+                    username: 1,
+                    avatar: 1,
+                },
+                as: "followingInfo",
+            },
             Model: Follow,
         })
         res.status(201).send({ success: true, following: result.data })
@@ -79,19 +90,19 @@ const getFollowers = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const page = Number(req.query.page) || 1;
-        const matchQuery = { user:userId };        
+        const matchQuery = { user:new ObjectId(userId) };        
         const result = await pagination({
             page,
             matchQuery,
-            limt: 5,
+            limit: 5,
             populate: {
-                from: "User",
+                from: "users",
                 foreignField:"_id",
                 localField: "followedBy",
-                // select: {
-                //     username: 1,
-                //     avatar: 1
-                // },
+                select: {
+                    username: 1,
+                    avatar: 1
+                },
                 as: "followedByInfo",
             },
             Model: Follow,

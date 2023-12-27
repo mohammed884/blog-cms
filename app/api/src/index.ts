@@ -14,7 +14,7 @@ import topicsRouter from "./domains/topic";
 import userRouter from "./domains/user";
 import followRouter from "./domains/user/follow";
 import fileUpload from "express-fileupload";
-import { IUser,IArticle } from "interfaces/global";
+import { IUser, IArticle } from "./interfaces/global";
 const app = express();
 // coonect to database
 mongoose.set("strictQuery", true);
@@ -34,8 +34,10 @@ app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 declare module 'express' {
   interface Request {
     user: IUser;
-    requestedUser:IUser;
+    requestedUser: IUser;
     article: IArticle;
+    articlePublisherId: string;
+    commentAuthorId: string;
   }
 }
 // routes

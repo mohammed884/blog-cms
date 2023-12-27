@@ -6,41 +6,38 @@ import { countData, pagination } from "../../../helpers/aggregation";
 const getComments = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
-    if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
     const page = Number(req.query.page) || 1;
     const matchQuery = { article: articleId };
     const result = await pagination({
-      matchQuery, 
+      matchQuery,
       page,
-      limt: 2,
+      limit: 2,
       Model: Comment,
     });
     //count total comments
-    const countResult = await countData({ matchQuery, Model: Comment, countArrayElements: "comments" });
     res.status(201).send({ success: true, comments: result.data });
   } catch (err) {
     console.log(err);
   }
 };
-const getCommentCount = async (req: Request, res: Response) => {
+const getCommentsCount = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
-    if (!articleId) return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" });
     const matchQuery = { article: articleId };
     const dataCount = await countData({ matchQuery, Model: Comment, countDocuments: true });
     res.status(201).send({ success: true, count: dataCount.documentsCount });
   } catch (err) {
     console.log(err);
   }
-}
+};
 const addComment = async (req: Request, res: Response) => {
   try {
     //send notifiction to the user about the comment
     const articleId = req.params.articleId;
     const user = req.user;
-    const { articlePublisher, text } = req.body;
-
-    if (!text || !articleId || !articlePublisher)
+    const { text } = req.body;
+    const articlePublisherId = req.articlePublisherId;
+    if (!text || !articleId)
       return res
         .status(401)
         .send({ success: false, message: "الرجاء مراعاة المعطيات" });
@@ -91,7 +88,7 @@ const addComment = async (req: Request, res: Response) => {
       comments = commentBucket.comments;
     };
     const notificationStatus = await sendNotification({
-      receiver: articlePublisher,
+      receiver: articlePublisherId,
       sender: user._id,
       article: articleId,
       type: "comment",
@@ -212,10 +209,11 @@ const addReply = async (req: Request, res: Response) => {
     //reciver = comment owner
     const user = req.user;
     const articleId = req.params.articleId
-    const { commentAuthor, commentId } = req.body
-    const text = req.body.text;
+    const commentAuthorId = req.commentAuthorId
+    const { commentId, text } = req.body
+    console.log(commentAuthorId);
 
-    if (!text || !commentId || !articleId || !commentAuthor)
+    if (!text)
       return res
         .status(401)
         .send({ success: false, message: "الرجاء كتابة رد اولا" });
@@ -232,20 +230,18 @@ const addReply = async (req: Request, res: Response) => {
             createdAt: new Date(),
           },
         },
-      }).lean();
+      }, {new: true}).lean();
     //et the comment from the bucket then get the fucking replies list 
     if (!updateStatus)
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
-    const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;
+    const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;    
     const notificationStatus = await sendNotification({
-      receiver: commentAuthor,
+      receiver: commentAuthorId,
       sender: user._id,
       article: articleId,
       retrieveId: String(replies[replies.length - 1]._id),
       type: "reply"
     });
-    console.log(notificationStatus);
-
     if (!notificationStatus.success) {
       return res.status(401).send({ success: false, message: notificationStatus.message });
     }
@@ -285,7 +281,7 @@ const deleteReply = async (req: Request, res: Response) => {
 };
 export {
   getComments,
-  getCommentCount,
+  getCommentsCount,
   addComment,
   deleteComment,
   likeComment,

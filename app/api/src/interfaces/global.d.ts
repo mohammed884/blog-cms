@@ -18,8 +18,8 @@ export interface IUser {
   };
   topics: Array<{ title: string }>
   blocked: Array<{
-    user:ObjectId,
-    createdAt:Date
+    user: ObjectId,
+    createdAt: Date
   }>
 }
 export interface IArticle {
@@ -36,7 +36,7 @@ export interface IArticle {
 declare module 'express' {
   interface Request {
     user: IUser;
-    requestedUser:IUser;
+    requestedUser: IUser;
     article: IArticle;
   }
 }

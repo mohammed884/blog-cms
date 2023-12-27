@@ -1,21 +1,21 @@
 import { Router } from "express";
 import { editUser, getUser, searchUser, blockUser, unBlockUser } from "./controller";
 import { isConfirmed, isLoggedIn } from "../../middleware/auth";
-import { isBlocked } from "../../middleware/user";
+import userDataAccess from "../../middleware/userDataAccess";
 const router = Router();
 router.get("/:username",
-    isBlocked({ dataHolder: "params", requestedUserInfoField: "username" }),
-    getUser
+    userDataAccess({ dataHolder: "params", requestedUserInfoField: "username" }),
+    getUser,
 );
 router.get("/search/:username",
-    isBlocked({ dataHolder: "params", requestedUserInfoField: "username" }),
+    userDataAccess({ dataHolder: "params", requestedUserInfoField: "username" }),
     searchUser
 );
 router.patch("/block/:id",
     isLoggedIn(true),
     isConfirmed(true),
-    blockUser
-)
+    blockUser,
+);
 router.patch("/unblock/:id", isLoggedIn(true), isConfirmed(true), unBlockUser)
 router.patch("/edit", isLoggedIn(true), editUser);
 export default router;

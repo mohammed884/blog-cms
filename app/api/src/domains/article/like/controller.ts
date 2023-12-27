@@ -64,7 +64,7 @@ const getLikes = async (req: Request, res: Response) => {
             matchQuery,
             Model: Like,
             page: page,
-            limt: 1,
+            limit: 1,
         });
 
         res.status(200).send({ success: true, likes: result.data });

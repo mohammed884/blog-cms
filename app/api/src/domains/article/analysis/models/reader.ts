@@ -6,8 +6,8 @@ const Schema = new mongoose.Schema({
         ref: 'Article',
         required: true
     },
-    readers:{
-        type:[
+    readers: {
+        type: [
             {
                 user: {
                     type: mongoose.Schema.Types.ObjectId,
@@ -21,9 +21,9 @@ const Schema = new mongoose.Schema({
             }
         ]
     },
-    count:{
-        type:Number,
-        default:100
+    count: {
+        type: Number,
+        default: 100
     },
 })
 Schema.set("timestamps", true);
