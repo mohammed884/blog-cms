@@ -1,13 +1,4 @@
 import { ObjectId } from "bson"
-
-/*
- $lookup: {
-      from: "orders", collection to lokup from
-      localField: "customerId", field that have the collection refrence
-      foreignField: "_id", the field that have the refrence in the other collection
-      as: "customerOrders", field name to display the results
-    }
-*/
 interface IPaginationOptions {
     Model: any,
     page: number,
@@ -36,18 +27,27 @@ interface ICountDataOptions {
     countDocuments?: boolean,
     countArrayElements?: "comments" | "likes" | "followers" | "notifications",
     countUnSeenNotifications?: boolean,
-}
+};
+interface IBuildPipelineOptions extends Omit<ICountDataOptions, "Model">, Pick<IPaginationOptions, "matchQuery" | "populate" | "articleBlockChecking"> {
+    skip?: number,
+    limit?: number,
+    facet?: boolean
+};
 //test articleBlockChecking option
-export const pagination = async ({ matchQuery,
-    page = 1,
-    limit = 10,
+const buildPipeline = ({
+    //pagination
+    matchQuery,
     populate,
     articleBlockChecking,
-    Model }: IPaginationOptions) => {
-    const skip = (Number(page) - 1) * limit;
-    let pipeline: Array<Object> = [
-        { $match: matchQuery },
-    ];
+    facet = false,
+    skip,
+    limit,
+    //count
+    countArrayElements,
+    countDocuments,
+    countUnSeenNotifications }: IBuildPipelineOptions) => {
+    let pipeline: Array<any> = [{ $match: matchQuery || {} }];
+    //pagination stages started
     if (populate) {
         const { select, ...rest } = populate;
         const lookup = {
@@ -56,10 +56,10 @@ export const pagination = async ({ matchQuery,
         };
         pipeline = [
             ...pipeline,
+            { $lookup: lookup },
             { $unwind: `$${populate.localField}` },
-            { $lookup: lookup }
         ]
-    }
+    };
     if (articleBlockChecking && articleBlockChecking.toString() !== "{}") {
         pipeline = [
             ...pipeline,
@@ -68,42 +68,36 @@ export const pagination = async ({ matchQuery,
                     "publisher.blocked": {
                         $not: {
                             $elemMatch: {
-                                userId: articleBlockChecking.userIdToCheck
+                                user: articleBlockChecking.userIdToCheck
                             }
                         }
                     }
                 }
-            },
+            }
         ]
-    }
-    pipeline = [
-        ...pipeline,
-        {
-            $facet: {
-                data: [
-                    { $skip: skip },
-                    { $limit: limit },
-                ],
-            },
-        },
-    ]
-    const result = await Model.aggregate(pipeline);
-    const { data } = result[0];
-    return { data };
-}
-export const countData = async ({ matchQuery,
-    Model,
-    countDocuments = false,
-    countArrayElements,
-    countUnSeenNotifications = false }: ICountDataOptions) => {
-    let pipeline: Array<unknown> = [
-        { $match: matchQuery },
-    ];
+    };
+    if (facet) {
+        pipeline = [
+            ...pipeline,
+            {
+                $facet: {
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit },
+                    ],
+                },
+            }
+        ];
+    };
+    //pagination stages ended
+
+    //count stages started
     if (countDocuments) {
         pipeline = [
             ...pipeline,
             {
                 $count: 'documentsCount',
+
             }
         ]
     }
@@ -116,7 +110,7 @@ export const countData = async ({ matchQuery,
             {
                 $group: { _id: null, arrayElementsCount: { $sum: 1 } },
             },
-        ];
+        ]
     };
     if (countUnSeenNotifications) {
         pipeline = [
@@ -128,10 +122,42 @@ export const countData = async ({ matchQuery,
             {
                 $group: { _id: null, unSeenNotifications: { $sum: 1 } },
             },
-
-        ];
+        ]
     };
+    //count stages ended
+    return pipeline
+}
+export const pagination = async ({ matchQuery,
+    page = 1,
+    limit = 10,
+    populate,
+    articleBlockChecking,
+    Model }: IPaginationOptions) => {
+    const skip = (Number(page) - 1) * limit;
+    const pipeline = buildPipeline({
+        matchQuery,
+        populate,
+        articleBlockChecking,
+        facet: true,
+        skip,
+        limit
+    });
+    const result = await Model.aggregate(pipeline);
+    const { data } = result[0];
+    return { data };
+}
 
+export const countData = async ({ matchQuery,
+    Model,
+    countDocuments = false,
+    countArrayElements,
+    countUnSeenNotifications = false }: ICountDataOptions) => {
+    const pipeline = buildPipeline({
+        matchQuery,
+        countDocuments,
+        countArrayElements,
+        countUnSeenNotifications
+    });
     const result = await Model.aggregate(pipeline);
     const documentsCount = result[0] && result[0].documentsCount ? result[0].documentsCount : 0;
     const arrayElementsCount = result[0] && result[0].arrayElementsCount ? result[0].arrayElementsCount : 0;

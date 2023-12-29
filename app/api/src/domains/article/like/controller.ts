@@ -56,7 +56,6 @@ const likeArticle = async (req: Request, res: Response) => {
 };
 const getLikes = async (req: Request, res: Response) => {
     try {
-
         const articleId = req.params.articleId;
         const page = Number(req.query.page) || 1;
         const matchQuery = { article: articleId };
@@ -75,7 +74,6 @@ const getLikes = async (req: Request, res: Response) => {
 }
 const getLikesCount = async (req: Request, res: Response) => {
     try {
-        const page = Number(req.query.page) || 1;
         const articleId = req.params.articleId;
         const matchQuery = { article: articleId };
         const likesCount = await countData({
@@ -83,7 +81,6 @@ const getLikesCount = async (req: Request, res: Response) => {
             Model: Like,
             countArrayElements: "likes"
         });
-
         res.status(200).send({ success: true, count: likesCount.arrayElementsCount });
     } catch (err) {
         console.error(err);

@@ -4,7 +4,7 @@ const Schema = new mongoose.Schema({
     article: {
         type: String,
         index:true,
-        required: true
+        required: true,
     },
     viewers:{
         type:[{

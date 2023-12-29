@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { uploadSingle } from "../../helpers/fileopreations";
 import { pagination } from "../../helpers/aggregation";
 import Article from "../article/model";
+import Topic from "../topic/model";
 const getUser = async (req: Request, res: Response) => {
   try {
     const user = req.user || await User.findOne({ username: req.params.username }).lean();
@@ -102,31 +103,49 @@ const editUser = async (req: Request, res: Response) => {
   try {
     //handle edit bio!!
     const user = req.user;
-    const { username, bio, gender } = req.body;
+    const { username, bio, gender, topics } = req.body;
     const files = req.files;
-    if (username && user.username !== username)
+
+    if (username && user.username !== username) {
       user.username = username;
-    if (gender && user.gender !== gender)
+    };
+    if (gender && user.gender !== gender) {
       user.gender !== gender
+    };
     if (bio) {
       if (user.bio.title !== bio.title) user.bio.title = bio.title
       if (user.bio.text !== bio.text) user.bio.text = bio.text
-    }
-    if (files && files.cover) {
-      const uploadStatus = uploadSingle(files.cover);
-      if (!uploadStatus.success)
+    };
+    if (Array.isArray(topics) && length > 0) {
+      //check the checking
+      const newTopics = topics.map(t => t.title.toLowerCase()).toString();
+      const oldTopics = user.topics.map(t => t.title.toLowerCase()).toString();
+      if (newTopics !== oldTopics) return;
+      const checkDb = await Topic.countDocuments({ mainTopic: { $in: topics } });
+      if (checkDb !== topics.length)
         return res
           .status(401)
-          .send({ success: false, message: uploadStatus.err });
-      user.cover = uploadStatus.path;
-    }
-    if (files && files.avatar) {
-      const uploadStatus = uploadSingle(files.avatar);
-      if (!uploadStatus.success)
-        return res
-          .status(401)
-          .send({ success: false, message: uploadStatus.err });
-      user.avatar = uploadStatus.path;
+          .send({ success: false, message: "حدث خطأ أثناء تحديث المعلومات" });
+
+      user.topics = topics;
+    };
+    if (files) {
+      if (files.cover) {
+        const uploadStatus = uploadSingle(files.cover);
+        if (!uploadStatus.success)
+          return res
+            .status(401)
+            .send({ success: false, message: uploadStatus.err });
+        user.cover = uploadStatus.path;
+      };
+      if (files.avatar) {
+        const uploadStatus = uploadSingle(files.avatar);
+        if (!uploadStatus.success)
+          return res
+            .status(401)
+            .send({ success: false, message: uploadStatus.err });
+        user.avatar = uploadStatus.path;
+      };
     }
     await user.save();
     res.status(201).send({ success: true, message: "تم تحديث المعلومات" });

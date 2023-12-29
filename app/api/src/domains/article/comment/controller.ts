@@ -211,8 +211,6 @@ const addReply = async (req: Request, res: Response) => {
     const articleId = req.params.articleId
     const commentAuthorId = req.commentAuthorId
     const { commentId, text } = req.body
-    console.log(commentAuthorId);
-
     if (!text)
       return res
         .status(401)

@@ -15,19 +15,14 @@ interface IAddPostBody {
 }
 const getFeed = async (req: Request, res: Response) => {
   try {
-//test getFeed option
+    //test getFeed option
     const user = req.user;
     const page = Number(req.query.page) || 1;
     const matchQuery = {
-      $expr: {
-        $cond: {
-          if: {
-            "topics.mainTopic": { $in: user.topics.map(topic => topic.title) },
-            then: true,
-            else: {}
-          }
-        }
-      }
+      $or: [
+        { "topics.mainTopic": { $in: user.topics.map(topic => topic.title) } },
+        {},
+      ],
     }
     const result = await pagination({
       matchQuery,
@@ -38,7 +33,8 @@ const getFeed = async (req: Request, res: Response) => {
         localField: "publisher",
         select: {
           username: 1,
-          avatar: 1
+          avatar: 1,
+          blocked: 1
         },
         as: "publisher"
       },
@@ -115,9 +111,13 @@ const getArticle = async (req: Request, res: Response) => {
 };
 const searchArticles = async (req: Request, res: Response) => {
   try {
+    const user = req.user;
     const page = Number(req.query.page) || 1;
     const title: any = req.query.title;
     const topics = req.query.topics;
+    if (!user) {
+      return res.status(401).send({ success: false, message: "يجب عليك تسجيل الدخول" });
+    }
     if (!title && !Array.isArray(topics))
       return res.status(401).send({
         success: false,
@@ -130,7 +130,23 @@ const searchArticles = async (req: Request, res: Response) => {
     if (typeof topics === "string" && topics.length > 0) {
       matchQuery = { ...matchQuery, topics: { $in: topics.split("-") } }
     };
-    const result = await pagination({ matchQuery, Model: Article, page })
+    const result = await pagination({
+      matchQuery,
+      page,
+      populate: {
+        from: "users",
+        foreignField: "_id",
+        localField: "publisher",
+        select: {
+          username: 1,
+          avatar: 1,
+          blocked: 1
+        },
+        as: "publisher"
+      },
+      articleBlockChecking: { userIdToCheck: user._id },
+      Model: Article,
+    });
     res.status(201).send({ success: true, articles: result.data });
   } catch (err) {
     console.log(err);
