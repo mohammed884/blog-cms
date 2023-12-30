@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { sendNotification, deleteNotification } from "../../notification/controller";
 import Follow from "./model";
-import { countData, pagination } from "../../../helpers/aggregation";
+import pagination from "../../../helpers/pagination";
 import { ObjectId } from "bson";
 const followActions = async (req: Request, res: Response) => {
     try {
@@ -71,7 +71,7 @@ const getFollowing = async (req: Request, res: Response) => {
             limit: 5,
             populate: {
                 from: "users",
-                foreignField:"_id",
+                foreignField: "_id",
                 localField: "user",
                 select: {
                     username: 1,
@@ -84,20 +84,22 @@ const getFollowing = async (req: Request, res: Response) => {
         res.status(201).send({ success: true, following: result.data })
     } catch (error) {
         console.log(error);
+        res.status(500).send({ success: false, message: "Internal server error" })
+
     }
 }
 const getFollowers = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const page = Number(req.query.page) || 1;
-        const matchQuery = { user:new ObjectId(userId) };        
+        const matchQuery = { user: new ObjectId(userId) };
         const result = await pagination({
             page,
             matchQuery,
             limit: 5,
             populate: {
                 from: "users",
-                foreignField:"_id",
+                foreignField: "_id",
                 localField: "followedBy",
                 select: {
                     username: 1,
@@ -117,30 +119,21 @@ const getFollowers = async (req: Request, res: Response) => {
 const getFollowersCount = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
-        const matchQuery = { user: userId };
-        const result = await countData({
-            matchQuery,
-            countDocuments: true,
-            Model: Follow,
-        })
-        res.status(201).send({ success: true, count: result.documentsCount })
+        const count = await Follow.countDocuments({ user: userId })
+        res.status(201).send({ success: true, count });
     } catch (error) {
         console.log(error);
-
+        res.status(500).send({ success: false, message: "Internal server error" })
     }
 };
 const getFollowingCount = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
-        const matchQuery = { followedBy: userId };
-        const result = await countData({
-            matchQuery,
-            countDocuments: true,
-            Model: Follow,
-        })
-        res.status(201).send({ success: true, count: result.documentsCount })
+        const count = await Follow.countDocuments({ followedBy: userId })
+        res.status(201).send({ success: true, count })
     } catch (error) {
         console.log(error);
+        res.status(500).send({ success: false, message: "Internal server error" })
     }
 };
 export {

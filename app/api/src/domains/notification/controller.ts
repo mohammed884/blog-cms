@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { countData, pagination } from "../../helpers/aggregation";
+import pagination from "../../helpers/pagination";
 import Notification from "./model";
 import { Types } from "mongoose";
 /*
@@ -39,12 +39,24 @@ const getNotifications = async (req: Request, res: Response) => {
             receiver: user._id
         };
         const result = await pagination({ matchQuery, page, Model: Notification });
-        const count = await countData({ matchQuery, Model: Notification, countUnSeenNotifications:true });
         //provide unseen count
-        res.status(401).send({ success: true, notifications: result.data, unSeencount: count.unSeenNotifications });
+        res.status(401).send({ success: true, notifications: result.data });
     } catch (err) {
         console.log(err);
 
+    }
+};
+const getUnSeenNotificationsCount = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        const count = await Notification.countDocuments({
+            receiver: user._id,
+            "comments.seen": false
+        });
+        res.status(401).send({ success: true, count });
+    } catch (error) {
+        console.log();
+        res.status(401).send({ success: false, message: "Internal server error" });
     }
 }
 const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
@@ -127,6 +139,8 @@ const deleteNotification = async ({ receiver, retrieveId }: IDeleteNotifications
     }
 }
 export {
+    getNotifications,
+    getUnSeenNotificationsCount,
     sendNotification,
     deleteNotification,
 }

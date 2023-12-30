@@ -7,7 +7,7 @@ import { getCache, setCache } from "../../helpers/node-cache";
 import { ObjectId } from "bson";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 import { checkBlockedList } from "../../helpers/block";
-import { countData, pagination } from "../../helpers/aggregation";
+import pagination from "../../helpers/pagination";
 interface IAddPostBody {
   title: string;
   content: object;
@@ -68,9 +68,8 @@ const getPublisherArticlesCount = async (req: Request, res: Response) => {
     if (!publisherId) {
       return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
     }
-    const matchQuery = { publisher: new ObjectId(publisherId) };
-    const dataCount = await countData({ matchQuery, Model: Article, countDocuments: true });
-    res.status(201).send({ success: true, count: dataCount.documentsCount });
+    const count = await Article.countDocuments({ publisher: new ObjectId(publisherId) });
+    res.status(201).send({ success: true, count });
   } catch (err) {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal Server Error" });

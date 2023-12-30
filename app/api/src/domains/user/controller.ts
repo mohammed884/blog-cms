@@ -1,9 +1,10 @@
 import User from "./model";
 import { Request, Response } from "express";
 import { uploadSingle } from "../../helpers/fileopreations";
-import { pagination } from "../../helpers/aggregation";
+import pagination from "../../helpers/pagination";
 import Article from "../article/model";
 import Topic from "../topic/model";
+import { setCache, deleteCache } from "../../helpers/node-cache";
 const getUser = async (req: Request, res: Response) => {
   try {
     const user = req.user || await User.findOne({ username: req.params.username }).lean();
@@ -52,6 +53,12 @@ const blockUser = async (req: Request, res: Response) => {
         }
       }
     );
+    //fix this
+    setCache({
+      key: userIdToBlock,
+      value: [{ _id: String(user._id), username: user.username }],
+      ttl: "30-days",
+    });
     res.status(201).send({ success: true, message: "تم حظر المستخدم بنجاح" });
   } catch (err) {
     console.log(err);
@@ -78,6 +85,7 @@ const unBlockUser = async (req: Request, res: Response) => {
         .status(401)
         .send({ success: false, message: "حدث خطأ أثناء فك الحظر على المستخدم" });
     }
+    deleteCache(userIdToUnBlock)
     res.status(201).send({ success: true, message: "تم فك الحظر على المستخدم بنجاح" });
   } catch (err) {
     console.log(err);
@@ -162,8 +170,8 @@ const editUser = async (req: Request, res: Response) => {
 
 export {
   getUser,
+  editUser,
+  searchUser,
   blockUser,
   unBlockUser,
-  searchUser,
-  editUser,
 }

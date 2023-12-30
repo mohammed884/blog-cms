@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Like from "./model";
-import { pagination, countData } from "../../../helpers/aggregation";
+import pagination from "../../../helpers/pagination";
 /*
 spotted a bug
 there is no check if the request that is coming from the frontend is for the adding a like and i'm creating a bucket without checking that 
@@ -75,13 +75,8 @@ const getLikes = async (req: Request, res: Response) => {
 const getLikesCount = async (req: Request, res: Response) => {
     try {
         const articleId = req.params.articleId;
-        const matchQuery = { article: articleId };
-        const likesCount = await countData({
-            matchQuery,
-            Model: Like,
-            countArrayElements: "likes"
-        });
-        res.status(200).send({ success: true, count: likesCount.arrayElementsCount });
+        const count = Like.countDocuments({ article: articleId })
+        res.status(200).send({ success: true, count });
     } catch (err) {
         console.error(err);
         res.status(500).send({ success: false, message: "Internal server error" });

@@ -59,7 +59,7 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpt
             }
             if (commentAuthorId) {
                 req.commentAuthorId = commentAuthorId;
-            }
+            };
             next();
         } catch (error) {
             console.log(error);
@@ -95,7 +95,7 @@ const checkIfBlocked = async ({
             const cacheResult = checkCache({ _id: publisher.id }, userIdToCheck, "_id");
             if (cacheResult.isBlocked) {
                 return { isBlocked: true };
-            }
+            };
             isBlocked = checkBlockedList(publisher.blocked, userIdToCheck);
             if (isBlocked) {
                 setCache({

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import Article from "../model";
 import Comment from "./model";
 import { deleteNotification, sendNotification } from "../../notification/controller";
-import { countData, pagination } from "../../../helpers/aggregation";
+import pagination from "../../../helpers/pagination";
 const getComments = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
@@ -23,9 +23,8 @@ const getComments = async (req: Request, res: Response) => {
 const getCommentsCount = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
-    const matchQuery = { article: articleId };
-    const dataCount = await countData({ matchQuery, Model: Comment, countDocuments: true });
-    res.status(201).send({ success: true, count: dataCount.documentsCount });
+    const count = await Comment.countDocuments({ article: articleId });
+    res.status(201).send({ success: true, count, });
   } catch (err) {
     console.log(err);
   }
