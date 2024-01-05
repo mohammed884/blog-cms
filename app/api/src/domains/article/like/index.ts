@@ -4,7 +4,7 @@ import {
     getLikes,
     getLikesCount,
     likeArticle,
-
+    likeAnalysis,
 } from "./controller";
 import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
 import contentAccess from "../../../middleware/contentAccess";
@@ -18,15 +18,16 @@ router.get("/:articleId",
     getLikes
 );
 router.get("/count/:articleId", getLikesCount);
-router.patch("/article/:id",
+router.patch("/:id",
     isLoggedIn(true),
     isConfirmed(true),
     contentAccess({
         contentType: "add-like",
         dataHolder: "params",
-        contentIdField: "articleId",
+        contentIdField: "id",
         queryField: "_id"
     }),
     likeArticle,
 );
+router.get("/analysis/:articleId",isLoggedIn(true), likeAnalysis)
 export default router

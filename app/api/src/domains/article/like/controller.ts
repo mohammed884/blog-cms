@@ -1,40 +1,28 @@
 import { Request, Response } from "express";
+import Article from "../models/article";
 import Like from "./model";
 import pagination from "../../../helpers/pagination";
-/*
-spotted a bug
-there is no check if the request that is coming from the frontend is for the adding a like and i'm creating a bucket without checking that 
-there is a like in the previous buckets
-also i can't check if the user already liked the article from the bucket because i also have a $lt in the query
-----
-here it's tricky to check if the user already liked the article
-i need to check if the user already liked the article by making a check query and get the bucket
-first get a bucket that dosen't contain a user but in the same time i want it less than 50
-and if the bucket is 50 i want to add a new bucket
-and if the user exist i want to throw an error 
-then check if the bucket items is less than 50
-----
-check if the dosen't user exist in the buckets
-if the returned value is null then he exists therfore i need to throw an error
-then check if the bucket items is less than 50
-if it's i will add a new like 
-else i need to make a new bucket
-*/
+import { getDateYMD, formatDateToYMD, getMonthLength } from "../../../helpers/date";
 const likeArticle = async (req: Request, res: Response) => {
     try {
-
         const user = req.user;
         const articleId = req.params.id;
         const action = req.query.action;
         if (!action || !articleId) {
-            return res.status(401).send({ success: false, message: "الرجاء مراعاة المعطيات" })
-        }
+            return res.status(401).send({ success: false, message: "Please provide an action" })
+        };
+        const article = await Article.findById(articleId).select("publisher");
+        if (!article) {
+            return res.status(401).send({ success: false, message: "Article not found" })
+        };
         switch (action) {
             case "add":
                 await Like.create({
                     article: articleId,
+                    articlePublisher: article.publisher,
                     user: user._id,
-                })
+                    createdAt: formatDateToYMD(new Date(), "_")
+                });
                 res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
                 break;
             case "remove":
@@ -71,7 +59,7 @@ const getLikes = async (req: Request, res: Response) => {
         console.log(err);
         res.status(500).send({ success: false, message: "Internal server error" });
     }
-}
+};
 const getLikesCount = async (req: Request, res: Response) => {
     try {
         const articleId = req.params.articleId;
@@ -82,8 +70,101 @@ const getLikesCount = async (req: Request, res: Response) => {
         res.status(500).send({ success: false, message: "Internal server error" });
     }
 };
+const likeAnalysis = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        const articleId = req.params.articleId;
+        if (!articleId) {
+            return res
+                .status(401)
+                .send({ success: false, message: "Please provide article id" });
+        };
+        const article = await Article.findOne({articleId, publisher: user._id}).select("_id");
+        if (!article) {
+            return res
+                .status(401)
+                .send({ success: false, message: "Article not found" });
+        };
+        const date = String(req.query.date);
+        if (!date) {
+            return res
+                .status(401)
+                .send({ success: false, message: "Please provide date" });
+        };
+        const { year, month,day } = getDateYMD(new Date(date))
+        const monthLength = getMonthLength(year, month)
+        const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");
+        const pipeline = [
+            {
+                $match: {
+                    articlePublisher: user._id,
+                    article: articleId,
+                    createdAt: {
+                        $gte: dateList[0],
+                        $lte: dateList[2],
+                    }
+                }
+            },
+            {
+                $facet: {
+                    start: [
+                        {
+                            $match: {
+                                createdAt: dateList[0]
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                            }
+                        }
+                    ],
+                    mid: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gt: dateList[0],
+                                    $lte: dateList[1]
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                            }
+                        }
+                    ],
+                    last: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gt: dateList[1],
+                                    $lte: dateList[2],
+                                },
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                            }
+                        }
+                    ]
+                }
+            }
+        ];
+        const data = await Like.aggregate(pipeline)
+        res.status(201).send({ success: true, data });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ success: false, message: "Internal Server Error" });
+    }
+};
 export {
     likeArticle,
     getLikes,
-    getLikesCount
-}
+    getLikesCount,
+    likeAnalysis
+};

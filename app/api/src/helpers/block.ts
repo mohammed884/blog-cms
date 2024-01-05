@@ -3,9 +3,9 @@ interface ISearchQuery {
     _id?: string;
     username?: string;
 };
-const checkCache = (searchQuery: ISearchQuery, userIdToCheck: any, queryField: string) => {
-    let isBlocked: boolean;
-    const cachedBlockedFromList: any = getCache(String(userIdToCheck)) || [];
+const checkCache = (searchQuery: ISearchQuery, userIdToCheck: string, queryField: string) => {
+    let isBlocked: boolean;    
+    const cachedBlockedFromList: any = getCache(userIdToCheck) || [];
     isBlocked = cachedBlockedFromList?.some(u => u[queryField] === searchQuery[queryField]);
     return { isBlocked, cachedBlockedFromList }
 };

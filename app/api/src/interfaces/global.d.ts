@@ -1,5 +1,6 @@
 import { ObjectId } from "bson";
 export interface IUser {
+  id?:string;
   _id: ObjectId;
   username: string;
   email: string;
@@ -7,7 +8,10 @@ export interface IUser {
   gender: "male" | "female";
   birthdate: string;
   confirmed: boolean;
-  saved: Array<{ createdAt: Date; article: ObjectId }>;
+  saved: Array<{
+    createdAt: any;
+    article: ObjectId;
+  }>;
   save?: () => {};
   role: "user" | "admin" | "moderator";
   avatar?: string;
@@ -32,6 +36,7 @@ export interface IArticle {
   savedCount: number;
   cover?: string;
   save: () => {};
+  createdAt?: Date;
 }
 declare module 'express' {
   interface Request {

@@ -11,7 +11,7 @@ const Schema = new mongoose.Schema({
   publisher: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    index:true,
+    index: true,
     required: true,
   },
   content: {
@@ -21,9 +21,9 @@ const Schema = new mongoose.Schema({
   collaborators: {
     type: [
       {
-        _id:{
+        _id: {
           type: mongoose.Schema.Types.ObjectId,
-          auto:true,
+          auto: true,
         },
         collaborator: {
           type: mongoose.Schema.Types.ObjectId,
@@ -34,9 +34,9 @@ const Schema = new mongoose.Schema({
           type: Boolean,
           default: false,
         },
-        canDelete:{
-          type:Boolean,
-          default:false
+        canDelete: {
+          type: Boolean,
+          default: false
         },
         createdAt: {
           type: Date,
@@ -48,12 +48,12 @@ const Schema = new mongoose.Schema({
   topics: {
     type: [
       {
-        mainTopic:{
-          type:String,
-          required:true
+        mainTopic: {
+          type: String,
+          required: true
         },
-        subTopic:{
-          type:String,
+        subTopic: {
+          type: String,
         }
       },
     ],
@@ -65,15 +65,17 @@ const Schema = new mongoose.Schema({
   },
   cover: {
     type: String,
-    default:"",
+    default: "",
   },
   savedCount: {
     type: Number,
     default: 0,
   },
+  createdAt: {
+    type: Date,
+    required:true,
+  },
 });
-Schema.set("timestamps", true);
-
 type ArticleType = mongoose.InferSchemaType<typeof Schema>;
 const Article = mongoose.model<ArticleType>("Article", Schema);
 export default Article;

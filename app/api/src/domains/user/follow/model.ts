@@ -11,9 +11,12 @@ const Schema = new mongoose.Schema({
         ref: 'User',
         unique:true,
         required: true,
+    },
+    createdAt:{
+        type: Date,
+        required: true,
     }
 });
-Schema.set("timestamps", true)
 type FollowType = mongoose.InferSchemaType<typeof Schema>;
 const Follow = mongoose.model<FollowType>('Follow', Schema);
 export default Follow;

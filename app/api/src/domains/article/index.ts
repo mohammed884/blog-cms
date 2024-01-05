@@ -16,7 +16,7 @@ import contentAccess from "../../middleware/contentAccess";
 const router = Router();
 //articles functionality 
 router.get("/feed", isLoggedIn("_", true), getFeed);
-router.get("/search", isLoggedIn(true),searchArticles);
+router.get("/search", isLoggedIn(true), searchArticles);
 router.get("/publisher/:publisherId",
     userDataAccess({
         dataHolder: "params",
@@ -25,7 +25,15 @@ router.get("/publisher/:publisherId",
     }),
     getPublisherArticles,
 );
-router.get("/:id", getArticle);
+router.get("/:id",
+    contentAccess({
+        contentType: "get-article",
+        dataHolder: "params",
+        contentIdField: "id",
+        queryField: "_id"
+    }),
+    getArticle
+);
 router.post("/add",
     isLoggedIn(true),
     isConfirmed(true),

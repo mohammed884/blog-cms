@@ -1,20 +1,7 @@
-/*
-COLLABORATION CONTROLLER
-
-here we add the collaboration logic
-a route for adding a person to the article
-a route for the person to accept the adding request
-a route for the person to decline the adding request
----
-How collbrations are going to work
-first you need to add the person to the article collbrations list with a pending status.
-then if the user wants to be in that article he will accept else he will refuse it.
-if the user accept the request he will be allowed to edit.
-we will create a speical route for the accepting the request by editing that detail in the article collbrations list list
-*/
-import { Request,Response } from "express";
+import { Request, Response } from "express";
 import { deleteNotification, sendNotification } from "../../notification/controller";
-import Article from "../model";
+import Article from "../models/article";
+import { formatDateToYMD } from "../../../helpers/date";
 //send, cancle sending a collaboration
 const addCollaboration = async (req: Request, res: Response) => {
     try {
@@ -22,18 +9,25 @@ const addCollaboration = async (req: Request, res: Response) => {
         const { collaboratorId, articleId, canDelete } = req.body;
         if (String(user._id) === collaboratorId)
             return res.status(401).send({ success: false, message: "لا يمكنك التعاون مع نفسك" })
-        const article = await Article.findOneAndUpdate({ _id: articleId, publisher: user._id, "collaborators.collaborator": { $ne: collaboratorId } }, {
-            $push: {
-                collaborators: {
-                    collaborator: collaboratorId,
-                    canDelete: canDelete || false,
-                    createdAt: new Date(),
+        const article = await Article.findOneAndUpdate({
+            publisher: user._id,
+            _id: articleId,
+            "collaborators.collaborator": { $ne: collaboratorId }
+        },
+            {
+                $push: {
+                    collaborators: {
+                        collaborator: collaboratorId,
+                        canDelete: canDelete || false,
+                        createdAt: formatDateToYMD(new Date(), "_"),
+                    }
                 }
-            }
-        }, { new: true }).lean();
-        console.log(article);
-        if (!article)
+            },
+            { new: true }
+        ).lean();
+        if (!article) {
             return res.status(401).send({ success: false, message: "حدث خطا ما" })
+        }
         const notificationStatus = await sendNotification({
             receiver: collaboratorId,
             sender: user._id,
@@ -134,4 +128,4 @@ export {
     cancleCollaboration,
     acceptCollaboration,
     denyCollaboration,
-}
+};

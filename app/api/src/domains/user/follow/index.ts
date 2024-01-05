@@ -1,8 +1,12 @@
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
 import userDataAccess from "../../../middleware/userDataAccess"
-import { followActions, getFollowers, getFollowersCount, getFollowing, getFollowingCount } from "./controller";
+import { followActions, followersAnalysis, getFollowers, getFollowersCount, getFollowing, getFollowingCount } from "./controller";
 const router = Router();
+router.get("/followers/analysis",
+    isLoggedIn(true),
+    followersAnalysis
+);
 router.patch("/follow/:userId",
     isLoggedIn(true),
     isConfirmed(true),
@@ -22,11 +26,11 @@ router.get("/followers/:userId",
     getFollowers
 )
 router.get("/following/:userId",
-userDataAccess({
-    dataHolder: "params",
-    requestedUserInfoField: "userId",
-    queryField: "_id"
-}),
+    userDataAccess({
+        dataHolder: "params",
+        requestedUserInfoField: "userId",
+        queryField: "_id"
+    }),
     getFollowing
 )
 router.get("/count/followers/:userId",

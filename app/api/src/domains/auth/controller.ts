@@ -5,6 +5,7 @@ import { hash, compare } from "../../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../../validation/auth";
 import { sendMail } from "../../helpers/nodemailer";
 import { IRegisterBody, ILoginBody } from "../../interfaces/body";
+import { formatDateToYMD } from "../../helpers/date";
 const register = async (req: Request, res: Response) => {
   try {
     const body: IRegisterBody = req.body;
@@ -13,6 +14,7 @@ const register = async (req: Request, res: Response) => {
     const newUser = await User.create({
       ...body,
       password: hashedPassword,
+      createdAt: formatDateToYMD(new Date(), "_"),
     });
     const accessToken = signToken(newUser._id.toString());
     res.cookie("access_token", accessToken, { secure: true });
@@ -21,7 +23,7 @@ const register = async (req: Request, res: Response) => {
     switch (true) {
       case err.isJoi:
         const { message, context } = err.details[0];
-        return res.status(401).send({ succesfull: false, message, context });
+        return res.status(401).send({ success: false, message, context });
       case err.code === 11000 && err.keyPattern.email === 1:
         return res
           .status(401)
@@ -31,7 +33,9 @@ const register = async (req: Request, res: Response) => {
           .status(401)
           .send({ success: false, message: "هذا الاسم مستخدم من قبل" });
       default:
-        console.log(err);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal Server error" });
     }
   }
 };
@@ -40,34 +44,34 @@ const login = async (req: Request, res: Response) => {
     const body: ILoginBody = req.body;
     await loginSchema.validateAsync(body);
     const user = await User.findOne({ email: body.email });
-    
+
     if (!user)
       return res.status(401).send({
-        succesfull: false,
+        success: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
 
-  const comparePasswords = await compare(body.password, user.password);
+    const comparePasswords = await compare(body.password, user.password);
     if (!comparePasswords)
       return res.status(401).send({
-        succesfull: false,
+        success: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
-    const accessToken = signToken(user._id.toString());
+    const accessToken = signToken(String(user._id));
     res.cookie("access_token", accessToken, { secure: true, maxAge: 6 * 30 * 24 * 60 * 60 * 1000 });
     res
       .status(201)
-      .send({ succesfull: true, message: "تم تسجيل الدخول بنجاح" });
+      .send({ success: true, message: "تم تسجيل الدخول بنجاح" });
   } catch (err) {
     console.log(err);
   }
 };
 const logout = async (req: Request, res: Response) => {
   try {
-    res.cookie("access_token", "");
-    res
-      .status(201)
-      .send({ succesfull: true, message: "تم تسجيل الخروج بنجاح" });
+    res.
+      cookie("access_token", "").
+      status(200).
+      send({ success: true, message: "تم تسجيل الخروج بنجاح" });
   } catch (err) {
     console.log(err);
   }
@@ -75,7 +79,7 @@ const logout = async (req: Request, res: Response) => {
 const sendVerifyEmail = (req: Request, res: Response) => {
   try {
     const user = req.user;
-    const token = signToken(user.email, {expiresIn:"5m"});
+    const token = signToken(user.email, { expiresIn: "5m" });
     const html = `
        <div>
            <h1>تاكيد الايميل</h1>
@@ -102,10 +106,10 @@ const verifyAccount = async (req: Request, res: Response) => {
         confirmed: true
       }
     });
-    res.status(201).send({success:true,message:"تم تاكيد الحساب"})
+    res.status(201).send({ success: true, message: "تم تاكيد الحساب" })
   } catch (err) {
     console.log(err);
-    res.status(500).send({success:true,message:"internal server error probarly"})
+    res.status(500).send({ success: true, message: "internal server error probarly" })
   }
 };
 const sendResetPasswordEmail = (req: Request, res: Response) => {
@@ -124,4 +128,11 @@ const sendResetPasswordEmail = (req: Request, res: Response) => {
     console.log(err);
   }
 };
-export { register, login, logout, sendVerifyEmail, sendResetPasswordEmail, verifyAccount };
+export {
+  register,
+  login,
+  logout,
+  sendVerifyEmail,
+  sendResetPasswordEmail,
+  verifyAccount
+};

@@ -2,24 +2,7 @@ import { Request, Response } from "express";
 import pagination from "../../helpers/pagination";
 import Notification from "./model";
 import { Types } from "mongoose";
-/*
-1- send Notifications
-DATA TO SHOW
-A-it's a comment
-article image, a message, sender (username & image)
-B-it's a reply
-article image, a message, sender (username & image)
-C-it's a collaboration
-article image, a message, sender (username & image)
-NEEDS 
-receiver, sender, message, article, Notifications retrieveId field, type
----
-2-delete Notifications
-NEEDS
-retrieveId,receiver
-first we use the receiver id to minimize the documents 
-then we use the retrieveId to delete it
-*/
+import { formatDateToYMD } from "../../helpers/date";
 interface ISendNotifications {
     receiver: string;
     sender: Types.ObjectId;
@@ -39,7 +22,6 @@ const getNotifications = async (req: Request, res: Response) => {
             receiver: user._id
         };
         const result = await pagination({ matchQuery, page, Model: Notification });
-        //provide unseen count
         res.status(401).send({ success: true, notifications: result.data });
     } catch (err) {
         console.log(err);
@@ -59,7 +41,7 @@ const getUnSeenNotificationsCount = async (req: Request, res: Response) => {
         res.status(401).send({ success: false, message: "Internal server error" });
     }
 }
-const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications) => {
+const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications): Promise<{ success: boolean, err?: string }> => {
     try {
         if (receiver === String(sender)) return {
             success: true,
@@ -75,7 +57,7 @@ const sendNotification = async ({ receiver, sender, article, retrieveId, type }:
                     article,
                     retrieveId,
                     type,
-                    createdAt: new Date(),
+                    createdAt: formatDateToYMD(new Date(), "_"),
                 }
             },
             $inc: {
@@ -83,6 +65,7 @@ const sendNotification = async ({ receiver, sender, article, retrieveId, type }:
             }
         });
         if (updateStatus.matchedCount === 0) {
+            const createdAt = formatDateToYMD(new Date(), "_")
             Notification.create({
                 receiver,
                 notifications: {
@@ -90,20 +73,18 @@ const sendNotification = async ({ receiver, sender, article, retrieveId, type }:
                     article,
                     retrieveId,
                     type,
-                    createdAt: new Date(),
+                    createdAt
                 },
-                notificationsCount: 1
+                notificationsCount: 1,
+                createdAt
             });
         }
-        return {
-            success: true,
-            err: "Notifications pushed"
-        };
+        return { success: true };
     } catch (err) {
         console.log(err);
         return {
             success: false,
-            message: err.message
+            err: err.message
         };
     }
 };

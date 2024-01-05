@@ -2,9 +2,10 @@ import User from "./model";
 import { Request, Response } from "express";
 import { uploadSingle } from "../../helpers/fileopreations";
 import pagination from "../../helpers/pagination";
-import Article from "../article/model";
+import Article from "../article/models/article";
 import Topic from "../topic/model";
 import { setCache, deleteCache } from "../../helpers/node-cache";
+import { formatDateToYMD } from "../../helpers/date";
 const getUser = async (req: Request, res: Response) => {
   try {
     const user = req.user || await User.findOne({ username: req.params.username }).lean();
@@ -22,14 +23,13 @@ const blockUser = async (req: Request, res: Response) => {
         .status(401)
         .send({ success: false, message: "لا يمكنك حظر نفسك" });
     }
-    // Check && Add the user ID to the blocked list
     const blockStatus = await User.updateOne(
       { _id: user._id, "blocked.user": { $ne: userIdToBlock } },
       {
         $push: {
           blocked: {
             user: userIdToBlock,
-            createdAt: new Date(),
+            createdAt: formatDateToYMD(new Date(), "_"),
           }
         }
       }
@@ -167,7 +167,6 @@ const editUser = async (req: Request, res: Response) => {
     }
   }
 };
-
 export {
   getUser,
   editUser,

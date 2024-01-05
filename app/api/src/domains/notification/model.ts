@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
     receiver: {
         type: String,
-        index:true,
-        required:true,
+        index: true,
+        required: true,
     },
     notifications: {
         type: [
@@ -28,7 +28,14 @@ const Schema = new mongoose.Schema({
                 },
                 type: {
                     type: String,
-                    enum: ["follow","comment", "reply", "collaboration-request","collaboration-accept","collaboration-deny"]
+                    enum: [
+                        "follow",
+                        "comment",
+                        "reply",
+                        "collaboration-request",
+                        "collaboration-accept",
+                        "collaboration-deny"
+                    ]
                 },
                 createdAt: {
                     type: Date,
@@ -41,8 +48,11 @@ const Schema = new mongoose.Schema({
         type: Number,
         default: 1
     },
+    createdAt: {
+        type: Date,
+        required: true
+    }
 });
-Schema.set("timestamps", true);
 type NotificationType = mongoose.InferSchemaType<typeof Schema>;
 const Notification = mongoose.model<NotificationType>('Notification', Schema);
 export default Notification;

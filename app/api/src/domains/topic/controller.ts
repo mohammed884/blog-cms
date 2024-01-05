@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import Topic from "./model";
-import Article from "../article/model";
+import Article from "../article/models/article";
 import topicSchema from "../../validation/topic";
 import User from "../user/model";
+import { formatDateToYMD } from "../../helpers/date";
 const getTopics = async (req: Request, res: Response) => {
   try {
     const page = req.query.page || 1;
@@ -34,6 +35,7 @@ const addTopic = async (req: Request, res: Response) => {
     await Topic.create({
       title,
       subTopics,
+      createdAt:formatDateToYMD(new Date(),"_"),
     });
     res.status(201).send({ success: true, message: "تم الاضافة" });
   } catch (err) {

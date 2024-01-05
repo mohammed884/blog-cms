@@ -6,46 +6,22 @@ const Schema = new mongoose.Schema({
         required: true,
         index: true,
     },
+    articlePublisher: {
+        type: String,
+        required: true,
+        index: true,
+    },
     user:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-        unique:true,
-        // indexed:true,
+        // unique:true,
+    },
+    createdAt:{
+        type: Date,
+        required: true,
     },
 });
-// const Schema = new mongoose.Schema({
-//     article: {
-//         type: String,
-//         required: true,
-//         index: true,
-//     },
-//     likes: {
-//         type: [
-//             {
-//                 _id: {
-//                     type: mongoose.Schema.Types.ObjectId,
-//                     auto: true
-//                 },
-//                 user: {
-//                     type: mongoose.Schema.Types.ObjectId,
-//                     ref: 'User',
-//                     required: true,
-//                     unique:true,
-//                 },
-//                 createdAt: {
-//                     type: Date,
-//                     required: true
-//                 }
-//             }
-//         ],
-//     },
-//     likesCount: {
-//         type: Number,
-//         default: 1
-//     },
-// });
-Schema.set("timestamps", true);
 type LikeType = mongoose.InferSchemaType<typeof Schema>;
 const Like = mongoose.model<LikeType>('Like', Schema);
 export default Like;

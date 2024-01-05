@@ -29,6 +29,6 @@ export const verifyToken = (token: string): verifyInterface => {
     }
 };
 export const getUserFromToken = async (token: string) => {
-    const validation = verifyToken(token);
+    const validation = verifyToken(token);    
     return await User.findById(validation.decoded);
 };

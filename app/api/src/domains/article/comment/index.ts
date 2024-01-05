@@ -5,6 +5,7 @@ import {
   addReply,
   deleteReply,
   getComments,
+  commentsAnalysis,
 } from "./controller";
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
@@ -20,6 +21,7 @@ router.get("/:articleId",
   }),
   getComments
 );
+router.get("/analysis/:articleId", isLoggedIn(true),commentsAnalysis);
 router.patch("/add/:articleId",
   isLoggedIn(true),
   isConfirmed(true),

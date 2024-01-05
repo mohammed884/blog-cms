@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { getUserFromToken } from "../helpers/jwt";
- 
+
 const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = false) => {
-  try {
-    return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
       const token = req.cookies.access_token;
       const user = await getUserFromToken(token);
       if (setStatusOnly) {
@@ -28,10 +28,11 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
       if (!user && !isAuthRequired) {
         return next();
       }
-    };
-  } catch (err) {
-    console.log(err);
-  }
+    } catch (err) {
+      console.log(err);
+      res.status(500).send({ success: false, message: "Internal server error" });
+    }
+  };
 };
 const isConfirmed = (expectedStatus: boolean) => {
   try {

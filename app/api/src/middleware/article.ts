@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import Article from "../domains/article/model";
+import Article from "../domains/article/models/article";
 export const isOwner = (expectedStatus: boolean, expectedOwner?: string) => {
     try {
         return async (req: Request, res: Response, next: NextFunction) => {

@@ -37,50 +37,52 @@ const isBlocked = ({
         try {
             let requestSender = req.user || await getUserFromToken(req.cookies.access_token);
             if (!requestSender) return next();
-            
-            const requestedUserInfo = getRequestedUserInfo(req, dataHolder, requestedUserInfoField);
-            const searchQuery = buildSearchQuery(queryField, requestedUserInfoField, requestedUserInfo);
 
+            const requestReciverIdentifier = getRequestReciverInfo(req, dataHolder, requestedUserInfoField);
+            const searchQuery = buildSearchQuery(queryField, requestedUserInfoField, requestReciverIdentifier);
             if (!isValidSearchQuery(searchQuery)) {
                 return res.status(401).json({ success: false, message: "User not found" });
             }
             if (isSameUser(searchQuery, requestSender)) {
                 return next();
             }
-
             const isBlocked = await checkIfBlocked(searchQuery, requestSender, queryField);
             if (isBlocked) {
                 return res.status(401).json({ success: false, isBlocked: true, message: "You are blocked from this content" });
             };
             next();
         } catch (err) {
-            res.status(500).json({ success: false, message: "Internal server error" });
+            res.status(500).json({ success: false, message: "Internal server error ?" });
         }
     }
 };
 
 const checkIfBlocked = async (searchQuery: ISearchQuery, requestSender: any, queryField: string) => {
     let isBlocked = false;
-    const cacheChecking = checkCache(searchQuery, requestSender._id, queryField);
+    const requestReciverInfo = searchQuery[queryField];
+    if (requestSender.blocked.some(u => String(u[queryField]) === requestReciverInfo)) {        
+        return true;
+    }
+    const cacheChecking = checkCache(searchQuery, requestSender.id,queryField);
     isBlocked = cacheChecking.isBlocked
     if (isBlocked) return true;
-    const requesteReciver = await findRequestedUser(searchQuery);
+    const requestReciver = await findRequestReciver(searchQuery);
 
-    if (!requesteReciver) return false;
-    isBlocked = requesteReciver.blocked.some(u => String(u.user) === String(requestSender._id));
+    if (!requestReciver) return false;
+    isBlocked = requestReciver.blocked.some(u => String(u.user) === String(requestSender._id))
     if (isBlocked) {
         setCache({
             key: String(requestSender._id),
-            value: requesteReciver.blocked,
+            value: requestReciver.blocked,
             ttl: "30-days"
         });
     }
     return isBlocked;
 };
-const getRequestedUserInfo = (req: Request, holder: string, field: string) => {
+const getRequestReciverInfo = (req: Request, holder: string, field: string) => {
     return holder === "params" ? req.params[field] : req.body[field];
 };
-const findRequestedUser = async (searchQuery: ISearchQuery) => {
+const findRequestReciver = async (searchQuery: ISearchQuery) => {
     return searchQuery._id ?
         await User.findById(searchQuery._id).lean() :
         await User.findOne({ username: searchQuery.username }).lean();

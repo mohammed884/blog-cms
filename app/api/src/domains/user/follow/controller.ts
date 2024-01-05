@@ -3,24 +3,34 @@ import { sendNotification, deleteNotification } from "../../notification/control
 import Follow from "./model";
 import pagination from "../../../helpers/pagination";
 import { ObjectId } from "bson";
+import { getDateYMD, formatDateToYMD } from "../../../helpers/date";
+import User from "../model";
 const followActions = async (req: Request, res: Response) => {
     try {
         const user = req.user;
-        const userToOpreateOn = req.params.userId;
+        const userIdToOpreateOn = req.params.userId;
         const action = req.query.action;
-        if (String(user._id) === userToOpreateOn) {
+        if (!action || !userIdToOpreateOn) {
+            return res.status(401).send({ success: false, message: "يرجى التاكد من المعطيات" })
+        }
+        if (String(user._id) === userIdToOpreateOn) {
             return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
+        }
+        const userToOpreateOn = await User.findById(userIdToOpreateOn);
+        if (!userToOpreateOn) {
+            return res.status(401).send({ success: false, message: "المستخدم غير موجود" })
         }
         switch (action) {
             case "follow":
                 const createFollow = await Follow.create(
                     {
                         user: userToOpreateOn,
-                        followedBy: user._id
+                        followedBy: user._id,
+                        createdAt: formatDateToYMD(new Date(), "_"),
                     }
                 );
                 const notificationStatus = await sendNotification({
-                    receiver: userToOpreateOn,
+                    receiver: userIdToOpreateOn,
                     sender: user._id,
                     type: "follow",
                     retrieveId: String(createFollow._id)
@@ -41,7 +51,7 @@ const followActions = async (req: Request, res: Response) => {
                     return res.status(401).send({ success: false, message: "لم يتم الغاء المتابعة" })
                 }
                 const notificationDeletion = await deleteNotification({
-                    receiver: userToOpreateOn,
+                    receiver: userIdToOpreateOn,
                     retrieveId: deleteStatus._id
                 });
                 if (!notificationDeletion.success) {
@@ -87,7 +97,7 @@ const getFollowing = async (req: Request, res: Response) => {
         res.status(500).send({ success: false, message: "Internal server error" })
 
     }
-}
+};
 const getFollowers = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
@@ -105,7 +115,7 @@ const getFollowers = async (req: Request, res: Response) => {
                     username: 1,
                     avatar: 1
                 },
-                as: "followedByInfo",
+                as: "followedBy",
             },
             Model: Follow,
         })
@@ -136,10 +146,84 @@ const getFollowingCount = async (req: Request, res: Response) => {
         res.status(500).send({ success: false, message: "Internal server error" })
     }
 };
+const followersAnalysis = async (req: Request, res: Response) => {
+    try {
+        const user = req.user;
+        const date = new Date();
+        const { year, month, day } = getDateYMD(date);
+        const dateList = formatDateToYMD(date, [1, 15, day], "DATE");
+        const pipeline = [
+            {
+                $match: {
+                    user: user._id,
+                    createdAt: {
+                        $gte: dateList[0],
+                        $lte: dateList[1]
+                    }
+                }
+            },
+            {
+                $facet: {
+                    start: [
+                        {
+                            $match: {
+                                createdAt: dateList[0],
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ],
+                    mid: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gt: dateList[0],
+                                    $lte: dateList[1]
+                                }
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ],
+                    last: [
+                        {
+                            $match: {
+                                createdAt: {
+                                    $gt: dateList[1],
+                                    $lte: dateList[2]
+                                }
+                            },
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ],
+                }
+            }
+        ]
+        const data = await Follow.aggregate(pipeline)
+        res.status(201).send({ success: true, data })
+    } catch (err) {
+        console.log(err);
+        res.status(500).send({ success: false, message: "Internal server error" })
+    }
+};
 export {
     getFollowers,
     getFollowersCount,
     getFollowing,
     getFollowingCount,
     followActions,
-}
+    followersAnalysis,
+};

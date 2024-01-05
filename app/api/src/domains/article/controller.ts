@@ -1,18 +1,18 @@
-import Article from "./model";
+import Article from "./models/article";
+import Reader from "./models/reader";
 import Like from "./like/model";
 import Comment from "./comment/model";
 import { Response, Request } from "express";
 import { addArticleSchema } from "../../validation/article";
-import { getCache, setCache } from "../../helpers/node-cache";
 import { ObjectId } from "bson";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
-import { checkBlockedList } from "../../helpers/block";
 import pagination from "../../helpers/pagination";
+import { getDateYMD, getMonthLength, formatDateToYMD } from "../../helpers/date";
 interface IAddPostBody {
   title: string;
   content: object;
   topics: [];
-}
+};
 const getFeed = async (req: Request, res: Response) => {
   try {
     //test getFeed option
@@ -74,36 +74,11 @@ const getPublisherArticlesCount = async (req: Request, res: Response) => {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal Server Error" });
   }
-}
+};
 const getArticle = async (req: Request, res: Response) => {
   try {
-    const articleId = req.params.id;
-    const currUser = req.user;
-    console.log(currUser);
-
-    if (!articleId)
-      return res.status(401).send({ message: "لم يتم العثور على مقالة" });
-
-    const article = await Article.findById({ _id: articleId }).populate("publisher", "username avatar blocked");
-    if (!article)
-      return res
-        .status(401)
-        .send({ success: false, message: "لم يتم العثور على هذه المقالة" });
-    const publisher: any = article.publisher;
-
-    if (currUser && currUser._id !== article.publisher._id) {
-      const isBlocked = checkBlockedList(publisher.blocked, String(currUser._id));
-      if (isBlocked) {
-        const cachedBlockedFromList: any = getCache(String(currUser._id)) || [];
-        setCache({
-          key: String(currUser._id),
-          value: [...cachedBlockedFromList, { _id: publisher._id, username: publisher.username }],
-          ttl: "30-days"
-        });
-        return res.status(401).send({ success: false, isBlocked: true, message: "لقد تم حظرك من هذه المقالة" });
-      }
-    }
-    res.status(201).send({ success: true, article, publisher });
+    const article = req.article;
+    res.status(201).send({ success: true, article });
   } catch (err) {
     console.log(err);
   }
@@ -168,6 +143,7 @@ const addArticle = async (req: Request, res: Response) => {
       publisher: req.user._id,
       estimatedReadTime: "5 mins",
       cover: filePath,
+      createdAt: formatDateToYMD(new Date(), "_")
     });
     res.status(201).send({ success: true, article, message: "تم نشر المقالة" });
   } catch (err) {
@@ -227,7 +203,7 @@ const saveArticle = async (req: Request, res: Response) => {
         .status(201)
         .send({ success: true, message: "تم الازالة من المحفوظة" });
     } else {
-      user.saved.push({ article: new ObjectId(articleId), createdAt: new Date() });
+      user.saved.push({ article: new ObjectId(articleId), createdAt: formatDateToYMD(new Date(), "_") });
       article.savedCount++;
       await article.save();
       await user.save();
@@ -265,6 +241,129 @@ const deleteArticle = async (req: Request, res: Response) => {
     res.status(500).send({ success: false, message: "Internal Server error" });
   }
 };
+const addReader = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const articleId = req.params.articleId;
+    const readTime = req.body.readTime;
+    if (!articleId) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Please provide article id" });
+    };
+    if (!readTime) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Please provide read time" });
+    }
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Article not found" });
+    }
+    await Reader.create({
+      article: articleId,
+      articlePublisher: article.publisher,
+      user: user._id,
+      readTime,
+      createdAt: formatDateToYMD(new Date(), "_"),
+    });
+    res.status(201).send({ success: true, message: "Added successfully" });
+  } catch (err) {
+    console.log(err);
+    if (err.code === 11000) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Reader Already added" });
+    }
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+};
+const readersAnalysis = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const articleId = req.params.articleId;
+    if (!articleId) {
+      return res
+        .status(401)
+        .send({ success: false, message: "Please provide article id" });
+    }
+    const date = req.params.date;
+    const { year, month } = getDateYMD(new Date(date))
+    const monthLength = getMonthLength(year, month);
+    const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");
+    const pipeline = [
+      {
+        $match: {
+          articlePublisher: user._id,
+          article: articleId,
+          createdAt: {
+            $gte: dateList[0],
+            $lte: dateList[2],
+          }
+        }
+      },
+      {
+        $facet: {
+          start: [
+            {
+              $match: {
+                createdAt: dateList[0]
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalReadTime: { $sum: "$readTime" }
+              }
+            }
+          ],
+          mid: [
+            {
+              $match: {
+                createdAt: {
+                  $gt: dateList[0],
+                  $lte: dateList[1]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalReadTime: { $sum: "$readTime" }
+              }
+            }
+          ],
+          last: [
+            {
+              $match: {
+                createdAt: {
+                  $gt: dateList[1],
+                  $lte: dateList[2],
+                },
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalReadTime: { $sum: "$readTime" }
+              }
+            }
+          ]
+        }
+      }
+    ]
+    const data = await Reader.aggregate(pipeline)
+    res.status(201).send({ success: true, data });
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ success: false, message: "Internal Server Error" });
+  };
+};
 export {
   getFeed,
   getArticle,
@@ -275,4 +374,6 @@ export {
   saveArticle,
   getPublisherArticles,
   getPublisherArticlesCount,
+  addReader,
+  readersAnalysis,
 };

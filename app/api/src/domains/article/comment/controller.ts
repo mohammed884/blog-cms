@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
-import Article from "../model";
+import Article from "../models/article";
 import Comment from "./model";
 import { deleteNotification, sendNotification } from "../../notification/controller";
 import pagination from "../../../helpers/pagination";
+import { getDateYMD, formatDateToYMD } from "../../../helpers/date";
 const getComments = async (req: Request, res: Response) => {
   try {
     const articleId = req.params.articleId;
@@ -55,9 +56,9 @@ const addComment = async (req: Request, res: Response) => {
           comments: {
             text,
             author: user._id,
-            createdAt: new Date(),
             replies: [],
             likes: [],
+            createdAt: formatDateToYMD(new Date(), "_"),
           },
         },
         $inc: {
@@ -71,18 +72,24 @@ const addComment = async (req: Request, res: Response) => {
     if (updateCommentBucket) {
       comments = updateCommentBucket.comments;
     } else {
+      const article = await Article.findById(articleId).select("publisher");
+      if (!article) {
+        return res.status(401).send({ success: false, message: "Article not found" })
+      };
       const commentBucket = await Comment.create({
         article: articleId,
+        articlePublisher: article.publisher,
         comments: [
           {
             text,
             author: user._id,
             replies: [],
             likes: [],
-            createdAt: new Date(),
+            createdAt: formatDateToYMD(new Date(), "_"),
           },
         ],
         commentsCount: 1,
+        createdAt: formatDateToYMD(new Date(), "_"),
       });
       comments = commentBucket.comments;
     };
@@ -224,14 +231,14 @@ const addReply = async (req: Request, res: Response) => {
           "comments.$.replies": {
             author: user._id,
             text,
-            createdAt: new Date(),
+            createdAt: formatDateToYMD(new Date(), "_"),
           },
         },
-      }, {new: true}).lean();
+      }, { new: true }).lean();
     //et the comment from the bucket then get the fucking replies list 
     if (!updateStatus)
       return res.status(401).send({ success: false, message: "حدث خطا ما" });
-    const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;    
+    const replies = updateStatus.comments.find(comment => comment._id == commentId).replies;
     const notificationStatus = await sendNotification({
       receiver: commentAuthorId,
       sender: user._id,
@@ -240,7 +247,7 @@ const addReply = async (req: Request, res: Response) => {
       type: "reply"
     });
     if (!notificationStatus.success) {
-      return res.status(401).send({ success: false, message: notificationStatus.message });
+      return res.status(401).send({ success: false, message: notificationStatus.err });
     }
     res.status(201).send({ success: true, message: "تم اضافة الرد" });
   } catch (err) {
@@ -276,6 +283,89 @@ const deleteReply = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
+const commentsAnalysis = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const articleId = req.params.articleId;
+    if (!articleId) {
+      return res.status(401).send({ success: false, message: "Please Provide the article id" });
+    }
+    const date = new Date(String(req.query.date));
+    if (!date) {
+      return res.status(401).send({ success: false, message: "Please Provide the date" });
+    }
+    const { year, month } = getDateYMD(new Date(date));
+    const monthLength = new Date(year, month + 1, 0).getDate();    
+    const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");    
+    //i need to unwind the data to get the comments count      
+    const pipeline = [
+      {
+        $match: {
+          articlePublisher: String(user._id),
+          article: articleId,
+          createdAt: {
+            $gte: dateList[0],
+            $lte: dateList[2],
+          }
+        }
+      },
+      { $unwind: "$comments" },
+      {
+        $facet: {
+          start: [
+            {
+              $match: {
+                "comments.createdAt": dateList[0]
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              }
+            }
+          ],
+          mid: [
+            {
+              $match: {
+                "comments.createdAt": {
+                  $gt: dateList[0],
+                  $lte: dateList[1]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              }
+            }
+          ],
+          last: [
+            {
+              $match: {
+                "comments.createdAt": {
+                  $gt: dateList[1],
+                  $lte: dateList[2]
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+              }
+            }
+          ]
+        }
+      }
+    ];
+    const data = await Comment.aggregate(pipeline);
+    res.status(201).send({ success: true, data });
+  } catch (err) {
+    console.log(err);
+  };
+}
 export {
   getComments,
   getCommentsCount,
@@ -283,5 +373,6 @@ export {
   deleteComment,
   likeComment,
   deleteReply,
-  addReply
+  addReply,
+  commentsAnalysis,
 };

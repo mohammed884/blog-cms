@@ -3,16 +3,21 @@ import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
   //if you add the article publisher you can do content checking with ease
   article: {
-    type:String,
+    type: String,
     required: true,
-    index:true,
+    index: true,
+  },
+  articlePublisher: {
+    type: String,
+    required: true,
+    index: true,
   },
   comments: {
     type: [
       {
-        _id:{
+        _id: {
           type: mongoose.Schema.Types.ObjectId,
-          auto:true
+          auto: true
         },
         author: {
           type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +39,7 @@ const Schema = new mongoose.Schema({
             {
               _id: {
                 type: mongoose.Schema.Types.ObjectId,
-                auto:true
+                auto: true
               },
               author: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
               text: { type: String, required: true },
@@ -52,10 +57,13 @@ const Schema = new mongoose.Schema({
   commentsCount: {
     type: Number,
     default: 0,
-    max:5,
+    max: 5,
   },
+  createdAt: {
+    type: Date,
+    required: true,
+  }
 });
-Schema.set("timestamps", true);
 type CommentType = mongoose.InferSchemaType<typeof Schema>;
 
 const Comment = mongoose.model<CommentType>("Comment", Schema);

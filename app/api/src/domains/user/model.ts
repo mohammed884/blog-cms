@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
+  id:{
+    type:String,
+  },
   username: {
     type: String,
     unique: true,
@@ -111,9 +114,12 @@ const Schema = new mongoose.Schema({
       }
     ],
     default: [],
+  },
+  createdAt: {
+    type: Date,
+    required:true,
   }
 });
-Schema.set("timestamps", true);
 Schema.index({ email: 1 });
 Schema.index({ username: 1 });
 type UserType = mongoose.InferSchemaType<typeof Schema>;
