@@ -29,6 +29,7 @@ export interface IUser {
 export interface IArticle {
   _id: ObjectId;
   title: string;
+  subTitle:string;
   publisher: ObjectId;
   content: object;
   topics: Array<{ mainTopic: string; subTopic?: string }>;

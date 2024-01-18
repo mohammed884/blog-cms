@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { editUser, getUser, searchUser, blockUser, unBlockUser } from "./controller";
+import { getProfile, getUser, editUser, searchUser, blockUser, unBlockUser } from "./controller";
 import { isConfirmed, isLoggedIn } from "../../middleware/auth";
 import userDataAccess from "../../middleware/userDataAccess";
 const router = Router();
+router.get("/profile", isLoggedIn(true), getProfile);
 router.get("/:username",
     userDataAccess({ dataHolder: "params", requestedUserInfoField: "username" }),
     getUser,

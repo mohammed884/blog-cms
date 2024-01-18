@@ -15,7 +15,6 @@ import userRouter from "./domains/user";
 import followRouter from "./domains/user/follow";
 import fileUpload from "express-fileupload";
 import { IUser, IArticle } from "./interfaces/global";
-import { formatDateToYMD } from "./helpers/date";
 const app = express();
 // coonect to database
 mongoose.set("strictQuery", true);
@@ -26,7 +25,6 @@ mongoose.connection.on("connection", () =>
 mongoose.connection.on("error", (e: Error) => console.log(e));
 // applay middlewares
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
-app.set('trust proxy', true);
 app.use(compression());
 app.use(express.json());
 app.use(fileUpload({
@@ -51,8 +49,9 @@ app.use("/article/comment", commentRouter);
 app.use("/article/like", likeRouter);
 app.use("/article/collaboration", collaborationRouter);
 app.use("/topics", topicsRouter);
-// console.log(formatDateToYMD(new Date(), [1,4,15,22,30], "DATE"));
 
+// console.log(formatDateToYMD(new Date(), "_"));
+//
 // listen
 app.listen(process.env.PORT, () => {
   console.log("Server is running on port: " + process.env.PORT);

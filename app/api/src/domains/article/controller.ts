@@ -1,17 +1,90 @@
+import { Response, Request } from "express";
 import Article from "./models/article";
 import Reader from "./models/reader";
 import Like from "./like/model";
 import Comment from "./comment/model";
-import { Response, Request } from "express";
-import { addArticleSchema } from "../../validation/article";
+import { PipelineStage } from "mongoose";
 import { ObjectId } from "bson";
+import { addArticleSchema } from "../../validation/article";
 import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 import pagination from "../../helpers/pagination";
 import { getDateYMD, getMonthLength, formatDateToYMD } from "../../helpers/date";
+import dayjs from "dayjs";
 interface IAddPostBody {
   title: string;
   content: object;
   topics: [];
+};
+const getTopArticles = async (req: Request, res: Response) => {
+  try {
+    // get top 6 articles and cache it
+    const startOfTheWeek = new Date(dayjs().startOf("week").add(1, "day").format("YYYY-MM-DD"));
+    const endOfTheWeek = new Date(dayjs().endOf("week").format("YYYY-MM-DD"));
+    const likePipeline: PipelineStage[] = [
+      {
+        $match: {
+          createdAt: {
+            $gte: startOfTheWeek,
+            $lte: endOfTheWeek,
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$article",
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: {
+          count: -1,
+        }
+      },
+      {
+        $limit: 10
+      }
+    ];
+    const ids = await Like.aggregate(likePipeline);
+    const articleIds = ids.map(id => new ObjectId(id._id));
+    const articlePipeline: PipelineStage[] = [
+      {
+        $match: {
+          _id: {
+            $in: articleIds
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "publisher",
+          foreignField: "_id",
+          as: "publisher",
+          pipeline: [
+            {
+              $project: {
+                username: 1,
+                avatar: 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          createdAt: 1,
+          publisher: 1,
+          readTime: 1,
+        }
+      }
+    ];
+    const articles = await Article.aggregate(articlePipeline);
+    res.status(201).send({ success: true, articles });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Internal server error" });
+  }
 };
 const getFeed = async (req: Request, res: Response) => {
   try {
@@ -77,8 +150,36 @@ const getPublisherArticlesCount = async (req: Request, res: Response) => {
 };
 const getArticle = async (req: Request, res: Response) => {
   try {
-    const article = req.article;
-    res.status(201).send({ success: true, article });
+    console.log(req.params.id);
+    const pipeline = [
+      {
+        $match: {
+          _id: new ObjectId(req.params.id)
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "publisher",
+          foreignField: "_id",
+          as: "publisher",
+          pipeline: [
+            {
+              $project: {
+                username: 1,
+                avatar: 1
+              }
+            },
+          ]
+        }
+      }
+    ]
+    const article = req.article
+      ||
+      await Article.aggregate(pipeline);
+    console.log(article);
+
+    res.status(201).send({ success: true, article: article[0] });
   } catch (err) {
     console.log(err);
   }
@@ -136,8 +237,7 @@ const addArticle = async (req: Request, res: Response) => {
       const uploadStatus = uploadSingle(req.files.cover);
       if (!uploadStatus.success) return res.status(401).send({ success: false, message: uploadStatus.err });
       var filePath = uploadStatus.path || "";
-    }
-
+    };
     const article = await Article.create({
       ...body,
       publisher: req.user._id,
@@ -159,10 +259,11 @@ const addArticle = async (req: Request, res: Response) => {
 const editArticle = async (req: Request, res: Response) => {
   try {
     //edit need work to be done here
-    const { title, content, topics } = req.body;
+    const { title, subTitle, content, topics } = req.body;
     const article = req.article;
     const files = req.files;
     if (title && title !== article.title) article.title = title;
+    if (subTitle && subTitle !== article.subTitle) article.subTitle = subTitle;
     if (content && JSON.stringify(content) !== JSON.stringify(article.content)) article.content = content;
     if (topics && topics.toString() !== article.topics.toString()) article.topics = topics;
     if (files && files.cover) {
@@ -365,6 +466,7 @@ const readersAnalysis = async (req: Request, res: Response) => {
   };
 };
 export {
+  getTopArticles,
   getFeed,
   getArticle,
   searchArticles,

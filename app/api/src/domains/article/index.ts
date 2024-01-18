@@ -1,12 +1,13 @@
 import {
-    addArticle,
-    getArticle,
     getFeed,
+    getTopArticles,
+    getArticle,
+    getPublisherArticles,
+    addArticle,
+    searchArticles,
+    saveArticle,
     editArticle,
     deleteArticle,
-    saveArticle,
-    searchArticles,
-    getPublisherArticles,
 } from "./controller";
 import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../middleware/auth";
@@ -25,6 +26,7 @@ router.get("/publisher/:publisherId",
     }),
     getPublisherArticles,
 );
+router.get("/top",getTopArticles)
 router.get("/:id",
     contentAccess({
         contentType: "get-article",
@@ -32,7 +34,7 @@ router.get("/:id",
         contentIdField: "id",
         queryField: "_id"
     }),
-    getArticle
+    getArticle,
 );
 router.post("/add",
     isLoggedIn(true),

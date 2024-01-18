@@ -25,7 +25,7 @@ const Schema = new mongoose.Schema({
           required: true,
         },
         text: {
-          type: String,
+          type:String,
           required: true,
           trim: true,
         },

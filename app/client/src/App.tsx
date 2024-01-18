@@ -1,47 +1,35 @@
-import { FormEvent, useState } from "react";
-import axios from "axios";
-import "./App.css";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Header from "./components/Header";
+import Home from "./pages/home";
+import Register from "./pages/auth/Register";
+import Login from "./pages/auth/Login";
+import Profile from "./pages/user/Profile";
+import { useGetProfileQuery } from "./store/services/user";
 function App() {
-  const [cover, setCover] = useState<File | null>(null);
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const handleUpload = async (e: FormEvent) => {
-    try {
-      e.preventDefault();
-      if (!cover && !avatar) return; 
-      const formData = new FormData();
-      if (avatar) formData.append("avatar", avatar);
-      if (cover) formData.append("cover", cover);
-      const res = await axios.post(
-        "http://localhost:6060/articles/add",
-        formData
-      );
-      console.log(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  // const navigate = useNavigate();
+  const { data: user, isLoading, isError, error } = useGetProfileQuery({});
+  if (isLoading) return <div>Loading..</div>;
+  if (isError) return <div>Error</div>;
   return (
-    <div>
-      <form encType="multipart/form-data" onSubmit={handleUpload}>
-        <input
-          type="file"
-          name="cover"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setCover(e.target.files ? e.target.files[0] : null)
-          }
-          id=""
-        />
-                <input
-          type="file"
-          name="avatar"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            setAvatar(e.target.files ? e.target.files[0] : null)
-          }
-          id=""
-        />
-        <button type="submit">upload</button>
-      </form>
-    </div>
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/auth/">
+          <Route
+            path="register"
+            element={!user ? <Register /> : <Navigate to="/user/profile" />}
+          />
+          <Route
+            path="login"
+            element={!user ? <Login /> : <Navigate to="/user/profile" />}
+          />
+        </Route>
+        <Route path="/user/">
+          <Route path="profile" element={<Profile />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 

@@ -37,7 +37,6 @@ const isBlocked = ({
         try {
             let requestSender = req.user || await getUserFromToken(req.cookies.access_token);
             if (!requestSender) return next();
-
             const requestReciverIdentifier = getRequestReciverInfo(req, dataHolder, requestedUserInfoField);
             const searchQuery = buildSearchQuery(queryField, requestedUserInfoField, requestReciverIdentifier);
             if (!isValidSearchQuery(searchQuery)) {

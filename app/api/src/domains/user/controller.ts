@@ -6,6 +6,14 @@ import Article from "../article/models/article";
 import Topic from "../topic/model";
 import { setCache, deleteCache } from "../../helpers/node-cache";
 import { formatDateToYMD } from "../../helpers/date";
+const getProfile = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    res.status(201).send({ success: true, user })
+  } catch (err) {
+    console.log(err);
+  };
+}
 const getUser = async (req: Request, res: Response) => {
   try {
     const user = req.user || await User.findOne({ username: req.params.username }).lean();
@@ -173,4 +181,5 @@ export {
   searchUser,
   blockUser,
   unBlockUser,
+  getProfile
 }

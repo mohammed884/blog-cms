@@ -9,8 +9,7 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
       if (setStatusOnly) {
         req.user = user;
         return next();
-      }
-
+      }      
       if (!user && isAuthRequired) {
         return res
           .status(401)
