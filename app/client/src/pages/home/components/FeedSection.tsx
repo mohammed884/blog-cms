@@ -3,22 +3,41 @@ import ArticlesList from "../../../components/ArticlesList";
 import { IArticle, ITopic } from "../../../interfaces/global";
 import { Link } from "react-router-dom";
 interface IProps {
-  articles: Array<IArticle>;
+  feed: Array<IArticle>;
   topics: Array<ITopic>;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  page: number;
+  hasMore: boolean;
 }
-const ArticlesSection = ({ articles, topics, dialogRef }: IProps) => {
+const ArticlesSection = ({
+  feed,
+  topics,
+  dialogRef,
+  page,
+  hasMore,
+  setPage,
+}: IProps) => {
   return (
     <section className="w-full h-fit text-right xl:mt-10 sm:mt-7 p-2">
       <div className="xl:w-[80%] lg:w-[88%] sm:w-[95%] flex xl:flex-row sm:flex-col-reverse lg:justify-between mx-auto">
         <ul>
-          {articles.map((article) => (
+          {feed.map((article) => (
             <ArticlesList
               dialogRef={dialogRef}
               key={article._id}
               article={article}
             />
           ))}
+          <li>
+            <button
+              disabled={page > 1 && !hasMore}
+              className={`${feed.length === 0 && "hidden"}`}
+              onClick={() => setPage((prev) => prev + 1)}
+            >
+              load more
+            </button>
+          </li>
         </ul>
         <aside className="xl:w-[38%] sm:w-[90] h-fit xl:sticky md:mt-2 sm:mb-8 top-[5.25rem]">
           <h2 className="text-[1.4rem] font-bold">اكتشف ما تهواه نفسك</h2>

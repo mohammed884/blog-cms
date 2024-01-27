@@ -57,7 +57,11 @@ const login = async (req: Request, res: Response) => {
         message: "الايميل و الباسوورد لا يتطباقان",
       });
     const accessToken = signToken(String(user._id));
-    res.cookie("access_token", accessToken, { secure: process.env.NODE_ENV === "production" ? true : false, maxAge: 6 * 30 * 24 * 60 * 60 * 1000 });
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      maxAge: 6 * 30 * 24 * 60 * 60 * 1000
+    });
     res
       .status(201)
       .send({ success: true, message: "تم تسجيل الدخول بنجاح" });

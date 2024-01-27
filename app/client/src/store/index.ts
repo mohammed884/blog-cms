@@ -7,4 +7,4 @@ const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiService.middleware),
 });
-export default store
+export default store;

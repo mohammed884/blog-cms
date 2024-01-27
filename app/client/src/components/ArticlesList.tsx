@@ -52,6 +52,7 @@ const articleList = ({ article, dialogRef }: IProps) => {
         </div>
         <div className="w-[5.9rem] h-[5.9rem]">
           <img
+            loading="lazy"
             src={`../../../../public/images/${cover}`}
             alt={`${title} cover`}
           />

@@ -29,10 +29,9 @@ const Login = () => {
     "w-full bg-dark_green text-white rounded-md mb-3 px-3 py-2";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
-      <div className="w-[50%] h-[70vh] flex flex-col justify-center items-center shadow-lg ">
-        <div className="mb-10 text-center">
-          <h1 className="text-[1.8rem] font-bold mb-2">اهلا بعودتك</h1>
-          <p>اكمل رحلتك في بحر من المعرفة</p>
+      <div className="w-[50%] h-[70vh] flex flex-col justify-center items-center shadow-md rounded-lg">
+        <div className="mb-4 text-center">
+          <h1 className="text-[1.8rem] font-bold">اهلا بعودتك</h1>
         </div>
         <form onSubmit={handleSubmit} className="w-[60%] flex flex-col">
           <label htmlFor="email" className="hidden">
@@ -63,8 +62,8 @@ const Login = () => {
           </button>
         </form>
 
-        <span className="w-[60%] text-dark_green font-bold mt-3 mx-auto hover:underline">
-          <Link to="/auth/register">لا تمتلك حساب؟</Link>
+        <span className=" text-dark_green text-sm mx-auto font-bold mt-3 hover:underline">
+          <Link to="/auth/register">لا تمتلك حسابا؟</Link>
         </span>
       </div>
     </section>

@@ -11,7 +11,7 @@ const topArticlesList = ({ index, article }: ITopArticlesListProps) => {
     <li>
       <article className="flex items-start mb-5">
         <div className="flex gap-3 p-2">
-          <div className="mb-8">
+          <div className="mb-8 bg-off_white">
             <span className="w-fit h-fit text-3xl font-black text-dark_green opacity-[.2]">
               {"0" + (index + 1)}
             </span>

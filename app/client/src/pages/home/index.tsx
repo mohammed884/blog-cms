@@ -1,13 +1,20 @@
-import { useRef } from "react";
-import Header from "../../components/Header";
+import { useRef, useState } from "react";
 import CreateAccountPop from "../../components/CreateAccountPop";
 import WelcomeSection from "./components/WelcomeSection";
 import { IArticle } from "../../interfaces/global";
 import TopArticlesSection from "./components/TopArticlesSection";
-import ArticlesSection from "./components/ArticlesSection";
-import { useGetArticleQuery } from "../../store/services/article";
+import FeedSection from "./components/FeedSection";
+import { useGetFeedQuery } from "../../store/services/article";
 const index = () => {
-  const createAccountRef = useRef<HTMLDialogElement>(null);  
+  const [page, setPage] = useState(1);
+  const createAccountRef = useRef<HTMLDialogElement>(null);
+  const {
+    data: feedData,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+  } = useGetFeedQuery({ page });
   const articles: Array<IArticle> = [
     {
       _id: "1",
@@ -103,38 +110,47 @@ const index = () => {
   ];
   const topics = [
     {
-      _id:"1",
+      _id: "1",
       title: "علوم",
     },
     {
-      _id:"2",
+      _id: "2",
       title: "برمجة",
     },
     {
-      _id:"3",
+      _id: "3",
       title: "تكنولوجيا",
     },
     {
-      _id:"4",
+      _id: "4",
 
       title: "تعليم",
     },
     {
-      _id:"5",
+      _id: "5",
       title: "تصميم",
     },
     {
-      _id:"6",
+      _id: "6",
       title: "تصميم داخلي",
     },
   ];
+  if (isLoading) return <div>Loading..</div>;
+  if (isError) return <div>Error</div>;
   return (
     <div className="w-[100vw] h-fit text-center">
       <CreateAccountPop ref={createAccountRef} />
       <main>
-        <WelcomeSection />
+        <WelcomeSection dialogRef={createAccountRef} />
         <TopArticlesSection articles={articles} />
-        <ArticlesSection articles={articles} topics={topics} dialogRef={createAccountRef}/>
+        <FeedSection
+          feed={feedData?.articles || []}
+          topics={topics}
+          dialogRef={createAccountRef}
+          setPage={setPage}
+          page={page}
+          hasMore={feedData?.hasMore || false}
+        />
       </main>
     </div>
   );

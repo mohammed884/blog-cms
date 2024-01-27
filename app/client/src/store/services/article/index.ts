@@ -14,11 +14,36 @@ const slice = apiService.injectEndpoints({
                 method: "GET"
             }),
         }),
-        getFeed: builder.query<Array<IArticle>, {}>({
-            query: () => ({
-                url: "/article/feed",
-                method: "GET"
+        getFeed: builder.query<{ success: boolean, message?: string, articles: Array<IArticle>, hasMore: boolean }, { page?: number }>({
+            query: ({ page }) => ({
+                url: `/article/feed?page=${page}`,
+                method: "GET",
             }),
+            serializeQueryArgs: ({ endpointName }) => {
+                return endpointName;
+            },
+            merge: (currentCache, newItems) => {
+                if (!newItems.articles.length) {
+                    return {
+                        ...currentCache,
+                        hasMore: false
+                    }
+                }
+                if (currentCache.articles) {
+                    return {
+                        ...currentCache,
+                        ...newItems,
+                        hasMore: true,
+                        articles: [...currentCache.articles, ...newItems.articles],
+                    };
+                }
+                else return { ...newItems, hasMore: true };
+            },
+            forceRefetch({ currentArg, previousArg }) {
+                if (!currentArg?.page || !previousArg?.page) return true;
+                if (currentArg.page > previousArg.page) return true;
+                else return false;
+            },
         }),
         getPublisherArticles: builder.query<Array<IArticle>, { publisherId: string }>({
             query: (body) => ({

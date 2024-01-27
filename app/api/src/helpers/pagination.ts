@@ -17,15 +17,18 @@ interface IPaginationOptions {
             createdAt?: 1 | 0
         },
     },
+    select?: Object,
     articleBlockChecking?: {
-        userIdToCheck: ObjectId,
+        userIdToCheck?: ObjectId,
     },
 };
-const pagination = async ({ matchQuery,
+const pagination = async ({
+    matchQuery,
     page = 1,
     limit = 10,
     populate,
     articleBlockChecking,
+    select,
     Model }: IPaginationOptions) => {
     const skip = (Number(page) - 1) * limit;
     let pipeline: Array<Object> = [{ $match: matchQuery || {} }];
@@ -58,6 +61,9 @@ const pagination = async ({ matchQuery,
             }
         ]
     };
+    if (select) {
+        pipeline = [...pipeline, { $project: select }];
+    }
     pipeline = [
         ...pipeline,
         {

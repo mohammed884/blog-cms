@@ -9,21 +9,26 @@ function App() {
   // const navigate = useNavigate();
   const { data: user, isLoading, isError, error } = useGetProfileQuery({});
   if (isLoading) return <div>Loading..</div>;
-  if (isError) return <div>Error</div>;
+  if (isError) {
+    console.log(error);
+    
+  }
   return (
     <>
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth/">
-          <Route
+          <Route path="register" element={<Register />} />
+          <Route path="login" element={<Login />} />
+          {/* <Route
             path="register"
-            element={!user ? <Register /> : <Navigate to="/user/profile" />}
+            element={!user ? <Register /> : <Navigate to="/auth/register" />}
           />
           <Route
             path="login"
-            element={!user ? <Login /> : <Navigate to="/user/profile" />}
-          />
+            element={!user ? <Login /> : <Navigate to="/auth/login" />}
+          /> */}
         </Route>
         <Route path="/user/">
           <Route path="profile" element={<Profile />} />

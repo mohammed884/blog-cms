@@ -5,8 +5,8 @@ export interface IUser {
   username: string;
   email: string;
   password: string;
-  gender: "male" | "female";
-  birthdate: string;
+  gender?: "male" | "female";
+  birthdate?: string;
   confirmed: boolean;
   saved: Array<{
     createdAt: any;

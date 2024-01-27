@@ -54,11 +54,11 @@ const Schema = new mongoose.Schema({
   gender: {
     type: String,
     enum: ["male", "female"],
-    required: true,
+    // required: true,
   },
   birthdate: {
     type: String,
-    required: true,
+    // required: true,
   },
   saved: {
     type: [

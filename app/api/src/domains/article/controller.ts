@@ -41,7 +41,7 @@ const getTopArticles = async (req: Request, res: Response) => {
         }
       },
       {
-        $limit: 10
+        $limit: 6
       }
     ];
     const ids = await Like.aggregate(likePipeline);
@@ -93,7 +93,7 @@ const getFeed = async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const matchQuery = {
       $or: [
-        { "topics.mainTopic": { $in: user.topics.map(topic => topic.title) } },
+        { "topics.mainTopic": { $in: user?.topics.map(topic => topic.title) || [] } },
         {},
       ],
     }
@@ -111,7 +111,7 @@ const getFeed = async (req: Request, res: Response) => {
         },
         as: "publisher"
       },
-      articleBlockChecking: { userIdToCheck: user._id },
+      articleBlockChecking: user ? { userIdToCheck: user._id } : {},
       Model: Article,
     });
     res.status(201).send({ success: true, articles: result.data });

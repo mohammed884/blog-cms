@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { getUserFromToken } from "../helpers/jwt";
-
 const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = false) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -9,16 +8,16 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
       if (setStatusOnly) {
         req.user = user;
         return next();
-      }      
+      }
       if (!user && isAuthRequired) {
         return res
           .status(401)
-          .send({ success: false, message: "لم يتم العثور على المستخدم" });
+          .send({ success: false, isLoggedIn: false, message: "لم يتم العثور على المستخدم" });
       }
       if (user && !isAuthRequired) {
         return res
           .status(401)
-          .send({ success: false, message: "تم تسجيل الدخول مسبقا" });
+          .send({ success: false, isLoggedIn: true, message: "تم تسجيل الدخول مسبقا" });
       }
       if (user && isAuthRequired) {
         req.user = user;
@@ -29,7 +28,7 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
       }
     } catch (err) {
       console.log(err);
-      res.status(500).send({ success: false, message: "Internal server error" });
+      res.status(500).send({ success: false, isLoggedIn: false, message: "Internal server error" });
     }
   };
 };

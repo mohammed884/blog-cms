@@ -2,14 +2,14 @@ import { useEffect, useRef } from "react";
 const WelcomeSection = ({
   dialogRef,
 }: {
-  dialogRef?: React.RefObject<HTMLDialogElement | null>;
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
 }) => {
   const startReadingBtnRef = useRef<HTMLButtonElement | null>(null);
+  const startReadingBtnListener = () => {
+    document.body.style.overflowY = "hidden";
+    dialogRef?.current?.showModal();
+  };  
   useEffect(() => {
-    const startReadingBtnListener = () => {
-      document.body.style.overflowY = "hidden";
-      dialogRef?.current?.showModal();
-    };
     startReadingBtnRef.current?.addEventListener(
       "click",
       startReadingBtnListener

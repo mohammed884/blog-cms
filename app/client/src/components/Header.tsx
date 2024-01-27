@@ -11,7 +11,7 @@ const Header = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   });
-  console.log(scrollY);
+  // console.log(scrollY);
 
   return (
     <header
@@ -30,10 +30,11 @@ const Header = () => {
             </li>
           </ul>
         </nav>
-        <span className="w-[4.2rem] h-[4.2rem] scale-x-[-1]">
+        <span className="w-fit h-fit mb-3">
           <img
-            src="../../public/images/logo.png"
-            alt="blog logo"
+            className="w-[1.5rem] h-[1.5rem]"
+            src="../../public/svgs/writing-feather.svg"
+            alt="writing feather blog logo"
             loading="lazy"
           />
         </span>

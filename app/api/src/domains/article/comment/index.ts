@@ -11,7 +11,6 @@ import { Router } from "express";
 import { isLoggedIn, isConfirmed } from "../../../middleware/auth";
 import contentAccess from "../../../middleware/contentAccess"
 const router = Router();
-// router.use(isBlocked);
 router.get("/:articleId",
   contentAccess({
     contentType: "get-comments",
