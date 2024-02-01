@@ -2,10 +2,10 @@ import React from "react";
 import { ITopic } from "../../../interfaces/global";
 interface IProps {
   topic: ITopic;
-  index: number;
+  index?: number;
   isSelected: boolean;
-  selectedTopics: Array<number>;
-  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<number>>>;
+  selectedTopics: Array<ITopic>;
+  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<ITopic>>>;
 }
 const TopicList = ({
   topic,
@@ -16,17 +16,17 @@ const TopicList = ({
 }: IProps) => {
   const updateSelectedTopics = (
     e: React.ChangeEvent<HTMLInputElement>,
-    index: number
+    topic: ITopic
   ) => {
     e.stopPropagation();
-    const isTopicAdded = selectedTopics.includes(index);
+    const isTopicAdded = index !== undefined ? (selectedTopics[index] || false) : false;
     const topicContainer = e.target.closest("li");
     if (!topicContainer) return;
     if (isTopicAdded) {
-      setSelectedTopics((prev) => prev.filter((topic) => topic !== index));
+      setSelectedTopics((prev) => prev.filter((t) => t.title !== topic.title));
       topicContainer.classList.remove("border");
     } else {
-      setSelectedTopics((prev) => [...prev, index]);
+      setSelectedTopics((prev) => [...prev, topic]);
       topicContainer.classList.add("border");
     }
     topicContainer.classList.toggle("bg-light_gray");
@@ -43,7 +43,7 @@ const TopicList = ({
       key={topic._id}
     >
       <label
-        onClick={(e: any) => updateSelectedTopics(e, index)}
+        onClick={(e: any) => updateSelectedTopics(e, topic)}
         className="cursor-pointer flex items-center justify-center gap-2"
         htmlFor={topic.title}
       >

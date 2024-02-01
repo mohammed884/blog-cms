@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import Loader from "../../components/Loader";
 import useMultistepForm from "./components/useMultistepForm";
 import { StepsIndicator, MenuButtons } from "./components/StepsControl";
+import { ITopic } from "../../interfaces/global";
 const TopicsDialog = lazy(() => import("./components/TopicsPopup"));
 const Register = () => {
   const popupRef = useRef<HTMLDivElement>(null);
+  const [selectedTopics, setSelectedTopics] = useState<Array<ITopic>>([]);
   const [validationError, setValidationError] = useState({
     refs: [],
     errors: [],
@@ -27,7 +29,11 @@ const Register = () => {
       setEmail={setEmail}
       setPassword={setPassword}
     />,
-    <TopicsDialog ref={popupRef} />,
+    <TopicsDialog
+      ref={popupRef}
+      selectedTopics={selectedTopics}
+      setSelectedTopics={setSelectedTopics}
+    />,
   ];
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
