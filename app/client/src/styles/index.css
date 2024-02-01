@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@font-face {
+  font-family: "ElMessiri";
+  src: url("../assets/El_Messiri/static/ElMessiri-Regular.ttf");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "ElMessiri", sans-serif;
+  list-style: none;
+}
+input {
+  outline: none;
+}
+body {
+  overflow-x:hidden;
+}
+dialog {
+  border: none;
+}
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+input[type="checkbox"] {
+  display: none;
+}
+
+/* Create a custom checkbox appearance */
+label::after + input[type="checkbox"] {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border: 2px solid #555;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* Style the checked state */
+input[type="checkbox"]:checked + label::after {
+  background: blue;
+}

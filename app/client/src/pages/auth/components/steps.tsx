@@ -1,22 +1,28 @@
 import { ITopic } from "../../../interfaces/global";
+import { useAppSelector } from "../../../store/hooks";
+import { selectTopics } from "../../../store/services/topics";
 interface IUsernameProps {
+  setValidationError: React.Dispatch<
+    React.SetStateAction<{
+      refs: never[];
+      errors: never[];
+    }>
+  >;
   username: string;
   setUsername: React.Dispatch<React.SetStateAction<string>>;
 }
 interface IAuthProps {
+  setValidationError: React.Dispatch<
+    React.SetStateAction<{
+      refs: never[];
+      errors: never[];
+    }>
+  >;
   email: string;
   password: string;
   setEmail: React.Dispatch<React.SetStateAction<string>>;
   setPassword: React.Dispatch<React.SetStateAction<string>>;
 }
-interface ISelectedTopicsProps {
-  selectedTopics: Array<ITopic>;
-  setSelectedTopics: React.Dispatch<React.SetStateAction<ITopic[]>>;
-}
-// interface ITopicsProps {
-//   topics: Array<ITopic>;
-//   setTopics: React.Dispatch<React.SetStateAction<ITopic[]>>;
-// }
 const inputClasses = "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
 const UsernameStep = ({ username, setUsername }: IUsernameProps) => {
   return (
@@ -66,19 +72,4 @@ const EmailAndPasswordStep = ({
     </fieldset>
   );
 };
-const SelectedTopics = ({
-  selectedTopics,
-  setSelectedTopics,
-}: ISelectedTopicsProps) => {
-  return (
-    <fieldset>
-      <legend>الموضوعات المختارة</legend>
-      <ul>
-        {selectedTopics.map((topic) => (
-          <li>{topic.title}</li>
-        ))}
-      </ul>
-    </fieldset>
-  );
-};
-export { UsernameStep, EmailAndPasswordStep, SelectedTopics };
+export { UsernameStep, EmailAndPasswordStep };

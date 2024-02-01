@@ -6,12 +6,10 @@ import Login from "./pages/auth/Login";
 import Profile from "./pages/user/Profile";
 import { useGetProfileQuery } from "./store/services/user";
 function App() {
-  // const navigate = useNavigate();
   const { data: user, isLoading, isError, error } = useGetProfileQuery({});
   if (isLoading) return <div>Loading..</div>;
   if (isError) {
     console.log(error);
-    
   }
   return (
     <>

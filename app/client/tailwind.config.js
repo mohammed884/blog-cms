@@ -36,9 +36,13 @@ module.exports = {
       colors: {
         off_white: "#fefefe",
         dark_green: "#606C38",
-        light_beige: "#FEFAE0"
+        light_green:"#7c9a82",
+        light_beige: "#FEFAE0",
+        light_gray:"#f2f2f2"
       }
     },
   },
   plugins: [],
 }
+//#FEFAE0 old
+//#e7caaa new

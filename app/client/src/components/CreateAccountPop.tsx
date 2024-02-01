@@ -23,8 +23,6 @@ const CreateAccountPop = forwardRef<HTMLDialogElement, {}>(
       e.preventDefault();
     };
     useEffect(() => {
-      console.log("create account loaded");
-
       dialogRef.current?.addEventListener("click", backdropEventListener);
       return () => {
         document.body.style.overflowY = "visible";
