@@ -9,7 +9,7 @@ function App() {
   const { data: user, isLoading, isError, error } = useGetProfileQuery({});
   if (isLoading) return <div>Loading..</div>;
   if (isError) {
-    console.log(error);
+    console.log("log erroe from home", error);
   }
   return (
     <>

@@ -1,8 +1,10 @@
 import { useState, ReactElement } from "react";
 interface IReturnValues {
-  totalSteps: number;
   step: ReactElement;
+  isFirstStep: boolean;
+  isLastStep: boolean;
   currentIndex: number;
+  totalSteps: number;
   next: () => void;
   previous: () => void;
   byStep: (step: number) => void;
@@ -32,7 +34,9 @@ const validateInputs = (
         //add the error
         return false;
       }
-      if(!RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").test(email)){
+      if (
+        !RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$").test(email)
+      ) {
         setErrorMessage("الرجاء كتابة الايميل بشكل صحيح");
         const input = emailRef.current;
         input.classList.add("border-red-500");
@@ -102,8 +106,10 @@ export default function useMultistepForm(
   };
   return {
     step: steps[currentIndex],
-    totalSteps: steps.length,
+    isFirstStep: currentIndex === 0,
+    isLastStep: currentIndex === steps.length - 1,
     currentIndex: currentIndex,
+    totalSteps: steps.length,
     next,
     previous,
     byStep,

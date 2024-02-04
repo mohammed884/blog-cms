@@ -5,8 +5,9 @@ interface IStepsIndicator {
   byStep: (step: number) => void;
 }
 interface IMenuButtons {
-  totalSteps: number;
-  currentIndex: number;
+  isFirstStep: boolean;
+  isLastStep: boolean;
+  handleSubmit: (e: any) => Promise<void>;
   next: () => void;
   previous: () => void;
 }
@@ -42,21 +43,22 @@ const StepsIndicator = ({
   );
 };
 const MenuButtons = ({
-  totalSteps,
-  currentIndex,
+  isFirstStep,
+  isLastStep,
+  handleSubmit,
   next,
   previous,
 }: IMenuButtons) => {
-  const btnStyles = "font-bold p-3 px-5 text-sm rounded-md";
+  const btnStyles = "font-bold p-3 px-10 text-sm rounded-md";
   return (
-    <div className="w-[60%] flex justify-between mx-auto mt-4">
-      {currentIndex < totalSteps - 1 ? (
+    <div className="w-[100%] flex justify-between mx-auto mt-4">
+      {!isLastStep ? (
         <button
           aria-label="next button"
           type="button"
           onClick={() => next()}
-          className={`${currentIndex === totalSteps - 1 && "hidden"} ${
-            currentIndex === 0 && "w-[100%]"
+          className={`${isLastStep && "hidden"} ${
+            isFirstStep && "w-[100%]"
           } ${btnStyles} bg-black text-off_white`}
         >
           التالي
@@ -64,8 +66,9 @@ const MenuButtons = ({
       ) : (
         <button
           aria-label="create account"
-          type="submit"
-          className={`${btnStyles} text-off_white bg-dark_green`}
+          type="button"
+          onClick={handleSubmit}
+          className={`${btnStyles} text-off_white bg-black`}
         >
           انشاء الحساب
         </button>
@@ -74,7 +77,7 @@ const MenuButtons = ({
         aria-label="previous button"
         type="button"
         onClick={() => previous()}
-        className={`${currentIndex === 0 && "hidden"} ${btnStyles} border-2`}
+        className={`${isFirstStep && "hidden"} ${btnStyles} border-2`}
       >
         رجوع
       </button>

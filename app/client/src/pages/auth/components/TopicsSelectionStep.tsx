@@ -1,7 +1,6 @@
 import { forwardRef, useEffect, useState } from "react";
 import { useGetTopicsQuery } from "../../../store/services/topics";
 import TopicList from "./TopicList";
-import { ITopic } from "../../../interfaces/global";
 interface ITopicsProps {
   selectedTopics: Array<string>;
   setSelectedTopics: React.Dispatch<React.SetStateAction<Array<string>>>;
