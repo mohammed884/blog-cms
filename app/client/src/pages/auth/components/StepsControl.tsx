@@ -18,7 +18,7 @@ const StepsIndicator = ({
   const stepsArray = new Array(totalSteps).fill(0);
   return (
     <div className="w-[70%] flex gap-2 justify-center items-center">
-      {stepsArray.map((step, index) => {
+      {stepsArray.map((_, index) => {
         return (
           <React.Fragment key={index}>
             <div
@@ -47,7 +47,7 @@ const MenuButtons = ({
   next,
   previous,
 }: IMenuButtons) => {
-  const btnStyles = "font-bold p-2 px-5 text-sm rounded-md";
+  const btnStyles = "font-bold p-3 px-5 text-sm rounded-md";
   return (
     <div className="w-[60%] flex justify-between mx-auto mt-4">
       {currentIndex < totalSteps - 1 ? (

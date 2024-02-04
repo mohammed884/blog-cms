@@ -17,7 +17,7 @@ interface IAddPostBody {
 };
 const getTopArticles = async (req: Request, res: Response) => {
   try {
-    // get top 6 articles and cache it
+    // get top 6 articles and cache it    
     const startOfTheWeek = new Date(dayjs().startOf("week").add(1, "day").format("YYYY-MM-DD"));
     const endOfTheWeek = new Date(dayjs().endOf("week").format("YYYY-MM-DD"));
     const likePipeline: PipelineStage[] = [
@@ -93,7 +93,7 @@ const getFeed = async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 1;
     const matchQuery = {
       $or: [
-        { "topics.mainTopic": { $in: user?.topics.map(topic => topic.title) || [] } },
+        { "topics.mainTopic": { $in: user?.topics || [] } },
         {},
       ],
     }
@@ -232,11 +232,12 @@ const addArticle = async (req: Request, res: Response) => {
     //you should make sure that the content isn't empty after implementing the frontend
     const body: IAddPostBody = req.body;
     await addArticleSchema.validateAsync(body);
+    let filePath: string;
     //upload cover
     if (req.files && req.files.cover) {
       const uploadStatus = uploadSingle(req.files.cover);
       if (!uploadStatus.success) return res.status(401).send({ success: false, message: uploadStatus.err });
-      var filePath = uploadStatus.path || "";
+      filePath = uploadStatus.path || "";
     };
     const article = await Article.create({
       ...body,

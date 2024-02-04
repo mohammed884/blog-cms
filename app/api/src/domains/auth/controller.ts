@@ -20,6 +20,8 @@ const register = async (req: Request, res: Response) => {
     res.cookie("access_token", accessToken, { secure: true });
     return res.status(200).send({ success: true, message: "تم انشاء الحساب" });
   } catch (err) {
+    console.log(err);
+
     switch (true) {
       case err.isJoi:
         const { message, context } = err.details[0];
@@ -27,11 +29,11 @@ const register = async (req: Request, res: Response) => {
       case err.code === 11000 && err.keyPattern.email === 1:
         return res
           .status(401)
-          .send({ success: false, message: "هذا الايميل مستخدم من قبل" });
+          .send({ success: false, usedEmail: true });
       case err.code === 11000 && err.keyPattern.username === 1:
         return res
           .status(401)
-          .send({ success: false, message: "هذا الاسم مستخدم من قبل" });
+          .send({ success: false, usedUsername: true });
       default:
         res
           .status(500)

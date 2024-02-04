@@ -27,23 +27,3 @@ dialog {
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.5);
 }
-input[type="checkbox"] {
-  display: none;
-}
-
-/* Create a custom checkbox appearance */
-label::after + input[type="checkbox"] {
-  content: '';
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 10px;
-  border: 2px solid #555;
-  vertical-align: middle;
-  cursor: pointer;
-}
-
-/* Style the checked state */
-input[type="checkbox"]:checked + label::after {
-  background: blue;
-}

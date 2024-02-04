@@ -11,7 +11,7 @@ import { isLoggedIn, role } from "../../middleware/auth";
 const router = Router();
 router.get("/", getTopics);
 router.use(isLoggedIn(true));
-router.use(role("moderator"))
+router.use(role("moderator"));
 router.post("/add", addTopic);
 router.post("/add/multiple", addMultipleTopic);
 // router.patch("/edit/:id", editTopic);

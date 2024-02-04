@@ -1,14 +1,29 @@
 import apiService from '../index';
 const slice = apiService.injectEndpoints({
     endpoints: (builder) => ({
-        login: builder.mutation<{ success: boolean, message?: string }, { password: string, email: string }>({
+        login: builder.mutation<{
+            success: boolean,
+            message?: string
+        }, {
+            password: string,
+            email: string
+        }
+        >({
             query: (body) => ({
                 url: '/auth/login',
                 method: 'POST',
                 body,
             }),
         }),
-        register: builder.mutation({
+        register: builder.mutation<{
+            success: boolean,
+            message?: string
+        }, {
+            username: string,
+            password: string,
+            email: string,
+            topics?: Array<string>
+        }>({
             query: (body) => ({
                 url: '/auth/register',
                 method: 'POST',

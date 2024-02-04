@@ -1,6 +1,6 @@
 import { ObjectId } from "bson";
 export interface IUser {
-  id?:string;
+  id?: string;
   _id: ObjectId;
   username: string;
   email: string;
@@ -20,7 +20,7 @@ export interface IUser {
     title?: string;
     text?: string;
   };
-  topics: Array<{ title: string }>
+  topics: Array<string>
   blocked: Array<{
     user: ObjectId,
     createdAt: Date
@@ -29,7 +29,7 @@ export interface IUser {
 export interface IArticle {
   _id: ObjectId;
   title: string;
-  subTitle:string;
+  subTitle: string;
   publisher: ObjectId;
   content: object;
   topics: Array<{ mainTopic: string; subTopic?: string }>;

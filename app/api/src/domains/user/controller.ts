@@ -135,10 +135,10 @@ const editUser = async (req: Request, res: Response) => {
     if (Array.isArray(topics) && length > 0) {
       //check the checking
       const newTopics = topics.map(t => t.title.toLowerCase()).toString();
-      const oldTopics = user.topics.map(t => t.title.toLowerCase()).toString();
-      if (newTopics !== oldTopics) return;
-      const checkDb = await Topic.countDocuments({ mainTopic: { $in: topics } });
-      if (checkDb !== topics.length)
+      const oldTopics = user.topics.map(t => t.toLowerCase()).toString();
+      if (newTopics === oldTopics) return;
+      const areTopicsValid = await Topic.countDocuments({ title: { $in: topics } });
+      if (areTopicsValid !== topics.length)
         return res
           .status(401)
           .send({ success: false, message: "حدث خطأ أثناء تحديث المعلومات" });

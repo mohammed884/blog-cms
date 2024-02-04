@@ -4,62 +4,85 @@ import { Link } from "react-router-dom";
 import Loader from "../../components/Loader";
 import useMultistepForm from "./components/useMultistepForm";
 import { StepsIndicator, MenuButtons } from "./components/StepsControl";
-import { ITopic } from "../../interfaces/global";
-const TopicsDialog = lazy(() => import("./components/TopicsPopup"));
+import { useRegisterMutation } from "../../store/services/auth";
+const TopicsSelectionStep = lazy(
+  () => import("./components/TopicsSelectionStep")
+);
 const Register = () => {
-  const popupRef = useRef<HTMLDivElement>(null);
-  const [selectedTopics, setSelectedTopics] = useState<Array<ITopic>>([]);
-  const [validationError, setValidationError] = useState({
-    refs: [],
-    errors: [],
-  });
+  const [addRegister, { data, isLoading, isError, error }] =
+    useRegisterMutation();
+  const [selectedTopics, setSelectedTopics] = useState<Array<string>>([]);
+  const [errorMessage, setErrorMessage] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const popupRef = useRef<HTMLDivElement>(null);
+  const usernameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const steps = [
     <UsernameStep
-      setValidationError={setValidationError}
+      usernameRef={usernameRef}
       username={username}
       setUsername={setUsername}
     />,
+
     <EmailAndPasswordStep
-      setValidationError={setValidationError}
+      passwordRef={passwordRef}
+      emailRef={emailRef}
       email={email}
       password={password}
       setEmail={setEmail}
       setPassword={setPassword}
     />,
-    <TopicsDialog
+    <TopicsSelectionStep
       ref={popupRef}
       selectedTopics={selectedTopics}
       setSelectedTopics={setSelectedTopics}
     />,
   ];
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log(isLoading, isError);
+    await addRegister({
+      username,
+      email,
+      password,
+      topics: selectedTopics,
+    });
+    if (isLoading) return console.log("loading");
+    if (isError)
+      return setErrorMessage(
+        (error as { data: { message: string } })?.data.message || "Error"
+      );
   };
-
-  const { step, currentIndex, next, previous, byStep } =
-    useMultistepForm(steps);
+  const { step, totalSteps, currentIndex, next, previous, byStep } =
+    useMultistepForm(steps, setErrorMessage);
   return (
     <section className="w-full h-[100vh] flex flex-col justify-center items-center">
-      <div className="w-[60vw] h-[80vh] flex flex-col justify-center items-center gap-4 shadow-lg rounded-lg">
+      <div className="w-[60vw] h-[80vh] flex flex-col justify-center items-center gap-4 shadow-md rounded-lg">
         <h1 className="text-[2.1rem] font-bold">انشئ حسابك</h1>
-        <div className="w-[80%] h-[40%] flex flex-col gap-7 items-center">
+        <div className="w-[80%] flex flex-col justify-center items-center gap-7">
           <StepsIndicator
-            totalSteps={steps.length}
+            totalSteps={totalSteps}
             currentIndex={currentIndex}
             byStep={byStep}
           />
           <form
-            className={`w-[70%] h-[100%] flex flex-col gap-8 justify-center mt-3 ${
-              currentIndex < steps.length - 1 && "mt-4"
+            className={`w-[60%] h-[100%] flex flex-col gap-5 justify-center mt-3 ${
+              currentIndex < totalSteps - 1 && "mt-4"
             }`}
             onSubmit={handleSubmit}
           >
+            {errorMessage && (
+              <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md">
+                <div className="w-2 h-[100%] rounded-r-md bg-red-500"></div>
+                <span className="p-3">{errorMessage}</span>
+              </div>
+            )}
             <Suspense fallback={<Loader />}>{step}</Suspense>
             <MenuButtons
-              totalSteps={steps.length}
+              totalSteps={totalSteps}
               currentIndex={currentIndex}
               next={next}
               previous={previous}

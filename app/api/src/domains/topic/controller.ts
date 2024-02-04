@@ -45,7 +45,6 @@ const addTopic = async (req: Request, res: Response) => {
         return res.status(401).send({ success: false, message, context });
       case err.code === 11000:
         console.log(err);
-
         return res
           .status(401)
           .send({ success: false, message: "يوجد موضوع بهذا العنوان مسبقا" });

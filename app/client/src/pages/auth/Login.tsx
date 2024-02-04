@@ -29,11 +29,11 @@ const Login = () => {
     "w-full bg-dark_green text-white rounded-md mb-3 px-3 py-2";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
-      <div className="w-[50%] h-[70vh] flex flex-col justify-center items-center shadow-md rounded-lg">
-        <div className="mb-4 text-center">
-          <h1 className="text-[1.8rem] font-bold">اهلا بعودتك</h1>
+      <div className="w-[60vw] h-[80vh] flex flex-col gap-5 justify-center items-center shadow-md rounded-lg">
+        <div className="text-center">
+          <h1 className="text-[2.1rem] font-bold">اهلا بعودتك</h1>
         </div>
-        <form onSubmit={handleSubmit} className="w-[60%] flex flex-col">
+        <form onSubmit={handleSubmit} className="w-[60%] flex flex-col gap-1">
           <label htmlFor="email" className="hidden">
             البريد الالكتروني
           </label>
@@ -62,9 +62,12 @@ const Login = () => {
           </button>
         </form>
 
-        <span className=" text-dark_green text-sm mx-auto font-bold mt-3 hover:underline">
-          <Link to="/auth/register">لا تمتلك حسابا؟</Link>
-        </span>
+        <div className="flex gap-2 mt-3 text-sm">
+          <p className="mb-1">لا تمتلك حسابا ؟</p>
+          <Link className="text-dark_green underline" to="/auth/register">
+            انشئ حسابك من هنا
+          </Link>
+        </div>
       </div>
     </section>
   );

@@ -3,26 +3,26 @@ import { useGetTopicsQuery } from "../../../store/services/topics";
 import TopicList from "./TopicList";
 import { ITopic } from "../../../interfaces/global";
 interface ITopicsProps {
-  selectedTopics: Array<ITopic>;
-  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<ITopic>>>;
+  selectedTopics: Array<string>;
+  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<string>>>;
 }
 const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
   ({ selectedTopics, setSelectedTopics }, ref: any) => {
-    const [openTopicsPopup, setOpenTopicsPopup] = useState(true);
+    const [openTopicsPopup, setOpenTopicsPopup] = useState(
+      selectedTopics.length === 0 ? true : false
+    );
     const { data, isLoading, isError, error } = useGetTopicsQuery({});
     useEffect(() => {
+      ref?.current?.addEventListener("click", handleClose);
       return () => {
         ref?.current?.removeEventListener("click", handleClose);
       };
-    }, []);
+    }, [ref.current]);
     const handleClose = (e: any) => {
       if (e.target === ref?.current) setOpenTopicsPopup(false);
     };
-    console.log(selectedTopics);
-
-    ref?.current?.addEventListener("click", handleClose);
-    if (isError) return <div>Error</div>;
     if (isLoading) return;
+    if (isError) return <div>Error</div>;
     return (
       <fieldset>
         <div className="flex items-center justify-center text-center">
@@ -39,12 +39,12 @@ const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
           ) : (
             <div>
               <ul className="flex justify-center items-center flex-wrap gap-2">
-                {selectedTopics.map((topic, index) => (
+                {selectedTopics.map((title, index) => (
                   <TopicList
                     isSelected={true}
                     selectedTopics={selectedTopics}
                     setSelectedTopics={setSelectedTopics}
-                    topic={topic}
+                    topicTitle={title}
                     index={index}
                     key={index}
                   />
@@ -76,13 +76,12 @@ const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
               {data?.topics.map((topic, index) => (
                 <TopicList
                   isSelected={
-                    selectedTopics.findIndex((t) => t.title === topic.title) !==
-                    -1
+                    selectedTopics.findIndex((t) => t === topic.title) !== -1
                       ? true
                       : false
                   }
                   key={index}
-                  topic={topic}
+                  topicTitle={topic.title}
                   selectedTopics={selectedTopics}
                   setSelectedTopics={setSelectedTopics}
                 />

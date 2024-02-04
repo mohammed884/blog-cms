@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const Schema = new mongoose.Schema({
-  id:{
-    type:String,
+  id: {
+    type: String,
   },
   username: {
     type: String,
@@ -34,7 +34,6 @@ const Schema = new mongoose.Schema({
       text: {
         type: String,
         trim: true,
-
       },
       title: {
         type: String,
@@ -74,7 +73,7 @@ const Schema = new mongoose.Schema({
         },
       },
     ],
-    default:[],
+    default: [],
   },
   blocked: {
     type: [{
@@ -104,20 +103,13 @@ const Schema = new mongoose.Schema({
       type: Date,
     },
   },
-  topics:{
-    type: [
-      {
-        title:{
-          type:String,
-          required:true,
-        },
-      }
-    ],
+  topics: {
+    type: [String],
     default: [],
   },
   createdAt: {
     type: Date,
-    required:true,
+    required: true,
   }
 });
 Schema.index({ email: 1 });

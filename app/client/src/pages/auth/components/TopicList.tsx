@@ -1,14 +1,14 @@
 import React from "react";
 import { ITopic } from "../../../interfaces/global";
 interface IProps {
-  topic: ITopic;
+  topicTitle: string;
   index?: number;
   isSelected: boolean;
-  selectedTopics: Array<ITopic>;
-  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<ITopic>>>;
+  selectedTopics: Array<string>;
+  setSelectedTopics: React.Dispatch<React.SetStateAction<Array<string>>>;
 }
 const TopicList = ({
-  topic,
+  topicTitle,
   index,
   isSelected,
   selectedTopics,
@@ -16,17 +16,17 @@ const TopicList = ({
 }: IProps) => {
   const updateSelectedTopics = (
     e: React.ChangeEvent<HTMLInputElement>,
-    topic: ITopic
+    topicTitle: string,
   ) => {
-    e.stopPropagation();
-    const isTopicAdded = index !== undefined ? (selectedTopics[index] || false) : false;
+    const isTopicAdded =
+      index !== undefined ? selectedTopics[index] || false : false;
     const topicContainer = e.target.closest("li");
     if (!topicContainer) return;
     if (isTopicAdded) {
-      setSelectedTopics((prev) => prev.filter((t) => t.title !== topic.title));
+      setSelectedTopics((prev) => prev.filter((t) => t !== topicTitle));
       topicContainer.classList.remove("border");
     } else {
-      setSelectedTopics((prev) => [...prev, topic]);
+      setSelectedTopics((prev) => [...prev, topicTitle]);
       topicContainer.classList.add("border");
     }
     topicContainer.classList.toggle("bg-light_gray");
@@ -40,23 +40,24 @@ const TopicList = ({
       className={`p-2 px-3 ${!isSelected && "bg-light_gray"} rounded-lg ${
         isSelected && "border"
       } border-light_green transition-colors ease-linear`}
-      key={topic._id}
+      key={topicTitle}
     >
       <label
-        onClick={(e: any) => updateSelectedTopics(e, topic)}
+        onClick={(e: any) => updateSelectedTopics(e, topicTitle)}
         className="cursor-pointer flex items-center justify-center gap-2"
-        htmlFor={topic.title}
+        htmlFor={topicTitle}
       >
-        {topic.title}
+        {topicTitle}
         <span className="">
           <img className="w-4 h-4 " src={iconSrc} alt={iconAlt} />
         </span>
       </label>
       <input
+        className="hidden pointer-events-none"
         type="checkbox"
         name="topics"
-        id={topic.title}
-        value={topic.title}
+        id={topicTitle}
+        value={topicTitle}
       />
     </li>
   );
