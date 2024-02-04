@@ -1,7 +1,7 @@
 import { forwardRef, useImperativeHandle } from "react";
 interface IUsernameProps {
   username: string;
-  usernameRef:React.RefObject<HTMLInputElement>,
+  usernameRef: React.RefObject<HTMLInputElement>;
   setUsername: React.Dispatch<React.SetStateAction<string>>;
 }
 interface IAuthProps {
@@ -14,8 +14,7 @@ interface IAuthProps {
 }
 const inputClasses = "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
 const UsernameStep = forwardRef<HTMLInputElement, IUsernameProps>(
-  ({ username, setUsername,usernameRef }, ref,) => {
-    // useImperativeHandle(ref, () => ref.current.focus());
+  ({ username, setUsername, usernameRef }, ref) => {
     return (
       <fieldset className="flex flex-col">
         <label htmlFor="username" className="hidden">

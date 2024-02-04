@@ -87,7 +87,7 @@ const Register = () => {
   return (
     <section className="w-full h-[100vh] flex flex-col justify-center items-center">
       {isRegistertionLoading && <Loader />}
-      <div className="w-[60vw] h-[80vh] flex flex-col justify-center items-center gap-4 shadow-md rounded-lg">
+      <div className="lg:w-[60vw] md:w-[70vw] sm:w-[95vw] lg:h-[80vh] md:h-[70vh] sm:h-[70vh] flex flex-col justify-center items-center gap-4 shadow-md rounded-lg">
         <h1 className="text-[2.1rem] font-bold">انشئ حسابك</h1>
         <div className="w-[80%] flex flex-col justify-center items-center gap-7">
           <StepsIndicator
@@ -96,7 +96,7 @@ const Register = () => {
             byStep={byStep}
           />
           <form
-            className={`w-[60%] h-[100%] flex flex-col gap-5 justify-center mt-3 ${
+            className={`lg:w-[60%] md:w-[88%] sm:w-[95%] h-[100%] flex flex-col gap-5 justify-center mt-3 ${
               currentIndex < totalSteps - 1 && "mt-4"
             }`}
             onSubmit={handleSubmit}

@@ -26,14 +26,17 @@ const Login = () => {
   const inputsClasses =
     "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
   const btnClasses =
-    "w-full bg-dark_green text-white rounded-md mb-3 px-3 py-2";
+    "w-full font-bold bg-black text-white text-sm rounded-md mb-3 px-3 py-3";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
-      <div className="w-[60vw] h-[80vh] flex flex-col gap-5 justify-center items-center shadow-md rounded-lg">
+      <div className="lg:w-[60vw] md:w-[70vw] sm:w-[95vw] lg:h-[80vh] md:h-[70vh] sm:h-[70vh] flex flex-col gap-5 justify-center items-center shadow-md rounded-lg">
         <div className="text-center">
           <h1 className="text-[2.1rem] font-bold">اهلا بعودتك</h1>
         </div>
-        <form onSubmit={handleSubmit} className="w-[60%] flex flex-col gap-1">
+        <form
+          onSubmit={handleSubmit}
+          className="lg:w-[60%] md:w-[88%] sm:w-[95%] flex flex-col lg:gap-1 md:gap-2 sm:gap-4"
+        >
           <label htmlFor="email" className="hidden">
             البريد الالكتروني
           </label>

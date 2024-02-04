@@ -95,14 +95,6 @@ export default function useMultistepForm(
       setErrorMessage("");
       return setCurrentIndex(step);
     }
-    const areValid = validateInputs(
-      steps[currentIndex],
-      currentIndex,
-      setErrorMessage
-    );
-    if (!areValid) return;
-    setErrorMessage("");
-    setCurrentIndex(step);
   };
   return {
     step: steps[currentIndex],
