@@ -10,7 +10,7 @@ router.patch(
     "/request",
     userDataAccess({
         dataHolder: "body",
-        requestedUserInfoField: "collaboratorId",
+        requestReciverInfoField: "collaboratorId",
         queryField: "_id"
     }),
     addCollaboration

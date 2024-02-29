@@ -9,23 +9,46 @@ interface ISendNotifications {
     article?: Types.ObjectId | string;
     retrieveId: string;
     type: "follow" | "comment" | "reply" | "collaboration-request" | "collaboration-accept" | "collaboration-deny";
-}
+};
 interface IDeleteNotifications {
     receiver: string;
     retrieveId: Types.ObjectId | string;
-}
+};
 const getNotifications = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const page = Number(req.query.page) || 1;
-        const matchQuery = {
-            receiver: user._id
-        };
-        const result = await pagination({ matchQuery, page, Model: Notification });
-        res.status(401).send({ success: true, notifications: result.data });
-    } catch (err) {
-        console.log(err);
+        console.log(user);
 
+        const matchQuery = {
+            receiver: String(user._id)
+        };
+        const result = await pagination({
+            matchQuery,
+            populate: {
+                unwindField: "notifications",
+                from: "users",
+                localField: "notifications.sender",
+                foreignField: "_id",
+                as: "notifications.sender",
+                select: {
+                    username: 1,
+                    avatar: 1
+                }
+            },
+            select: {
+                notifications: 1,
+            },
+            page,
+            Model: Notification,
+            limit: 1
+        });
+        console.log(result);
+
+        res.status(201).send({ success: true, notifications: result.data[0]?.notifications });
+    } catch (err) {
+        res.status(500).send({ success: false, message: "Interal server error" });
+        console.log(err);
     }
 };
 const getUnSeenNotificationsCount = async (req: Request, res: Response) => {
@@ -35,12 +58,12 @@ const getUnSeenNotificationsCount = async (req: Request, res: Response) => {
             receiver: user._id,
             "comments.seen": false
         });
-        res.status(401).send({ success: true, count });
+        res.status(201).send({ success: true, count });
     } catch (error) {
         console.log();
         res.status(401).send({ success: false, message: "Internal server error" });
     }
-}
+};
 const sendNotification = async ({ receiver, sender, article, retrieveId, type }: ISendNotifications): Promise<{ success: boolean, err?: string }> => {
     try {
         if (receiver === String(sender)) return {
@@ -49,7 +72,7 @@ const sendNotification = async ({ receiver, sender, article, retrieveId, type }:
         const updateStatus = await Notification.updateOne(
             {
                 receiver,
-                count: { $lt: 50 }
+                count: { $lt: 5 }
             }, {
             $push: {
                 notifications: {

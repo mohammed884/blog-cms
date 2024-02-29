@@ -84,13 +84,16 @@ const getFollowing = async (req: Request, res: Response) => {
                 foreignField: "_id",
                 localField: "user",
                 select: {
+                    _id: 1,
                     username: 1,
                     avatar: 1,
                 },
                 as: "followingInfo",
             },
             Model: Follow,
-        })
+        });
+        console.log("result -> ", result);
+
         res.status(201).send({ success: true, following: result.data })
     } catch (error) {
         console.log(error);
@@ -112,6 +115,7 @@ const getFollowers = async (req: Request, res: Response) => {
                 foreignField: "_id",
                 localField: "followedBy",
                 select: {
+                    _id: 1,
                     username: 1,
                     avatar: 1
                 },

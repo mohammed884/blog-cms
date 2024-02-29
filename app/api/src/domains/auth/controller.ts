@@ -1,23 +1,32 @@
 import { Request, Response } from "express";
 import User from "../user/model";
-import { signToken, verifyToken } from "../../helpers/jwt";
+import { signAccessToken, verifyToken } from "../../helpers/jwt";
 import { hash, compare } from "../../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../../validation/auth";
 import { sendMail } from "../../helpers/nodemailer";
 import { IRegisterBody, ILoginBody } from "../../interfaces/body";
 import { formatDateToYMD } from "../../helpers/date";
+import Topic from "../topic/model";
 const register = async (req: Request, res: Response) => {
   try {
     const body: IRegisterBody = req.body;
     await registerSchema.validateAsync(body);
     const hashedPassword = await hash(body.password);
+    const topics = body.topics;
+    const topicsCount = await Topic.countDocuments({ title: { $in: topics } });
+    if (topics.length !== topicsCount) return res.status(401).send({ success: false, message: "الرجاء التاكد من الاهتمامات المعطاة" })
     const newUser = await User.create({
       ...body,
       password: hashedPassword,
       createdAt: formatDateToYMD(new Date(), "_"),
     });
-    const accessToken = signToken(newUser._id.toString());
-    res.cookie("access_token", accessToken, { secure: true });
+    const accessToken = signAccessToken(newUser._id.toString());
+    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      maxAge: SIX_MONTHS_MS
+    });
     return res.status(200).send({ success: true, message: "تم انشاء الحساب" });
   } catch (err) {
     console.log(err);
@@ -45,7 +54,7 @@ const login = async (req: Request, res: Response) => {
   try {
     const body: ILoginBody = req.body;
     await loginSchema.validateAsync(body);
-    const user = await User.findOne({ email: body.email }).select("password").lean();
+    const user = await User.findOne({ email: body.email }).select("username password").lean();
     if (!user)
       return res.status(401).send({
         success: false,
@@ -58,17 +67,19 @@ const login = async (req: Request, res: Response) => {
         success: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
-    const accessToken = signToken(String(user._id));
+    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+    const accessToken = signAccessToken(String(user._id));
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production" ? true : false,
-      maxAge: 6 * 30 * 24 * 60 * 60 * 1000
+      maxAge: SIX_MONTHS_MS
     });
     res
       .status(201)
-      .send({ success: true, message: "تم تسجيل الدخول بنجاح" });
+      .send({ success: true, username: user.username });
   } catch (err) {
     console.log(err);
+    res.status(500).send({ success: false, message: "Interal server error" })
   }
 };
 const logout = async (req: Request, res: Response) => {
@@ -84,7 +95,7 @@ const logout = async (req: Request, res: Response) => {
 const sendVerifyEmail = (req: Request, res: Response) => {
   try {
     const user = req.user;
-    const token = signToken(user.email, { expiresIn: "5m" });
+    const token = signAccessToken(user.email, { expiresIn: "5m" });
     const html = `
        <div>
            <h1>تاكيد الايميل</h1>
@@ -120,7 +131,7 @@ const verifyAccount = async (req: Request, res: Response) => {
 const sendResetPasswordEmail = (req: Request, res: Response) => {
   try {
     const user = req.user;
-    const token = signToken(user.email);
+    const token = signAccessToken(user.email);
     const html = `
        <div>
            <h1>اعادة تعين الباسسورد</h1>

@@ -12,7 +12,7 @@ router.patch("/follow/:userId",
     isConfirmed(true),
     userDataAccess({
         dataHolder: "params",
-        requestedUserInfoField: "userId",
+        requestReciverInfoField: "userId",
         queryField: "_id"
     }),
     followActions,
@@ -20,7 +20,7 @@ router.patch("/follow/:userId",
 router.get("/followers/:userId",
     userDataAccess({
         dataHolder: "params",
-        requestedUserInfoField: "userId",
+        requestReciverInfoField: "userId",
         queryField: "_id"
     }),
     getFollowers
@@ -28,7 +28,7 @@ router.get("/followers/:userId",
 router.get("/following/:userId",
     userDataAccess({
         dataHolder: "params",
-        requestedUserInfoField: "userId",
+        requestReciverInfoField: "userId",
         queryField: "_id"
     }),
     getFollowing

@@ -5,14 +5,14 @@
 import Article from "../domains/article/models/article";
 import Comment from "../domains/article/comment/model";
 import { Request, Response, NextFunction } from "express";
-import { setCache } from "../helpers/node-cache";
-import { getUserFromToken } from "../helpers/jwt";
+import { verifyToken, getUserFromToken } from "../helpers/jwt";
+import { redisClient, getOrSetCache } from "../redis-cache";
+import { USER_ID_KEY } from "../redis-cache/keys";
+import { USER_CACHE_EXPIARY, } from "../redis-cache/expiries";
 import { ObjectId } from "bson"
 import {
-    checkCache,
     buildSearchQuery,
     isValidSearchQuery,
-    checkBlockedList
 } from "../helpers/block"
 type ContentType =
     "get-article" |
@@ -23,23 +23,38 @@ type ContentType =
     "add-reply" |
     "add-comment-like" |
     "save-article";
-interface IOpts {
+interface IISBlockedProps {
     contentType: ContentType;
     queryField?: string;
     dataHolder: "params" | "body";
     contentIdField: string;
     commentBucketIdField?: string;
 };
-interface ICheckIfBlockedOpts {
+interface ICheckBlockingStatusProps {
     contentType: ContentType;
     requestSender: any;
     contentId: string
 }
-const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpts) => {
+type CheckBlockingStatusReturnValues = Promise<{
+    isBlocked?: boolean,
+    contentNotFound?: boolean,
+    articlePublisherId?: string,
+    commentAuthorId?: string,
+    article?: any
+}>
+const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IISBlockedProps) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            let requestSender = req.user || await getUserFromToken(req.cookies.access_token);
-            if (!requestSender) return next();
+            const accessToken = req.cookies.access_token;
+            const decodedToken = verifyToken(accessToken);
+            if (!decodedToken.success) return next();
+
+            const requestSender = req.user || await getOrSetCache(
+                redisClient,
+                `${USER_ID_KEY}=${decodedToken.decoded._id}`,
+                async () => (await getUserFromToken("_", decodedToken.decoded._id)),
+                USER_CACHE_EXPIARY
+            );
             const contentId = getProvidedId(req, dataHolder, contentIdField);
             if (!contentId) {
                 return res.status(401).send({ success: false, message: "Please provide content id" });
@@ -48,7 +63,7 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpt
             if (!isValidSearchQuery(searchQuery)) {
                 return res.status(401).send({ success: false, message: "User not found" });
             }
-            const { contentNotFound, isBlocked, articlePublisherId, commentAuthorId, article } = await checkIfBlocked({ contentType, requestSender, contentId });
+            const { contentNotFound, isBlocked, articlePublisherId, commentAuthorId, article } = await checkBlockingStatus({ contentType, requestSender, contentId });
             if (contentNotFound) {
                 return res.status(401).send({ success: false, message: "Content not found" });
             }
@@ -71,18 +86,12 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IOpt
         }
     }
 };
-const checkIfBlocked = async ({
+const checkBlockingStatus = async ({
     requestSender,
     contentType,
     contentId
-}: ICheckIfBlockedOpts): Promise<{
-    isBlocked?: boolean,
-    contentNotFound?: boolean,
-    articlePublisherId?: string,
-    commentAuthorId?: string,
-    article?: any
-}> => {
-    let isBlocked: boolean;
+}: ICheckBlockingStatusProps): CheckBlockingStatusReturnValues => {
+    const requestSenderId = String(requestSender._id);
     switch (contentType) {
         case "get-article":
         case "get-comments":
@@ -95,28 +104,20 @@ const checkIfBlocked = async ({
                 return { contentNotFound: true };
             }
             const publisher: any = article.publisher;
-            if (requestSender.blocked.some(u => String(u.user) === publisher.id)) {
+            const didReqeustSenderBlockPubisher: boolean = requestSender.blocked.some(block => String(block.user) === publisher.id);
+            if (didReqeustSenderBlockPubisher) {
                 return { isBlocked: true };
             }
             const publisherId = String(publisher.id);
-            if (publisher._id === requestSender._id) {
+            if (publisherId === requestSenderId) {
                 return {
                     isBlocked: false,
                     article: contentType === "get-article" ? article : undefined,
                     articlePublisherId: contentType === "add-comment" ? publisherId : undefined
                 };
             };
-            const cacheResult = checkCache({ _id: publisherId }, String(requestSender._id), "_id");
-            if (cacheResult.isBlocked) {
-                return { isBlocked: true };
-            };
-            isBlocked = checkBlockedList(publisher.blocked, requestSender.id);
-            if (isBlocked) {
-                setCache({
-                    key: requestSender.id,
-                    value: [...cacheResult?.cachedBlockedFromList, { _id: publisher.id, username: publisher.username }],
-                    ttl: "30-days",
-                });
+            const didPublisherBlockRequestSender: boolean = publisher.blocked.some((block) => (String(block.user) === requestSenderId));
+            if (didPublisherBlockRequestSender) {
                 return { isBlocked: true };
             };
             return {
@@ -172,23 +173,15 @@ const checkIfBlocked = async ({
             };
             const author = authorDetails;
             const authorId = String(author._id);
-            if (requestSender.blocked.some(u => String(u.user) === authorId)) {
-                return { isBlocked: true, commentAuthorId: authorId };
-            };
             if (authorId === requestSender) {
                 return { isBlocked: false, commentAuthorId: authorId };
             };
-            const cacheResult2 = checkCache({ _id: authorId }, requestSender.id, "_id");
-            if (cacheResult2.isBlocked) return { isBlocked: true }
-            isBlocked = checkBlockedList(author.blocked, requestSender.id);
-            if (isBlocked) {
-                setCache({
-                    key: requestSender,
-                    value: [...cacheResult2?.cachedBlockedFromList, { _id: authorId, username: author.username }],
-                    ttl: "30-days",
-                });
+            const didRequestSenderBlockCommentAuthor = requestSender.blocked.some(block => String(block.user) === authorId)
+            if (didRequestSenderBlockCommentAuthor) {
+                return { isBlocked: true, commentAuthorId: authorId };
             };
-            return { isBlocked, commentAuthorId: authorId };
+            const didCommentAuthorBlockRequestSender: boolean = author.blocked.some((block) => (String(block.user) === requestSenderId));
+            return { isBlocked: didCommentAuthorBlockRequestSender, commentAuthorId: authorId };
         default:
             return { isBlocked: false }
     }

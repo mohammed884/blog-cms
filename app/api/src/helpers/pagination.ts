@@ -5,6 +5,7 @@ interface IPaginationOptions {
     limit?: number
     matchQuery?: {},
     populate?: {
+        unwindField?: string
         from: string,
         localField: string,
         as: string,
@@ -30,53 +31,74 @@ const pagination = async ({
     articleBlockChecking,
     select,
     Model }: IPaginationOptions) => {
-    const skip = (Number(page) - 1) * limit;
-    let pipeline: Array<Object> = [{ $match: matchQuery || {} }];
+    try {
+        const skip = (Number(page) - 1) * limit;
+        let pipeline: Array<Object> = [{ $match: matchQuery || {} }];
 
-    if (populate) {
-        const { select, ...rest } = populate;
-        const lookup = {
-            ...rest,
-            ...(select && { pipeline: [{ $project: select }] }),
+        if (populate) {
+            const { select, unwindField, ...rest } = populate;
+            if (unwindField) {
+                pipeline = [
+                    ...pipeline,
+                    { $unwind: `$${unwindField}` },
+                ]
+            }
+            const lookup = {
+                ...rest,
+                ...(select && { pipeline: [{ $project: select }] }),
+            };
+            pipeline = [
+                ...pipeline,
+                { $lookup: lookup },
+                { $unwind: `$${populate.localField}` },
+            ];
+            if (unwindField) {
+                pipeline = [
+                    ...pipeline,
+                    {
+                        $group: {
+                            _id: null,
+                            [unwindField]: { $push: `$${unwindField}` }
+                        }
+                    }
+                ]
+            }
         };
-        pipeline = [
-            ...pipeline,
-            { $lookup: lookup },
-            { $unwind: `$${populate.localField}` },
-        ]
-    };
-    if (articleBlockChecking && articleBlockChecking.toString() !== "{}") {
+        if (articleBlockChecking && articleBlockChecking.toString() !== "{}") {
+            pipeline = [
+                ...pipeline,
+                {
+                    $match: {
+                        "publisher.blocked": {
+                            $not: {
+                                $elemMatch: {
+                                    user: articleBlockChecking.userIdToCheck
+                                },
+                            }
+                        }
+                    },
+                }
+            ]
+        };
+        if (select) {
+            pipeline = [...pipeline, { $project: select }];
+        }
         pipeline = [
             ...pipeline,
             {
-                $match: {
-                    "publisher.blocked": {
-                        $not: {
-                            $elemMatch: {
-                                user: articleBlockChecking.userIdToCheck
-                            },
-                        }
-                    }
+                $facet: {
+                    data: [
+                        { $skip: skip },
+                        { $limit: limit },
+                    ],
                 },
             }
-        ]
-    };
-    if (select) {
-        pipeline = [...pipeline, { $project: select }];
+        ];
+        const result = await Model.aggregate(pipeline);
+        const { data } = result[0];
+        return { data };
+    } catch (error) {
+        console.log(error);
     }
-    pipeline = [
-        ...pipeline,
-        {
-            $facet: {
-                data: [
-                    { $skip: skip },
-                    { $limit: limit },
-                ],
-            },
-        }
-    ];
-    const result = await Model.aggregate(pipeline);
-    const { data } = result[0];
-    return { data };
 }
 export default pagination;

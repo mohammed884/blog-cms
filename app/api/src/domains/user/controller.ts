@@ -4,8 +4,10 @@ import { uploadSingle } from "../../helpers/fileopreations";
 import pagination from "../../helpers/pagination";
 import Article from "../article/models/article";
 import Topic from "../topic/model";
-import { setCache, deleteCache } from "../../helpers/node-cache";
 import { formatDateToYMD } from "../../helpers/date";
+import { delCache, getOrSetCache, redisClient, setRedisCache } from "../../redis-cache";
+import { USER_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
+import { USER_CACHE_EXPIARY } from "../../redis-cache/expiries";
 const getProfile = async (req: Request, res: Response) => {
   try {
     const user = req.user;
@@ -16,7 +18,19 @@ const getProfile = async (req: Request, res: Response) => {
 }
 const getUser = async (req: Request, res: Response) => {
   try {
-    const user = req.user || await User.findOne({ username: req.params.username }).lean();
+    const username = req.params.username;
+    const requestSender = req.user;
+    const getRequestReciverInfo = async () => {
+      return await User.findOne({ username }).select("-password").lean();
+    }
+    const user = req.requestReciver || await getOrSetCache(
+      redisClient, `${USER_USERNAME_KEY}=${username}`,
+      getRequestReciverInfo,
+      USER_CACHE_EXPIARY
+    );
+    if (!user) {
+      return res.status(401).send({ success: false, message: "لم يتم العثور على المستخدم" })
+    }
     res.status(201).send({ success: true, user })
   } catch (err) {
     console.log(err);
@@ -47,7 +61,7 @@ const blockUser = async (req: Request, res: Response) => {
         .status(401)
         .send({ success: false, message: "حدث خطأ أثناء حظر المستخدم" });
     };
-    const deleteUnAcceptedCollaborations = await Article.updateOne(
+    await Article.updateOne(
       {
         publisher: { $in: [userIdToBlock, user._id] },
         "collaborators.accepted": false,
@@ -61,12 +75,8 @@ const blockUser = async (req: Request, res: Response) => {
         }
       }
     );
-    //fix this
-    setCache({
-      key: userIdToBlock,
-      value: [{ _id: String(user._id), username: user.username }],
-      ttl: "30-days",
-    });
+    await delCache(redisClient, `${USER_ID_KEY}=${user._id}`)
+    await delCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`)
     res.status(201).send({ success: true, message: "تم حظر المستخدم بنجاح" });
   } catch (err) {
     console.log(err);
@@ -78,7 +88,7 @@ const unBlockUser = async (req: Request, res: Response) => {
     const user = req.user;
     const userIdToUnBlock = req.params.id;
     // Check && Add the user ID to the blocked list
-    const updatedStatus = await User.updateOne(
+    const updatedUser = await User.findByIdAndUpdate(
       { _id: user._id },
       {
         $pull: {
@@ -88,12 +98,13 @@ const unBlockUser = async (req: Request, res: Response) => {
         }
       }
     );
-    if (updatedStatus.modifiedCount === 0) {
+    if (updatedUser) {
       return res
         .status(401)
         .send({ success: false, message: "حدث خطأ أثناء فك الحظر على المستخدم" });
     }
-    deleteCache(userIdToUnBlock)
+    await delCache(redisClient, `${USER_ID_KEY}=${user._id}`)
+    await delCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`)
     res.status(201).send({ success: true, message: "تم فك الحظر على المستخدم بنجاح" });
   } catch (err) {
     console.log(err);

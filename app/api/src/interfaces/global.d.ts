@@ -12,7 +12,7 @@ export interface IUser {
     createdAt: any;
     article: ObjectId;
   }>;
-  save?: () => {};
+  save?: () => Promise<{}>;
   role: "user" | "admin" | "moderator";
   avatar?: string;
   cover?: string;
@@ -36,7 +36,7 @@ export interface IArticle {
   estimatedReadTime: string;
   savedCount: number;
   cover?: string;
-  save: () => {};
+  save?: () => Promise<{}>;
   createdAt?: Date;
 }
 declare module 'express' {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-//Bucket design the notifications limt foreach document is 50 
+//Bucket design the notifications limt foreach document is 5 
 const Schema = new mongoose.Schema({
     receiver: {
         type: String,
@@ -46,7 +46,8 @@ const Schema = new mongoose.Schema({
     },
     notificationsCount: {
         type: Number,
-        default: 1
+        default: 1,
+        max: 5,
     },
     createdAt: {
         type: Date,

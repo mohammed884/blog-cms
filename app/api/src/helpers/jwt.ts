@@ -4,9 +4,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 interface verifyInterface {
     success: boolean,
     err?: string
-    decoded?: string | JwtPayload,
+    decoded?: { _id: string, iat: number, exp: number }
 }
-export const signToken = (_id: string, options: object = { expiresIn: "30d" }) => {
+export const signAccessToken = (_id: string, options: object = { expiresIn: "30d" }) => {
     try {
         return jwt.sign({ _id }, JWT_SECRET, options);
     } catch (err) {
@@ -16,7 +16,7 @@ export const signToken = (_id: string, options: object = { expiresIn: "30d" }) =
 export const verifyToken = (token: string): verifyInterface => {
     try {
         let result: verifyInterface;
-        jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        jwt.verify(token, JWT_SECRET, (err, decoded: { _id: string, iat: number, exp: number }) => {
             if (err) return result = { ...result, success: false, err: err.message };
             return result = { ...result, success: true, decoded }
         });
@@ -28,7 +28,7 @@ export const verifyToken = (token: string): verifyInterface => {
         }
     }
 };
-export const getUserFromToken = async (token: string) => {
-    const validation = verifyToken(token);    
-    return await User.findById(validation.decoded);
+export const getUserFromToken = async (token: string | "_", _id?: string) => {
+    const userId = token === "_" ? _id : verifyToken(token);
+    return await User.findById(userId).select("-password");
 };

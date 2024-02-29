@@ -21,12 +21,12 @@ router.get("/search", isLoggedIn(true), searchArticles);
 router.get("/publisher/:publisherId",
     userDataAccess({
         dataHolder: "params",
-        requestedUserInfoField: "publisherId",
+        requestReciverInfoField: "publisherId",
         queryField: "_id"
     }),
     getPublisherArticles,
 );
-router.get("/top",getTopArticles)
+router.get("/top", getTopArticles)
 router.get("/:id",
     contentAccess({
         contentType: "get-article",
@@ -62,5 +62,4 @@ router.patch("/save/:id",
     }),
     saveArticle,
 );
-
 export default router;

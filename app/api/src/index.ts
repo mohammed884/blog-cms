@@ -15,6 +15,7 @@ import userRouter from "./domains/user";
 import followRouter from "./domains/user/follow";
 import fileUpload from "express-fileupload";
 import { IUser, IArticle } from "./interfaces/global";
+import path from "node:path"
 const app = express();
 // coonect to database
 mongoose.set("strictQuery", true);
@@ -26,6 +27,7 @@ mongoose.connection.on("error", (e: Error) => console.log(e));
 // applay middlewares
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(compression());
+app.use("/uploads", express.static(path.join(__dirname, 'uploads')))
 app.use(express.json());
 app.use(fileUpload({
   limits: { fileSize: 50 * 1024 * 1024 },
@@ -34,7 +36,7 @@ app.use(cookieParser(process.env.COOKIE_PARSER_SECRET));
 declare module 'express' {
   interface Request {
     user: IUser;
-    requestedUser: IUser;
+    requestReciver: IUser;
     article: IArticle;
     articlePublisherId: string;
     commentAuthorId: string;
@@ -50,8 +52,6 @@ app.use("/article/like", likeRouter);
 app.use("/article/collaboration", collaborationRouter);
 app.use("/topics", topicsRouter);
 
-// console.log(formatDateToYMD(new Date(), "_"));
-//
 // listen
 app.listen(process.env.PORT, () => {
   console.log("Server is running on port: " + process.env.PORT);

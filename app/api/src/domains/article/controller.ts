@@ -123,7 +123,6 @@ const getPublisherArticles = async (req: Request, res: Response) => {
   try {
     const publisherId = req.params.publisherId;
     const page = Number(req.query.page) || 1;
-
     if (!publisherId) {
       return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
     }
@@ -150,7 +149,6 @@ const getPublisherArticlesCount = async (req: Request, res: Response) => {
 };
 const getArticle = async (req: Request, res: Response) => {
   try {
-    console.log(req.params.id);
     const pipeline = [
       {
         $match: {

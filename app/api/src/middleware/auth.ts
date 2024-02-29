@@ -1,10 +1,24 @@
 import { Request, Response, NextFunction } from "express";
-import { getUserFromToken } from "../helpers/jwt";
+import { getUserFromToken, verifyToken } from "../helpers/jwt";
+import { redisClient, getOrSetCache } from "../redis-cache";
+import { USER_ID_KEY } from "../redis-cache/keys";
+import { USER_CACHE_EXPIARY } from "../redis-cache/expiries";
+
 const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = false) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const token = req.cookies.access_token;
-      const user = await getUserFromToken(token);
+      const accessToken = req.cookies.access_token;
+      const decodedToken = verifyToken(accessToken);
+      if (!decodedToken.success && !setStatusOnly) return res
+        .status(401)
+        .send({ success: false, isLoggedIn: false, message: "لم يتم العثور على المستخدم" });
+      if (!decodedToken.success && setStatusOnly) return next()
+      const user = await getOrSetCache(
+        redisClient,
+        `${USER_ID_KEY}=${decodedToken.decoded._id}`,
+        () => (getUserFromToken("_", decodedToken.decoded._id)),
+        USER_CACHE_EXPIARY,
+      );
       if (setStatusOnly) {
         req.user = user;
         return next();

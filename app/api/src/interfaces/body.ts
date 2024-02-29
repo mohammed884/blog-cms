@@ -8,7 +8,7 @@ export interface IRegisterBody extends ILoginBody {
     username: string,
     gender: "male | female",
     birthdate: string,
-
+    topics: Array<string>
 }
 //Article
 export interface ISearchBody {
