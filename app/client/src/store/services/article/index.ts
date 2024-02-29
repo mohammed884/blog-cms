@@ -45,11 +45,37 @@ const slice = apiService.injectEndpoints({
                 else return false;
             },
         }),
-        getPublisherArticles: builder.query<Array<IArticle>, { publisherId: string }>({
-            query: (body) => ({
-                url: `/article/publisher/${body.publisherId}`,
+        getPublisherArticles: builder.query<{ success: boolean, articles: Array<IArticle>, hasMore: boolean }, { page?: number, publisherId: string }>({
+            query: ({ publisherId, page }) => ({
+                url: `/article/publisher/${publisherId}?page=${page}`,
                 method: "GET"
             }),
+            serializeQueryArgs: ({ endpointName, queryArgs }) => {
+                return queryArgs.publisherId;
+            },
+            merge: (currentCache, newItems) => {
+                if (!newItems.articles.length) {
+                    return {
+                        ...currentCache,
+                        hasMore: false
+                    }
+                }
+                if (currentCache.articles) {
+                    return {
+                        ...currentCache,
+                        ...newItems,
+                        hasMore: true,
+                        articles: [...currentCache.articles, ...newItems.articles],
+                    };
+                }
+                else return { ...newItems, hasMore: true };
+            },
+            forceRefetch({ currentArg, previousArg }) {
+                if (currentArg?.page === previousArg?.page) return false;
+                if (!currentArg?.page || !previousArg?.page) return true;
+                if (currentArg.page > previousArg.page) return true;
+                else return false;
+            },
         }),
         addArticle: builder.mutation({
             query: (body) => ({
@@ -78,11 +104,10 @@ const slice = apiService.injectEndpoints({
                 method: "GET",
             }),
         }),
-        saveArticle: builder.mutation({
+        saveArticle: builder.mutation<{ success: boolean, message?: string }, { _id: string }>({
             query: (body) => ({
-                url: `/article/save/${body.id}`,
+                url: `/article/save/${body._id}`,
                 method: "PATCH",
-                body
             }),
         })
     }),

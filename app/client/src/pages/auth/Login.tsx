@@ -1,34 +1,61 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useLoginMutation } from "../../store/services/auth";
+import Loader from "../../components/Loader";
+import { useAppDispatch } from "../../store/hooks";
+import apiService from "../../store/services/index";
+import {} from "../../store/services/index";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [login, { isLoading, isSuccess, isError, error }] = useLoginMutation();
+  const [message, setMessage] = useState<{
+    context: string;
+    success: boolean;
+  }>();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-    console.log(email, password);
-    const data = await login({ password, email });
-    console.log(data);
+    if (!email) {
+      setMessage({ success: false, context: "الرجاء كتابة الايميل" });
+    }
+    if (!password) {
+      setMessage({ success: false, context: "الرجاء كتابة الباسوورد" });
+    }
+    if (8 > password.length) {
+      setMessage({
+        success: false,
+        context: "يجب ان لا يقل الباسوورد عن 8 ارقام واحرف",
+      });
+    }
+    if (32 < password.length) {
+      setMessage({
+        success: false,
+        context: "يجب ان لا يزيد الباسوورد عن 32 ارقام واحرف",
+      });
+    }
+    await login({ password, email })
+      .unwrap()
+      .then((fulfilled) => {
+        setMessage({ success: true, context: "تم تسجيل الدخول بنجاح" });
+        dispatch(apiService.util.resetApiState());
+        setTimeout(() => {
+          navigate("/feed");
+        }, 250);
+      })
+      .catch((reason) => {
+        console.log("catch error ->", reason);
+        setMessage({ success: false, context: reason.data?.message });
+      });
   };
-  console.log(
-    "loading",
-    isLoading,
-    "success",
-    isSuccess,
-    "is error",
-    isError,
-    "err",
-    error
-  );
-
   const inputsClasses =
     "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
   const btnClasses =
     "w-full font-bold bg-black text-white text-sm rounded-md mb-3 px-3 py-3";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
+      {isLoginLoading && <Loader />}
       <div className="lg:w-[60vw] md:w-[70vw] sm:w-[95vw] lg:h-[80vh] md:h-[70vh] sm:h-[70vh] flex flex-col gap-5 justify-center items-center shadow-md rounded-lg">
         <div className="text-center">
           <h1 className="text-[2.1rem] font-bold">اهلا بعودتك</h1>
@@ -40,6 +67,16 @@ const Login = () => {
           <label htmlFor="email" className="hidden">
             البريد الالكتروني
           </label>
+          {message && (
+            <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md mb-3">
+              <div
+                className={`w-2 h-[100%] rounded-r-md ${
+                  message.success ? "bg-emerald-500" : "bg-red-500"
+                }`}
+              ></div>
+              <span className="p-3">{message.context}</span>
+            </div>
+          )}
           <input
             required
             className={inputsClasses}

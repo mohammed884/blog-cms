@@ -49,7 +49,8 @@ const MenuButtons = ({
   next,
   previous,
 }: IMenuButtons) => {
-  const btnStyles = "font-bold p-3 px-10 text-sm rounded-md";
+  const btnStyles =
+    "font-bold p-3 md:px-10 sm:px-5 md:text-sm sm:text-[.8rem] rounded-md";
   return (
     <div className="w-[100%] flex justify-between mx-auto mt-4">
       {!isLastStep ? (

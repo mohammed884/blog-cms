@@ -12,14 +12,22 @@ interface IReturnValues {
 const validateInputs = (
   step: ReactElement,
   currentIndex: number,
-  setErrorMessage: React.Dispatch<React.SetStateAction<string>>
+  setMessage: React.Dispatch<
+    React.SetStateAction<
+      | {
+          success: boolean;
+          context: string;
+        }
+      | undefined
+    >
+  >
 ) => {
   switch (currentIndex) {
     case 0:
       const { username, usernameRef } = step.props;
       if (username === "" || username === " ") {
         //add the error
-        setErrorMessage("الرجاء كتابة الاسم");
+        setMessage({ success: false, context: "الرجاء كتابة الاسم" });
         const input = usernameRef.current;
         input.classList.add("border-red-500");
         return false;
@@ -28,7 +36,7 @@ const validateInputs = (
     case 1:
       const { password, email, passwordRef, emailRef } = step.props;
       if (email === "" || email === " ") {
-        setErrorMessage("الرجاء كتابة الايميل");
+        setMessage({ success: false, context: "الرجاء كتابة الايميل" });
         const input = emailRef.current;
         input.classList.add("border-red-500");
         //add the error
@@ -37,28 +45,37 @@ const validateInputs = (
       if (
         !RegExp("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$").test(email)
       ) {
-        setErrorMessage("الرجاء كتابة الايميل بشكل صحيح");
+        setMessage({
+          success: false,
+          context: "الرجاء كتابة الايميل بشكل صحيح",
+        });
         const input = emailRef.current;
         input.classList.add("border-red-500");
         //add the error
         return false;
       }
       if (password === "" || password === " ") {
-        setErrorMessage("الرجاء كتابة الباسوورد");
+        setMessage({ success: false, context: "الرجاء كتابة الباسوورد" });
         const input = passwordRef.current;
         input.classList.add("border-red-500");
         //add the error
         return false;
       }
       if (password.length < 8) {
-        setErrorMessage("يجب ان لا يقل الباسوورد عن 8 احرف وارقام");
+        setMessage({
+          success: false,
+          context: "يجب ان لا يقل الباسوورد عن 8 احرف وارقام",
+        });
         const input = passwordRef.current;
         input.classList.add("border-red-500");
         //add the error
         return false;
       }
       if (password.length > 32) {
-        setErrorMessage("يجب ان لا يزيد الباسوورد عن 32 حرف ورقم");
+        setMessage({
+          success: false,
+          context: "يجب ان لا يزيد الباسوورد عن 32 حرف ورقم",
+        });
         const input = passwordRef.current;
         input.classList.add("border-red-500");
         //add the error
@@ -70,7 +87,15 @@ const validateInputs = (
 };
 export default function useMultistepForm(
   steps: Array<ReactElement>,
-  setErrorMessage: React.Dispatch<React.SetStateAction<string>>
+  setMessage: React.Dispatch<
+    React.SetStateAction<
+      | {
+          success: boolean;
+          context: string;
+        }
+      | undefined
+    >
+  >
 ): IReturnValues {
   const [currentIndex, setCurrentIndex] = useState(0);
   const next = (): void => {
@@ -78,21 +103,18 @@ export default function useMultistepForm(
     const areValid = validateInputs(
       steps[currentIndex],
       currentIndex,
-      setErrorMessage
+      setMessage
     );
     if (!areValid) return;
-    setErrorMessage("");
     setCurrentIndex((prev) => prev + 1);
   };
   const previous = () => {
     if (currentIndex <= 0) return 0;
-    setErrorMessage("");
     setCurrentIndex((prev) => prev - 1);
   };
   const byStep = (step: number): void => {
     if (currentIndex < 0 || step > steps.length - 1) return;
     if (step < currentIndex) {
-      setErrorMessage("");
       return setCurrentIndex(step);
     }
   };

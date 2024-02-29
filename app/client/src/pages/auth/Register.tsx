@@ -14,8 +14,10 @@ const Register = () => {
     useRegisterMutation();
   const navigate = useNavigate();
   const [selectedTopics, setSelectedTopics] = useState<Array<string>>([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [message, setMessage] = useState<{
+    success: boolean;
+    context: string;
+  }>();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -55,23 +57,26 @@ const Register = () => {
     })
       .unwrap()
       .then((fulfilled: any) => {
-        if (errorMessage) setErrorMessage("");
-        setSuccessMessage(fulfilled.message || "");
+        setMessage({ success: true, context: "تم انشاء الحساب" });
         setTimeout(() => {
-          navigate("/profile/feed");
+          navigate("/feed");
         }, 250);
       })
       .catch((reason) => {
-        if (successMessage) setSuccessMessage("");
         if (reason.data.usedUsername) {
           byStep(0);
-          return setErrorMessage("هذا الاسم مسخدم سابقا");
+          return setMessage({
+            success: false,
+            context: "هذا الاسم مسخدم سابقا",
+          });
         }
         if (reason.data.usedEmail) {
           byStep(1);
-          return setErrorMessage("هذا الايميل مستخدم سابقا");
+          return setMessage({
+            success: false,
+            context: "هذا الايميل مستخدم سابقا",
+          });
         }
-        setErrorMessage(reason.data.message || "Error");
       });
   };
   const {
@@ -83,7 +88,7 @@ const Register = () => {
     next,
     previous,
     byStep,
-  } = useMultistepForm(steps, setErrorMessage);
+  } = useMultistepForm(steps, setMessage);
   return (
     <section className="w-full h-[100vh] flex flex-col justify-center items-center">
       {isRegistertionLoading && <Loader />}
@@ -101,18 +106,17 @@ const Register = () => {
             }`}
             onSubmit={handleSubmit}
           >
-            {errorMessage && (
+            {message && (
               <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md">
-                <div className="w-2 h-[100%] rounded-r-md bg-red-500"></div>
-                <span className="p-3">{errorMessage}</span>
+                <div
+                  className={`w-2 h-[100%] rounded-r-md ${
+                    message.success ? "bg-emerald-500" : "bg-red-500"
+                  }`}
+                ></div>
+                <span className="p-3">{message.context}</span>
               </div>
             )}
-            {successMessage && (
-              <div className="w-full h-fit text-md flex font-medium bg-emerald-50 rounded-md">
-                <div className="w-2 h-[100%] rounded-r-md bg-emerald-500"></div>
-                <span className="p-3">{successMessage}</span>
-              </div>
-            )}
+
             <Suspense fallback={<Loader />}>{step}</Suspense>
             <MenuButtons
               isFirstStep={isFirstStep}

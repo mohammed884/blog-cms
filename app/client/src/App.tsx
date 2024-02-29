@@ -1,37 +1,46 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Header from "./components/Header";
-import Home from "./pages/home";
-import Register from "./pages/auth/Register";
-import Login from "./pages/auth/Login";
-import Profile from "./pages/user/Profile";
 import { useGetProfileQuery } from "./store/services/user";
+import { Suspense, lazy } from "react";
+import Header from "./components/Header";
+const Home = lazy(() => import("./pages/home/index"));
+const Register = lazy(() => import("./pages/auth/Register"));
+const Login = lazy(() => import("./pages/auth/Login"));
+const Profile = lazy(() => import("./pages/user/profile/index"));
+import Loader from "./components/Loader";
+import NotFound from "./components/NotFound";
 function App() {
-  const { data: user, isLoading, isError, error } = useGetProfileQuery({});
-  if (isLoading) return <div>Loading..</div>;
+  const { data: userData, isLoading, isError, error } = useGetProfileQuery({});
+  if (isLoading) return <Loader />;
   if (isError) {
-    console.log("log erroe from home", error);
+    console.log("log error from home", error);
   }
+  console.log("user data ->", userData);
+
   return (
     <>
       <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/auth/">
-          <Route path="register" element={<Register />} />
-          <Route path="login" element={<Login />} />
-          {/* <Route
-            path="register"
-            element={!user ? <Register /> : <Navigate to="/auth/register" />}
-          />
+      <Suspense fallback={<Loader />}>
+        <Routes>
           <Route
-            path="login"
-            element={!user ? <Login /> : <Navigate to="/auth/login" />}
-          /> */}
-        </Route>
-        <Route path="/user/">
-          <Route path="profile" element={<Profile />} />
-        </Route>
-      </Routes>
+            path="/"
+            element={userData ? <Navigate to={`/feed`} /> : <Home />}
+          />
+          <Route path="*" element={<NotFound />} />
+          <Route path="/auth/">
+            <Route
+              path="register"
+              element={!userData ? <Register /> : <Navigate to="/feed" />}
+            />
+            <Route
+              path="login"
+              element={!userData ? <Login /> : <Navigate to={`/feed`} />}
+            />
+          </Route>
+          <Route path="/user/">
+            <Route path=":username" element={<Profile />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </>
   );
 }

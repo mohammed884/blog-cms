@@ -3,7 +3,7 @@ const slice = apiService.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation<{
             success: boolean,
-            message?: string
+            username?: string
         }, {
             password: string,
             email: string
@@ -13,6 +13,7 @@ const slice = apiService.injectEndpoints({
                 url: '/auth/login',
                 method: 'POST',
                 body,
+                invalidatesTags: ["User"],
             }),
         }),
         register: builder.mutation<{
@@ -28,15 +29,18 @@ const slice = apiService.injectEndpoints({
                 url: '/auth/register',
                 method: 'POST',
                 body,
+                invalidatesTags: ["User"],
             }),
         }),
         logout: builder.mutation({
             query: () => ({
                 url: '/auth/logout',
                 method: 'POST',
+                invalidatesTags: ["User"],
             }),
         })
     }),
 });
+
 export const { useLoginMutation, useRegisterMutation, useLogoutMutation } = slice;
 export default slice;

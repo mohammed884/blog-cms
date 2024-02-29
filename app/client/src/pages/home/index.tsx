@@ -1,19 +1,18 @@
 import { useRef, useState } from "react";
-import CreateAccountPop from "../../components/CreateAccountPop";
 import WelcomeSection from "./components/WelcomeSection";
 import { IArticle } from "../../interfaces/global";
 import TopArticlesSection from "./components/TopArticlesSection";
 import FeedSection from "./components/FeedSection";
 import { useGetFeedQuery } from "../../store/services/article";
+import LoginPopup from "../../components/LoginPopup";
 const index = () => {
   const [page, setPage] = useState(1);
-  const createAccountRef = useRef<HTMLDialogElement>(null);
+  const LoginPopupRef = useRef<HTMLDialogElement>(null);
   const {
     data: feedData,
     isLoading,
     isError,
     error,
-    isFetching,
   } = useGetFeedQuery({ page });
   const articles: Array<IArticle> = [
     {
@@ -94,19 +93,6 @@ const index = () => {
       readTime: 5,
       createdAt: new Date(),
     },
-    {
-      _id: "7",
-      title: "اشبع فضولك. تسلم الدفة و ابحر في عالم من الخبرات",
-      subTitle: " 7اشبع فضولك. تسلم الدفة و ابحر في عالم من الخبرات",
-      cover: "books.png",
-      publisher: {
-        _id: "1",
-        username: "منشئ",
-        avatar: "books.png",
-      },
-      readTime: 5,
-      createdAt: new Date(),
-    },
   ];
   const topics = [
     {
@@ -136,23 +122,27 @@ const index = () => {
     },
   ];
   if (isLoading) return <div>Loading..</div>;
-  if (isError) return <div>Error</div>;
+  // if (isError) return <div>Error</div>;
+  console.log("feed data ->", feedData);
+
   return (
-    <div className="w-[100vw] h-fit text-center">
-      <CreateAccountPop ref={createAccountRef} />
-      <main>
-        <WelcomeSection dialogRef={createAccountRef} />
+    <main className="w-[100vw] h-fit text-center">
+      <LoginPopup ref={LoginPopupRef} />
+
+      <WelcomeSection dialogRef={LoginPopupRef} />
+      <section className="xl:w-[85%] lg:w-[88%] sm:w-[95%] mx-auto">
         <TopArticlesSection articles={articles} />
         <FeedSection
           feed={feedData?.articles || []}
+          isFeedLoading={isLoading}
           topics={topics}
-          dialogRef={createAccountRef}
+          dialogRef={LoginPopupRef}
           setPage={setPage}
           page={page}
           hasMore={feedData?.hasMore || false}
         />
-      </main>
-    </div>
+      </section>
+    </main>
   );
 };
 export default index;
