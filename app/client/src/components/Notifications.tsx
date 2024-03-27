@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useGetNotificationsQuery } from "../store/services/user";
 import dayjs from "dayjs";
-import { BlankUserIcon, UserAvatarIcon } from "./Icons";
+import { UserAvatarIcon } from "./Icons";
 import { Link } from "react-router-dom";
+import { INotification } from "../interfaces/global";
+import FollowButton from "./FollowButton";
 const Notifications = ({
   setOpenNotifications,
 }: {
@@ -31,7 +33,6 @@ const Notifications = ({
       return;
     setOpenNotifications((prev) => !prev);
   };
-  const handleFollow = (action: "follow" | "un-follow") => {};
   useEffect(() => {
     window.document.body.addEventListener("click", handleCloseNotfications);
     return () =>
@@ -44,67 +45,65 @@ const Notifications = ({
   if (isError) return <div>...error</div>;
   return (
     <ul id="notifications-list" className="w-[95%] mx-auto">
-      {data?.notifications.map((notification) => {
-        const { sender, createdAt } = notification;
-        const { username, avatar } = sender;
-        return (
-          <li
-            key={notification.retrieveId}
-            className="flex gap-2 p-4 rounded-md shadow-sm"
-          >
-            <div>
-              <Link
-                to={`/user/${username}`}
-                onClick={() => setOpenNotifications(false)}
-              >
-                {avatar ? (
+      {Number(data?.notifications.length) > 0 ? (
+        data?.notifications.map((notification: INotification) => {
+          const { sender, createdAt } = notification;
+          const { username, avatar } = sender;
+          return (
+            <li
+              key={notification.retrieveId}
+              className="flex p-2 py-3 gap-2 rounded-md shadow-sm"
+            >
+              <div>
+                <Link
+                  to={`/user/${username}`}
+                  onClick={() => setOpenNotifications(false)}
+                >
                   <UserAvatarIcon
                     width={6}
                     height={6}
                     avatar={avatar}
                     alt={`${username}'s Avatar`}
                   />
-                ) : (
-                  <BlankUserIcon
-                    width={6}
-                    height={6}
-                    alt={`${username}'s Avatar`}
-                  />
-                )}
-              </Link>
-            </div>
-            <div className="flex justify-between items-center flex-grow">
-              <div className="flex flex-col">
-                <div>
-                  <Link
-                    to={`/user/${username}`}
-                    onClick={() => setOpenNotifications(false)}
-                  >
-                    <span className="font-bold">{username} </span>
-                  </Link>
-                  <span>
-                    {
-                      messages.find(
-                        (message) => message.type === notification.type
-                      )?.context
-                    }
+                </Link>
+              </div>
+              <div className="flex justify-between items-center flex-grow">
+                <div className="flex flex-col">
+                  <div>
+                    <Link
+                      to={`/user/${username}`}
+                      onClick={() => setOpenNotifications(false)}
+                    >
+                      <span className="font-bold">{username} </span>
+                    </Link>
+                    <span>
+                      {
+                        messages.find(
+                          (message) => message.type === notification.type
+                        )?.context
+                      }
+                    </span>
+                  </div>
+                  <span className="opacity-80 text-[.8rem]">
+                    قبل
+                    {dayjs(new Date()).diff(createdAt, "day")} ايام
                   </span>
                 </div>
-                <span className="opacity-80 text-[.8rem]">
-                  قبل {dayjs(new Date()).diff(createdAt, "day")} ايام
-                </span>
+                {notification.type === "follow" && (
+                  <FollowButton
+                    id={notification.sender._id}
+                    isFollowingYou={true}
+                    youFollowing={!!notification.youFollowing}
+                    className="text-[.78rem] px-[.85rem]"
+                  />
+                )}
               </div>
-
-              <button
-                onClick={() => handleFollow("follow")}
-                className="text-[.8rem] font-bold text-off_white border bg-gray-900 hover:bg-gray-800 transition-colors ease-in p-2 px-4 rounded-lg"
-              >
-                متابعة
-              </button>
-            </div>
-          </li>
-        );
-      })}
+            </li>
+          );
+        })
+      ) : (
+        <span>no notifications</span>
+      )}
     </ul>
   );
 };

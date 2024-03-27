@@ -1,64 +1,73 @@
 import { useState } from "react";
-import { IArticle, IUser } from "../../../../interfaces/global";
-import { useGetPublisherArticlesQuery } from "../../../../store/services/article";
+import { useParams } from "react-router-dom";
+import { useGetUserQuery } from "../../../../store/services/user";
+import { IArticle } from "../../../../interfaces/global";
+import {
+  useGetPublisherArticlesQuery,
+  useGetSavedArticlesQuery,
+} from "../../../../store/services/article";
 import ArticlesList from "../../../../components/ArticlesList";
 import Loader from "../../../../components/Loader";
 interface IProps {
-  user: IUser;
-  skip: boolean;
-  isLoggedIn: boolean;
-  isSameUser: boolean;
   setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  feedSectionToShow: "published" | "saved" | "about";
 }
-const FeedSection = ({
-  user,
-  skip,
-  isLoggedIn,
-  isSameUser,
-  setErrorMessage,
-}: IProps) => {
+const FeedSection = ({ setErrorMessage, feedSectionToShow }: IProps) => {
+  const params = useParams();
+  const username =
+    (params.username && params.username.replace(/-/g, " ")) || "";
   const [page, setPage] = useState(1);
-  const {
-    data: publisherArticles,
-    isLoading: areArticlesLoading,
-    isError: articlesError,
-  } = useGetPublisherArticlesQuery<{
-    data: { articles: Array<IArticle>; isSuccess: boolean; hasMore?: boolean };
-    isLoading: boolean;
-    isError: boolean;
-  }>(
-    {
-      publisherId: user._id,
-      page,
-    },
-    {
-      skip,
-    }
+  const { data: userProfile, isSuccess } = useGetUserQuery({
+    username,
+  });
+  const { user, isSameUser, isLoggedIn } = userProfile as any;
+  const { data: publisherArticles, isLoading: areArticlesLoading } =
+    useGetPublisherArticlesQuery(
+      {
+        publisherId: user._id,
+        page,
+      },
+      {
+        skip: !isSuccess,
+      }
+    );
+  const { data: savedArticlesData } = useGetSavedArticlesQuery(
+    {},
+    { skip: feedSectionToShow === "published" ? true : false }
   );
   return (
     <div className="mt-4 p-2">
-      {Number(publisherArticles?.articles.length) > 0 ? (
-        <>
+      {(!isSameUser && feedSectionToShow !== "about") || isSameUser ? (
+        Number(
+          feedSectionToShow === "published"
+            ? publisherArticles?.articles.length
+            : savedArticlesData?.savedArticles.length
+        ) > 0 ? (
           <ul className="w-[100%] flex flex-col justify-center">
-            {publisherArticles?.articles.map((article) => (
+            {(feedSectionToShow === "published"
+              ? publisherArticles?.articles || []
+              : (feedSectionToShow === "saved" &&
+                  savedArticlesData?.savedArticles) ||
+                []
+            ).map((article) => (
               <ArticlesList
                 setErrorMessage={setErrorMessage}
                 key={article._id}
-                page="profile"
+                page={`${
+                  feedSectionToShow === "published" ? "profile" : "saved-feed"
+                }`}
+                userSavedArticles={isSameUser ? user.saved : []}
                 isLoggedIn={isLoggedIn}
                 article={article}
-                articlePublisher={{
+                providedPublisher={{
                   username: user.username,
                   avatar: user.avatar || "",
                 }}
               />
             ))}
             <li>
-              {page > 1 && !publisherArticles?.hasMore ? (
-                <span className="text-sm font-bold opacity-60">
-                  تم تحميل جميع المقالات 💫
-                </span>
-              ) : (
+              {feedSectionToShow === "published" ||
+              (page > 1 && !publisherArticles?.hasMore) ? (
                 <button
                   disabled={page > 1 && !publisherArticles?.hasMore}
                   className={`${
@@ -68,16 +77,27 @@ const FeedSection = ({
                 >
                   {areArticlesLoading ? <Loader /> : "حمل المزيد"}
                 </button>
+              ) : (
+                <span className="text-sm font-bold opacity-60">
+                  {feedSectionToShow === "saved"
+                    ? "تم تحميل جميع المقالات المحفوظة💫"
+                    : feedSectionToShow !== "about" &&
+                      "تم تحميل جميع المقالات 💫"}
+                </span>
               )}
             </li>
           </ul>
-        </>
+        ) : (
+          <h3 className="w-fit opacity-70 mt-4 mx-auto">
+            {isSameUser
+              ? feedSectionToShow === "published"
+                ? "لا توجد لديك مقالات منشورة 💫"
+                : "لا توجد لديك مقالات محفوظة"
+              : `${user.username} لم يقم بنشر اي مقال 💫`}
+          </h3>
+        )
       ) : (
-        <h3 className="opacity-70 mt-4">
-          {isSameUser
-            ? "لا توجد لديك مقالات منشورة 💫"
-            : `${user.username} لم يقم بنشر اي مقال 💫`}
-        </h3>
+        <div>..about</div>
       )}
     </div>
   );

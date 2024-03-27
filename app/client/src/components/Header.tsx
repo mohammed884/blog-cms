@@ -1,14 +1,19 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { Link } from "react-router-dom";
-import { useAppSelector } from "../store/hooks";
 import {
   useGetUnSeenNotificationsQuery,
-  userProfileSelector,
+  useGetUserQuery,
 } from "../store/services/user";
 import { BellIcon, FeatherIcon, PinNib, UserIcon } from "./Icons";
 const Notifications = lazy(() => import("./Notifications"));
 const Header = () => {
-  const user: any = useAppSelector(userProfileSelector);
+  const {
+    data: userData,
+    // isLoading,
+    // isError,
+    // error,
+  } = useGetUserQuery({ username: "profile" });
+  const { user } = userData as any;
   const {
     data: unSeenNotifications,
     isLoading,
@@ -17,26 +22,19 @@ const Header = () => {
   } = useGetUnSeenNotificationsQuery({}, { skip: !user.isSuccess });
   const [scrollY, setScrollY] = useState(0);
   const [openNotifications, setOpenNotifications] = useState(false);
-  const [username, setUsername] = useState("");
   const handleScroll = () => {
     setScrollY(window.scrollY);
   };
-  useEffect(() => {
-    if (user?.isSuccess) {
-      setUsername(user.data.user.username);
-    }
-  }, [user.isSuccess]);
   useEffect(() => {
     window.document.body.addEventListener("click", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
-  console.log("Notifications count", unSeenNotifications);
   return (
     <header
       className={`w-full h-[4.2rem] bg-off_white ${
-        scrollY < 300 && !username ? "border-0" : "border-b-[1px]"
+        scrollY < 300 && !user.username ? "border-0" : "border-b-[1px]"
       } border-b-gray-300 border-dark_green flex justify-center items-center fixed z-[1000]`}
     >
       <div className="w-[85%] flex justify-between items-center">
@@ -44,14 +42,13 @@ const Header = () => {
           <ul
             id="links-list"
             className={`w-fit flex justify-center items-center ${
-              username ? "gap-8" : "gap-6"
+              user.username ? "gap-8" : "gap-6"
             }`}
           >
-            {username ? (
+            {user.username ? (
               <>
                 <li>
-                  <Link to={`/user/${username?.replace(/ /g, "-")}`}>
-                    {/* user profile */}
+                  <Link to={`/user/${user.username?.replace(/ /g, "-")}`}>
                     <UserIcon width={6} height={6} />
                   </Link>
                 </li>
@@ -67,19 +64,29 @@ const Header = () => {
                     className="h-fit pt-[.6rem] hover:rotate-[10deg] transition-transform ease-linear"
                   >
                     <BellIcon width={6} height={6} />
-                    {/* bell icon */}
                   </button>
                   <div
-                    className={`w-[35vw] ${
+                    className={`w-[35vw] h-[40vh] ${
                       openNotifications
-                        ? "h-[40vh] p-3 pt-5 border"
-                        : "h-0 p-0 pt-0 border-0"
-                    } bg-off_white rounded-md shadow-md absolute right-2 overflow-hidden transition-all ease-linear`}
+                        ? "opacity-100 pointer-events-auto"
+                        : "opacity-0 pointer-events-none"
+                    } bg-off_white p-4 rounded-md shadow-md absolute right-2 overflow-hidden transition-opacity ease-linear`}
                   >
+                    <div className="w-[95%] flex justify-between mx-auto pb-3">
+                      <span className="text-[1.2rem] font-black">
+                        جميع الاشعارات
+                      </span>
+                      <button
+                        onClick={() => setOpenNotifications((prev) => !prev)}
+                        className="text-sm font-bold p-2"
+                      >
+                        X
+                      </button>
+                    </div>
                     {openNotifications && (
                       <Suspense
                         fallback={
-                          <div className="w-full h-full bg-gray-50 animate-pulse">
+                          <div className="w-full h-full bg-gray-100 animate-pulse">
                             ...Loading
                           </div>
                         }
@@ -115,7 +122,7 @@ const Header = () => {
           </ul>
         </nav>
         <div className="w-fit flex justify-between items-center gap-8">
-          <div className={`${!username && "hidden"}`}>
+          <div className={`${!user.username && "hidden"}`}>
             <input
               type="search"
               className="bg-[#f9f9f9] w-[16vw] border text-sm p-[.4rem] px-3 rounded-2xl"

@@ -1,21 +1,26 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useGetProfileQuery } from "./store/services/user";
+import { useGetUserQuery } from "./store/services/user";
 import { Suspense, lazy } from "react";
 import Header from "./components/Header";
+import Loader from "./components/Loader";
+import NotFound from "./components/NotFound";
 const Home = lazy(() => import("./pages/home/index"));
 const Register = lazy(() => import("./pages/auth/Register"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const Profile = lazy(() => import("./pages/user/profile/index"));
-import Loader from "./components/Loader";
-import NotFound from "./components/NotFound";
+const Following = lazy(() => import("./pages/user/profile/pages/following"));
+const Followers = lazy(() => import("./pages/user/profile/pages/followers"));
 function App() {
-  const { data: userData, isLoading, isError, error } = useGetProfileQuery({});
+  const {
+    data: userData,
+    isLoading,
+    isError,
+    error,
+  } = useGetUserQuery({ username: "profile" });
   if (isLoading) return <Loader />;
   if (isError) {
     console.log("log error from home", error);
   }
-  console.log("user data ->", userData);
-
   return (
     <>
       <Header />
@@ -38,6 +43,8 @@ function App() {
           </Route>
           <Route path="/user/">
             <Route path=":username" element={<Profile />} />
+            <Route path=":username/following" element={<Following />} />
+            <Route path=":username/followers" element={<Followers />} />
           </Route>
         </Routes>
       </Suspense>

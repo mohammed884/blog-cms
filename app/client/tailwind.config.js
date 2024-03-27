@@ -38,11 +38,10 @@ module.exports = {
         dark_green: "#606C38",
         light_green: "#7c9a82",
         light_beige: "#FEFAE0",
-        light_gray: "#f2f2f2"
+        light_gray: "#f2f2f2",
+        vivid_green: "#1a8917",
       }
     },
   },
   plugins: [],
 }
-//old off_white #fefefe
-//new #f3f4f6

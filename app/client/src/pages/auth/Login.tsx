@@ -15,22 +15,24 @@ const Login = () => {
   const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     if (!email) {
-      setMessage({ success: false, context: "الرجاء كتابة الايميل" });
+      return setMessage({ success: false, context: "الرجاء كتابة الايميل" });
     }
     if (!password) {
-      setMessage({ success: false, context: "الرجاء كتابة الباسوورد" });
+      return setMessage({ success: false, context: "الرجاء كتابة الباسوورد" });
     }
     if (8 > password.length) {
-      setMessage({
+      return setMessage({
         success: false,
         context: "يجب ان لا يقل الباسوورد عن 8 ارقام واحرف",
       });
     }
     if (32 < password.length) {
-      setMessage({
+      return setMessage({
         success: false,
         context: "يجب ان لا يزيد الباسوورد عن 32 ارقام واحرف",
       });
@@ -42,7 +44,7 @@ const Login = () => {
         dispatch(apiService.util.resetApiState());
         setTimeout(() => {
           navigate("/feed");
-        }, 250);
+        }, 450);
       })
       .catch((reason) => {
         console.log("catch error ->", reason);
@@ -61,7 +63,7 @@ const Login = () => {
           <h1 className="text-[2.1rem] font-bold">اهلا بعودتك</h1>
         </div>
         <form
-          onSubmit={handleSubmit}
+          onSubmit={(e) => e.preventDefault()}
           className="lg:w-[60%] md:w-[88%] sm:w-[95%] flex flex-col lg:gap-1 md:gap-2 sm:gap-4"
         >
           <label htmlFor="email" className="hidden">
@@ -97,7 +99,7 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button type="submit" className={btnClasses}>
+          <button type="submit" onClick={handleSubmit} className={btnClasses}>
             تسجيل الدخول
           </button>
         </form>

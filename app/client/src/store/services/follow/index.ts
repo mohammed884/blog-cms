@@ -9,6 +9,7 @@ interface IFollowers {
   followedBy: { _id: string, username: string, avatar: string };
   createdAt: Date
 }; const slice = apiService.injectEndpoints({
+
   endpoints: (builder) => ({
     getFollowers: builder.query<{ success: boolean, followers: Array<IFollowers> }, { id: string }>({
       query: (body) => ({
@@ -18,12 +19,14 @@ interface IFollowers {
     getFollowing: builder.query<{ success: boolean, following: Array<IFollowing> }, { id: string }>({
       query: (body) => ({
         url: `/user/following/${body.id}`
-      })
+      }),
+      providesTags: ["Following-count"]
     }),
     getFollowersCount: builder.query<{ success: boolean, count: number }, { id: string }>({
       query: (body) => ({
         url: `/user/count/followers/${body.id}`,
-      })
+      }),
+      providesTags: ["Followers-count"]
     }),
     getFollowingCount: builder.query<{ success: boolean, count: number }, { id: string }>({
       query: (body) => ({
@@ -43,7 +46,15 @@ interface IFollowers {
         method: "PATCH",
         url: `/user/follow/${body.id}?action=${body.action}`,
       }),
+      invalidatesTags: ["User", "Notifications", "Followers-count", "Following-count"],
     }),
   }),
 });
-export const { useGetFollowingQuery, useGetFollowersQuery, useGetFollowingCountQuery, useGetFollowersCountQuery, useGetFollowersAnalysisQuery } = slice 
+export const {
+  useGetFollowingQuery,
+  useGetFollowersQuery,
+  useGetFollowingCountQuery,
+  useGetFollowersCountQuery,
+  useGetFollowersAnalysisQuery,
+  useFollowUserMutation
+} = slice 

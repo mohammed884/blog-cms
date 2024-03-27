@@ -31,6 +31,7 @@ const ArticlesSection = ({
               dialogRef={dialogRef}
               key={article._id}
               article={article}
+              // setErrorMessage={setErr}
             />
           ))}
           <li>

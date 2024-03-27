@@ -4,7 +4,7 @@ interface IconProps {
   alt?: string;
 }
 interface IUserAvatarIcon extends IconProps {
-  avatar: string;
+  avatar: string | undefined;
 }
 export const Ellipsis = ({ width, height }: IconProps) => {
   return (
@@ -49,26 +49,23 @@ export const PinNib = ({ width, height }: IconProps) => {
     />
   );
 };
-export const BlankUserIcon = ({ width, height, alt }: IconProps) => {
-  return (
-    <img
-      className={`w-${width} h-${height}`}
-      src="../../public/svgs/user-blank.svg"
-      alt={alt || `blank user avatar`}
-    />
-  );
-};
 export const UserAvatarIcon = ({
   width,
   height,
   alt,
   avatar,
 }: IUserAvatarIcon) => {
-  return (
+  return avatar ? (
     <img
       className={`w-${width} h-${height}`}
       src={`../../../api/src/uploads/${avatar}`}
       alt={alt}
+    />
+  ) : (
+    <img
+      className={`w-${width} h-${height}`}
+      src="../../public/svgs/user-blank.svg"
+      alt={alt || `blank user avatar`}
     />
   );
 };
@@ -113,6 +110,17 @@ export const FeatherIcon = ({ width, height }: IconProps) => {
       //   height=""
       src="../../public/svgs/writing-feather.svg"
       alt="Feather icon"
+    />
+  );
+};
+export const FollowIcon = ({ width, height }: IconProps) => {
+  return (
+    <img
+      className={`w-${width} h-${height}`}
+      //   width=""
+      //   height=""
+      src="../../public/svgs/follow-icon.svg"
+      alt="Follow icon"
     />
   );
 };

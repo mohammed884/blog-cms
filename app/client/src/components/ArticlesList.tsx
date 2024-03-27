@@ -2,44 +2,46 @@ import dayjs from "dayjs";
 import { Link } from "react-router-dom";
 import { IArticle } from "../interfaces/global";
 import { useSaveArticleMutation } from "../store/services/article";
-import { BlankUserIcon, SaveIcon, SavedIcon, UserAvatarIcon } from "./Icons";
+import { SaveIcon, SavedIcon, UserAvatarIcon } from "./Icons";
 import { useMemo, useState } from "react";
 interface IProps {
-  page: "feed" | "profile";
+  page: "feed" | "saved-feed" | "profile";
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
   article: IArticle;
   userSavedArticles?: Array<{
     createdAt: Date;
     article: string;
   }>;
-  articlePublisher?: {
+  providedPublisher?: {
     username: string;
     avatar: string;
   };
   isLoggedIn?: boolean;
-  setErrorMessage: React.Dispatch<React.SetStateAction<string>>;
+  setErrorMessage?: React.Dispatch<React.SetStateAction<string>>;
 }
 const ArticlesList = ({
   page,
   article,
-  articlePublisher,
+  providedPublisher,
   userSavedArticles,
   isLoggedIn,
   dialogRef,
   setErrorMessage,
 }: IProps) => {
-  // const userData = useAppSelector(userProfileSelector);s
-  // const [saveArticle,setSaveArticle] = useState("")
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
-  const [isArticleSaved, setIsArticleSaved] = useState<boolean>(
-    useMemo(() => {
-      return userSavedArticles?.some((a) => a.article === _id) ? true : false;
-    }, [])
-  );
-  const [saveArticle, { isLoading: isArticleBeingSaved, isError }] =
-    useSaveArticleMutation();
-  const publisherDetails = articlePublisher ?? publisher;
+  const [isArticleSaved, setIsArticleSaved] = useState<boolean>();
+  const [saveArticle] = useSaveArticleMutation();
+  useMemo(() => {
+    setIsArticleSaved(
+      page === "saved-feed"
+        ? true
+        : userSavedArticles?.some((saved) => saved.article === _id)
+        ? true
+        : false
+    );
+  }, []);
+  const publisherDetails = providedPublisher ?? publisher;
   const handleShowCreateAccountPopUp = () => {
     document.body.style.overflowY = "hidden";
     dialogRef?.current?.showModal();
@@ -52,7 +54,7 @@ const ArticlesList = ({
       })
       .catch((reason) => {
         console.log(reason);
-        setErrorMessage(reason.data.message);
+        setErrorMessage && setErrorMessage(reason.data.message);
       });
   };
   return (
@@ -67,20 +69,12 @@ const ArticlesList = ({
         <div className="flex flex-col justify-center flex-grow">
           <div className="flex gap-3 items-center ">
             <span className="w-fit h-fit">
-              {publisherDetails?.avatar ? (
-                <UserAvatarIcon
-                  width={6}
-                  height={6}
-                  avatar={publisherDetails.avatar}
-                  alt={`${publisherDetails?.username}'s Avatar`}
-                />
-              ) : (
-                <BlankUserIcon
-                  width={6}
-                  height={6}
-                  alt={`${publisherDetails?.username}'s Avatar`}
-                />
-              )}
+              <UserAvatarIcon
+                width={6}
+                height={6}
+                avatar={publisherDetails?.avatar}
+                alt={`${publisherDetails?.username}'s Avatar`}
+              />
             </span>
             <span className="md:text-[.85rem] sm:text-[.75rem] font-bold">
               <Link

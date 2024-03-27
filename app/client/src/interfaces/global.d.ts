@@ -61,5 +61,7 @@ export interface INotification {
   "collaboration-request" |
   "collaboration-accept" |
   "collaboration-deny";
-  createdAt: Date
+  createdAt: Date,
+  isFollowingYou?: boolean;
+  youFollowing?: boolean;
 };

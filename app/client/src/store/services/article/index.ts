@@ -60,7 +60,7 @@ const slice = apiService.injectEndpoints({
                         hasMore: false
                     }
                 }
-                if (currentCache.articles) {
+                if (currentCache.articles.length > 0) {
                     return {
                         ...currentCache,
                         ...newItems,
@@ -76,6 +76,14 @@ const slice = apiService.injectEndpoints({
                 if (currentArg.page > previousArg.page) return true;
                 else return false;
             },
+            providesTags: ["Publisher-Articles"]
+        }),
+        getSavedArticles: builder.query<{ success: boolean, savedArticles: Array<IArticle>, hasMore: boolean }, {}>({
+            query: () => ({
+                url: "/article/saved",
+                method: "GET"
+            }),
+            providesTags: ["Saved-Articles"]
         }),
         addArticle: builder.mutation({
             query: (body) => ({
@@ -109,6 +117,7 @@ const slice = apiService.injectEndpoints({
                 url: `/article/save/${body._id}`,
                 method: "PATCH",
             }),
+            invalidatesTags: ["Saved-Articles"]
         })
     }),
 });
@@ -122,5 +131,6 @@ export const {
     useDeleteArticleMutation,
     useSearchArticlesQuery,
     useSaveArticleMutation,
+    useGetSavedArticlesQuery,
 } = slice;
 export default slice;

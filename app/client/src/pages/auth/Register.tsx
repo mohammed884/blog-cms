@@ -46,7 +46,9 @@ const Register = () => {
       setSelectedTopics={setSelectedTopics}
     />,
   ];
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+  ) => {
     e.preventDefault();
     if (!isLastStep) return next();
     await addRegister({
@@ -101,10 +103,10 @@ const Register = () => {
             byStep={byStep}
           />
           <form
+            onSubmit={(e) => e.preventDefault()}
             className={`lg:w-[60%] md:w-[88%] sm:w-[95%] h-[100%] flex flex-col gap-5 justify-center mt-3 ${
               currentIndex < totalSteps - 1 && "mt-4"
             }`}
-            onSubmit={handleSubmit}
           >
             {message && (
               <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md">
