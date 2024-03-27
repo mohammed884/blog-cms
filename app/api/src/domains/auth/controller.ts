@@ -13,6 +13,7 @@ const register = async (req: Request, res: Response) => {
     await registerSchema.validateAsync(body);
     const hashedPassword = await hash(body.password);
     const topics = body.topics;
+    if (body.username === "profile") return res.status(401).send({ success: false, message: "الرجاء استخدام اسم غير profile" })
     const topicsCount = await Topic.countDocuments({ title: { $in: topics } });
     if (topics.length !== topicsCount) return res.status(401).send({ success: false, message: "الرجاء التاكد من الاهتمامات المعطاة" })
     const newUser = await User.create({

@@ -1,5 +1,8 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
-import User from "../domains/user/model"
+import jwt from "jsonwebtoken";
+import User from "../domains/user/model";
+import { IUser } from "../interfaces/global";
+import { ObjectId } from "bson";
+import { PipelineStage } from "mongoose";
 const JWT_SECRET = process.env.JWT_SECRET;
 interface verifyInterface {
     success: boolean,
@@ -28,7 +31,59 @@ export const verifyToken = (token: string): verifyInterface => {
         }
     }
 };
-export const getUserFromToken = async (token: string | "_", _id?: string) => {
-    const userId = token === "_" ? _id : verifyToken(token);
-    return await User.findById(userId).select("-password");
+export const getUserFromToken = async (token: string | "_", _id?: string, populateArticles?: boolean): Promise<null | IUser> => {
+    const userId = token === "_" ? _id : (verifyToken(token)).decoded._id;
+    if (!userId) return null;
+    // const pipline: Array<PipelineStage> = [
+    //     { $match: { _id: new ObjectId(userId) } },
+    //     {
+    //         $project: {
+    //             password: 1
+    //         },
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'articles',
+    //             localField: 'saved.article',
+    //             foreignField: '_id',
+    //             as: 'saved',
+    //             pipeline: [
+    //                 {
+    //                     $project: {
+    //                         title: 1,
+    //                         subTitle: 1,
+    //                         cover: 1
+    //                     }
+    //                 }
+    //             ]
+    //         }
+    //     },
+    //     {
+    //         $unwind: '$saved'
+    //     },
+    //     {
+    //         $lookup: {
+    //             from: 'articles',
+    //             localField: 'saved.author',
+    //             foreignField: '_id',
+    //             as: 'saved.author',
+    //             pipeline: [
+    //                 {
+    //                     $project: {
+    //                         username: 1,
+    //                         avatar: 1,
+    //                     }
+    //                 }
+    //             ]
+    //         }
+    //     }
+    // ]
+    // console.log(pipline);
+
+    const user = await User.findById(userId).select("-password");
+
+    // ?
+    // await User.aggregate(pipline) as any
+    // :
+    return user
 };

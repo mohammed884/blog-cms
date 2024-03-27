@@ -3,6 +3,7 @@ import {
     getTopArticles,
     getArticle,
     getPublisherArticles,
+    getSavedArticles,
     addArticle,
     searchArticles,
     saveArticle,
@@ -26,6 +27,7 @@ router.get("/publisher/:publisherId",
     }),
     getPublisherArticles,
 );
+router.get("/saved", isLoggedIn(true), getSavedArticles);
 router.get("/top", getTopArticles)
 router.get("/:id",
     contentAccess({

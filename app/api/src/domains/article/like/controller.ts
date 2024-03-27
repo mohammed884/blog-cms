@@ -79,7 +79,7 @@ const likeAnalysis = async (req: Request, res: Response) => {
                 .status(401)
                 .send({ success: false, message: "Please provide article id" });
         };
-        const article = await Article.findOne({articleId, publisher: user._id}).select("_id");
+        const article = await Article.findOne({ articleId, publisher: user._id }).select("_id");
         if (!article) {
             return res
                 .status(401)
@@ -91,7 +91,7 @@ const likeAnalysis = async (req: Request, res: Response) => {
                 .status(401)
                 .send({ success: false, message: "Please provide date" });
         };
-        const { year, month,day } = getDateYMD(new Date(date))
+        const { year, month, day } = getDateYMD(new Date(date))
         const monthLength = getMonthLength(year, month)
         const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");
         const pipeline = [

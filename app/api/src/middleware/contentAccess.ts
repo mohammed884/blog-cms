@@ -14,6 +14,7 @@ import {
     buildSearchQuery,
     isValidSearchQuery,
 } from "../helpers/block"
+import { IArticle, IUser } from "interfaces/global";
 type ContentType =
     "get-article" |
     "get-comments" |
@@ -32,7 +33,7 @@ interface IISBlockedProps {
 };
 interface ICheckBlockingStatusProps {
     contentType: ContentType;
-    requestSender: any;
+    requestSender: IUser;
     contentId: string
 }
 type CheckBlockingStatusReturnValues = Promise<{
@@ -40,7 +41,7 @@ type CheckBlockingStatusReturnValues = Promise<{
     contentNotFound?: boolean,
     articlePublisherId?: string,
     commentAuthorId?: string,
-    article?: any
+    article?: IArticle
 }>
 const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IISBlockedProps) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -48,7 +49,6 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IISB
             const accessToken = req.cookies.access_token;
             const decodedToken = verifyToken(accessToken);
             if (!decodedToken.success) return next();
-
             const requestSender = req.user || await getOrSetCache(
                 redisClient,
                 `${USER_ID_KEY}=${decodedToken.decoded._id}`,
@@ -103,7 +103,7 @@ const checkBlockingStatus = async ({
             if (!article) {
                 return { contentNotFound: true };
             }
-            const publisher: any = article.publisher;
+            const publisher: IUser = article.publisher as any;
             const didReqeustSenderBlockPubisher: boolean = requestSender.blocked.some(block => String(block.user) === publisher.id);
             if (didReqeustSenderBlockPubisher) {
                 return { isBlocked: true };
@@ -122,7 +122,7 @@ const checkBlockingStatus = async ({
             };
             return {
                 isBlocked: false,
-                articlePublisherId: contentType === "add-comment" ? publisher._id : "",
+                articlePublisherId: contentType === "add-comment" ? publisherId : undefined,
                 article: contentType === "get-article" ? article : undefined
             };
         case "add-reply":
@@ -167,21 +167,23 @@ const checkBlockingStatus = async ({
                     }
                 },
             ];
-            const authorDetails: any = await Comment.aggregate(aggregation);
+            const authorDetails: { _id: ObjectId, blocked: Array<{ user: ObjectId, createdAt: Date }> } = await Comment.aggregate(aggregation) as any;
             if (!authorDetails) {
                 return { contentNotFound: true };
             };
             const author = authorDetails;
             const authorId = String(author._id);
-            if (authorId === requestSender) {
-                return { isBlocked: false, commentAuthorId: authorId };
+            if (authorId === requestSenderId) return {
+                isBlocked: false,
+                commentAuthorId: authorId
             };
             const didRequestSenderBlockCommentAuthor = requestSender.blocked.some(block => String(block.user) === authorId)
-            if (didRequestSenderBlockCommentAuthor) {
-                return { isBlocked: true, commentAuthorId: authorId };
-            };
+            if (didRequestSenderBlockCommentAuthor) return { isBlocked: true, commentAuthorId: authorId };
             const didCommentAuthorBlockRequestSender: boolean = author.blocked.some((block) => (String(block.user) === requestSenderId));
-            return { isBlocked: didCommentAuthorBlockRequestSender, commentAuthorId: authorId };
+            return {
+                isBlocked: didCommentAuthorBlockRequestSender,
+                commentAuthorId: authorId
+            };
         default:
             return { isBlocked: false }
     }

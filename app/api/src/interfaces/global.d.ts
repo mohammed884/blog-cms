@@ -10,7 +10,7 @@ export interface IUser {
   confirmed: boolean;
   saved: Array<{
     createdAt: any;
-    article: ObjectId;
+    article: string;
   }>;
   save?: () => Promise<{}>;
   role: "user" | "admin" | "moderator";
@@ -22,7 +22,7 @@ export interface IUser {
   };
   topics: Array<string>
   blocked: Array<{
-    user: ObjectId,
+    user: string,
     createdAt: Date
   }>
 }
@@ -32,18 +32,34 @@ export interface IArticle {
   subTitle: string;
   publisher: ObjectId;
   content: object;
-  topics: Array<{ mainTopic: string; subTopic?: string }>;
+  topics: Array<{ mainTopic?: string; subTopic?: string }>;
   estimatedReadTime: string;
   savedCount: number;
   cover?: string;
   save?: () => Promise<{}>;
   createdAt?: Date;
 }
-declare module 'express' {
-  interface Request {
-    user: IUser;
-    requestedUser: IUser;
-    article: IArticle;
-  }
+export interface INotifications {
+  sender: ObjectId;
+  retrieveId: string;
+  article: ObjectId;
+  seen: boolean;
+  type:
+  "follow" |
+  "comment" |
+  "reply" |
+  "collaboration-request" |
+  "collaboration-accept" |
+  "collaboration-deny";
+  createdAt: Date;
+  isFollowingYou?: boolean;
+  youFollowing?: boolean;
 }
+// declare module 'express' {
+//   interface Request {
+//     user: IUser;
+//     requestedUser: IUser;
+//     article: IArticle;
+//   }
+// }
 

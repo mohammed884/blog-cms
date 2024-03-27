@@ -5,33 +5,94 @@ import pagination from "../../helpers/pagination";
 import Article from "../article/models/article";
 import Topic from "../topic/model";
 import { formatDateToYMD } from "../../helpers/date";
-import { delCache, getOrSetCache, redisClient, setRedisCache } from "../../redis-cache";
-import { USER_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
-import { USER_CACHE_EXPIARY } from "../../redis-cache/expiries";
-const getProfile = async (req: Request, res: Response) => {
+import { delCache, getOrSetCache, redisClient } from "../../redis-cache";
+import { USER_BLOCKED_ID_KEY, USER_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
+import { USER_BLOCKED_CACHE_EXPIARY, USER_CACHE_EXPIARY } from "../../redis-cache/expiries";
+import { requestSenderAndReciverFollowingStatus } from "../../helpers/follow";
+// const getProfile = async (req: Request, res: Response) => {
+//   try {
+//     const user = req.user;
+//     res.status(201).send({ success: true, user })
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).send({ success: false, message: "Internal server error" })
+
+//   };
+// };
+const getBlockedUsers = async (req: Request, res: Response) => {
   try {
     const user = req.user;
-    res.status(201).send({ success: true, user })
-  } catch (err) {
-    console.log(err);
-  };
+    const blockedUsersIds = user.blocked.map(block => block.user);
+    const cacheCb = async () => {
+      return (
+        await User.find({ _id: { $in: blockedUsersIds } }).select("username avatar")
+      )
+    }
+    const blockedUsers = await getOrSetCache(
+      redisClient,
+      `${USER_BLOCKED_ID_KEY}=${user._id}`,
+      cacheCb,
+      USER_BLOCKED_CACHE_EXPIARY,
+    );
+    res.status(201).send({ success: true, blockedUsers })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Internal server error" })
+  }
 }
 const getUser = async (req: Request, res: Response) => {
   try {
     const username = req.params.username;
     const requestSender = req.user;
+    const requestReciver = req.requestReciver;
+
+    const isSameUser =
+      requestSender?._id === requestReciver?._id
+      ||
+      (!requestReciver && requestSender && true);
+    if (isSameUser && username === "profile") {
+      return res.status(201).send({
+        success: true,
+        isSameUser: true,
+        isLoggedIn: true,
+        user: requestSender,
+      })
+    }
+    const followingStatus =
+      !isSameUser
+      &&
+      (!!requestSender && !!requestReciver)
+      && await requestSenderAndReciverFollowingStatus(requestSender._id, requestReciver._id);
+
     const getRequestReciverInfo = async () => {
       return await User.findOne({ username }).select("-password").lean();
     }
-    const user = req.requestReciver || await getOrSetCache(
-      redisClient, `${USER_USERNAME_KEY}=${username}`,
-      getRequestReciverInfo,
-      USER_CACHE_EXPIARY
-    );
+    const user = isSameUser ? requestSender : (
+      req.requestReciver && await getOrSetCache(
+        redisClient, `${USER_USERNAME_KEY}=${username}`,
+        getRequestReciverInfo,
+        USER_CACHE_EXPIARY,
+      ))
     if (!user) {
       return res.status(401).send({ success: false, message: "لم يتم العثور على المستخدم" })
     }
-    res.status(201).send({ success: true, user })
+    if (isSameUser) {
+      res.status(201).send({
+        success: true,
+        isSameUser: true,
+        isLoggedIn: true,
+        user,
+      })
+    } else {
+      res.status(201).send({
+        success: true,
+        isSameUser: false,
+        isLoggedIn: !!requestSender,
+        user,
+        youFollowing: followingStatus.youFollowing,
+        isFollowingYou: followingStatus.isFollowingYou,
+      })
+    }
   } catch (err) {
     console.log(err);
   };
@@ -77,6 +138,7 @@ const blockUser = async (req: Request, res: Response) => {
     );
     await delCache(redisClient, `${USER_ID_KEY}=${user._id}`)
     await delCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`)
+    await delCache(redisClient, `${USER_BLOCKED_ID_KEY}=${user._id}`)
     res.status(201).send({ success: true, message: "تم حظر المستخدم بنجاح" });
   } catch (err) {
     console.log(err);
@@ -126,7 +188,7 @@ const searchUser = async (req: Request, res: Response) => {
 
   }
 };
-const editUser = async (req: Request, res: Response) => {
+const editProfile = async (req: Request, res: Response) => {
   try {
     //handle edit bio!!
     const user = req.user;
@@ -187,10 +249,11 @@ const editUser = async (req: Request, res: Response) => {
   }
 };
 export {
+  // getProfile,
+  getBlockedUsers,
   getUser,
-  editUser,
+  editProfile,
   searchUser,
   blockUser,
   unBlockUser,
-  getProfile
 }

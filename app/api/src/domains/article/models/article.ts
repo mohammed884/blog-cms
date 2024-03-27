@@ -53,7 +53,7 @@ const Schema = new mongoose.Schema({
       {
         mainTopic: {
           type: String,
-          required: true
+          // required: true
         },
         subTopic: {
           type: String,
@@ -76,7 +76,7 @@ const Schema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    required:true,
+    required: true,
   },
 });
 type ArticleType = mongoose.InferSchemaType<typeof Schema>;

@@ -14,7 +14,7 @@ const withIOredisClient = async <T>(client: ioredisTypes.Redis, fn: (client: ior
         // client.quit(); // Close the connection after each operation
     }
 };
-const setRedisCache = async (client: ioredisTypes.Redis, key: string, value: any, expiry?: number): Promise<void> => {
+const setRedisCache = async (client: ioredisTypes.Redis, key: string, value: any, expiry?: number,dataType?:"hashmap"): Promise<void> => {
     await withIOredisClient(client, async (client) => {
         if (expiry) {
             await client.set(key, JSON.stringify(value), 'EX', expiry);

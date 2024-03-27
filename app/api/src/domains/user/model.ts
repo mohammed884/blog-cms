@@ -67,8 +67,8 @@ const Schema = new mongoose.Schema({
           required: true,
         },
         article: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Article",
+          type: String,
+          index: true,
           required: true,
         },
       },
@@ -78,8 +78,8 @@ const Schema = new mongoose.Schema({
   blocked: {
     type: [{
       user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
+        index: true,
         required: true,
       },
       createdAt: {

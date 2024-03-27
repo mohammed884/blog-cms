@@ -18,6 +18,7 @@ router.patch("/follow/:userId",
     followActions,
 );
 router.get("/followers/:userId",
+    isLoggedIn("_", true),
     userDataAccess({
         dataHolder: "params",
         requestReciverInfoField: "userId",
@@ -26,6 +27,7 @@ router.get("/followers/:userId",
     getFollowers
 )
 router.get("/following/:userId",
+    isLoggedIn("_", true),
     userDataAccess({
         dataHolder: "params",
         requestReciverInfoField: "userId",

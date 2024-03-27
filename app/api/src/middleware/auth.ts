@@ -9,11 +9,7 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
     try {
       const accessToken = req.cookies.access_token;
       const decodedToken = verifyToken(accessToken);
-      if (!decodedToken.success && !setStatusOnly) return res
-        .status(401)
-        .send({ success: false, isLoggedIn: false, message: "لم يتم العثور على المستخدم" });
-      if (!decodedToken.success && setStatusOnly) return next()
-      const user = await getOrSetCache(
+      const user = !decodedToken.success ? null : await getOrSetCache(
         redisClient,
         `${USER_ID_KEY}=${decodedToken.decoded._id}`,
         () => (getUserFromToken("_", decodedToken.decoded._id)),

@@ -15,7 +15,8 @@ interface IPaginationOptions {
             username?: 1 | 0
             avatar?: 1 | 0
             blocked?: 1 | 0
-            createdAt?: 1 | 0
+            createdAt?: 1 | 0,
+            bio?: 1 | 0
         },
     },
     select?: Object,
@@ -50,7 +51,7 @@ const pagination = async ({
             pipeline = [
                 ...pipeline,
                 { $lookup: lookup },
-                { $unwind: `$${populate.localField}` },
+                { $unwind: `$${populate.as}` },
             ];
             if (unwindField) {
                 pipeline = [

@@ -5,6 +5,7 @@ import pagination from "../../../helpers/pagination";
 import { ObjectId } from "bson";
 import { getDateYMD, formatDateToYMD } from "../../../helpers/date";
 import User from "../model";
+import { getRequestReciversFollowingList, getRequestSenderAndReciverFollowingList, getRequestSenderFollowingList, isFollowingYou, transformFollowingStatus, youFollowing } from "../../../helpers/follow";
 const followActions = async (req: Request, res: Response) => {
     try {
         const user = req.user;
@@ -72,7 +73,9 @@ const followActions = async (req: Request, res: Response) => {
 };
 const getFollowing = async (req: Request, res: Response) => {
     try {
+        const user = req.user;
         const userId = req.params.userId;
+        const isSameUser = String(user?._id) === userId
         const page = Number(req.query.page) || 1;
         const matchQuery = { followedBy: new ObjectId(userId) };
         const result = await pagination({
@@ -87,23 +90,38 @@ const getFollowing = async (req: Request, res: Response) => {
                     _id: 1,
                     username: 1,
                     avatar: 1,
+                    bio: 1,
                 },
-                as: "followingInfo",
+                as: "user",
             },
             Model: Follow,
         });
-        console.log("result -> ", result);
-
-        res.status(201).send({ success: true, following: result.data })
+        const followingIds = result.data.map(follow => follow.user._id)
+        const followingStatus: any =
+            isSameUser
+                ?
+                await getRequestReciversFollowingList(user._id, followingIds)
+                :
+                await getRequestSenderAndReciverFollowingList(user._id, followingIds);
+        const following = followingStatus
+            ?
+            transformFollowingStatus({
+                data: result.data,
+                requestReciversFollowingList: isSameUser ? followingStatus : followingStatus.requestReciversFollowingList,
+                requestSenderFollowingList: isSameUser ? null : followingStatus.requestSenderFollowingList,
+            })
+            : result.data;
+        res.status(201).send({ success: true, following: following || [] })
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
-
     }
 };
 const getFollowers = async (req: Request, res: Response) => {
     try {
+        const user = req.user;
         const userId = req.params.userId;
+        const isSameUser = String(user?._id) === userId
         const page = Number(req.query.page) || 1;
         const matchQuery = { user: new ObjectId(userId) };
         const result = await pagination({
@@ -117,17 +135,33 @@ const getFollowers = async (req: Request, res: Response) => {
                 select: {
                     _id: 1,
                     username: 1,
-                    avatar: 1
+                    avatar: 1,
+                    bio: 1,
                 },
                 as: "followedBy",
             },
             Model: Follow,
-        })
-        res.status(201).send({ success: true, followers: result.data })
+        });
+        const followersIds = result.data.map(follow => follow.followedBy._id);
+        const followersStatus: any =
+            isSameUser
+                ?
+                await getRequestSenderFollowingList(user._id, followersIds)
+                :
+                await getRequestSenderAndReciverFollowingList(user._id, followersIds);
+        const followers = followersStatus
+            ?
+            transformFollowingStatus({
+                data: result.data,
+                requestReciversFollowingList: isSameUser ? null : followersStatus.requestReciversFollowingList,
+                requestSenderFollowingList: isSameUser ? followersStatus : followersStatus.requestSenderFollowingList,
+            })
+            :
+            result.data;
+        res.status(201).send({ success: true, followers: followers || [] })
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
-
     }
 };
 const getFollowersCount = async (req: Request, res: Response) => {
@@ -154,7 +188,7 @@ const followersAnalysis = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const date = new Date();
-        const { year, month, day } = getDateYMD(date);
+        const { day } = getDateYMD(date);
         const dateList = formatDateToYMD(date, [1, 15, day], "DATE");
         const pipeline = [
             {

@@ -3,6 +3,8 @@ import pagination from "../../helpers/pagination";
 import Notification from "./model";
 import { Types } from "mongoose";
 import { formatDateToYMD } from "../../helpers/date";
+import { INotifications } from "interfaces/global";
+import { getRequestSenderAndReciverFollowingList, getRequestSenderFollowingList, isFollowingYou, youFollowing } from "../../helpers/follow";
 interface ISendNotifications {
     receiver: string;
     sender: Types.ObjectId;
@@ -18,8 +20,6 @@ const getNotifications = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const page = Number(req.query.page) || 1;
-        console.log(user);
-
         const matchQuery = {
             receiver: String(user._id)
         };
@@ -43,9 +43,21 @@ const getNotifications = async (req: Request, res: Response) => {
             Model: Notification,
             limit: 1
         });
-        console.log(result);
-
-        res.status(201).send({ success: true, notifications: result.data[0]?.notifications });
+        const notifications: Array<INotifications> = result.data[0]?.notifications;
+        const followNotificationSendersIds = notifications.map(notification => notification.type === "follow" && notification.sender._id)
+        const requestSenderFollowingList = user && await getRequestSenderFollowingList(user._id, followNotificationSendersIds)
+        const finalNotifications = requestSenderFollowingList.length > 0 ? notifications.map((notification) => {
+            if (notification.type === "follow") {
+                return {
+                    ...notification,
+                    youFollowing: youFollowing(requestSenderFollowingList, notification.sender._id)
+                };
+            } else return notification;
+        }) : notifications;
+        //here i need to map the result to the notifications with the type of follow
+        //then i need to check the follow status for the requestSender and the requestReciver
+        //then i need to update those notifications
+        res.status(201).send({ success: true, notifications: finalNotifications });
     } catch (err) {
         res.status(500).send({ success: false, message: "Interal server error" });
         console.log(err);

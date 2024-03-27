@@ -10,6 +10,10 @@ import { uploadSingle, deleteSingle } from "../../helpers/fileopreations";
 import pagination from "../../helpers/pagination";
 import { getDateYMD, getMonthLength, formatDateToYMD } from "../../helpers/date";
 import dayjs from "dayjs";
+import { getUserFromToken } from "../../helpers/jwt";
+import { redisClient, getOrSetCache, setRedisCache, delCache } from "../../redis-cache";
+import { USER_ID_KEY, USER_SAVED_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
+import { USER_CACHE_EXPIARY, USER_SAVED_CACHE_EXPIARY } from "../../redis-cache/expiries";
 interface IAddPostBody {
   title: string;
   content: object;
@@ -127,11 +131,35 @@ const getPublisherArticles = async (req: Request, res: Response) => {
       return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
     }
     const matchQuery = { publisher: new ObjectId(publisherId) };
-    const result = await pagination({ matchQuery, Model: Article, page });
+    const result = await pagination({ matchQuery, Model: Article, page, limit: 5 });
     res.status(201).send({ success: true, articles: result.data });
   } catch (err) {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal Server Error" });
+  }
+};
+const getSavedArticles = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const savedArticlesIds = user.saved.map(saved => saved.article);
+    const cacheCb = async () => {
+      return (
+        await Article
+          .find({ _id: { $in: savedArticlesIds } })
+          .populate("publisher", "username avatar")
+          .select("title subTitle cover")
+      )
+    }
+    const savedArticles = await getOrSetCache(
+      redisClient,
+      `${USER_SAVED_ID_KEY}=${user._id}`,
+      cacheCb,
+      USER_SAVED_CACHE_EXPIARY
+    );
+    res.status(201).send({ success: true, savedArticles })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Internal server error" })
   }
 };
 const getPublisherArticlesCount = async (req: Request, res: Response) => {
@@ -281,36 +309,40 @@ const editArticle = async (req: Request, res: Response) => {
 };
 const saveArticle = async (req: Request, res: Response) => {
   try {
-    const user = req.user;
+    const accessToken = req.cookies.access_token;
+    const user = await getUserFromToken(accessToken);
+    if (!user) return res.status(401).send({ success: false, message: "لم يتم العثور على المستخدم" })
     const articleId = req.params.id;
     const article = await Article.findById({ _id: articleId });
     if (!article)
       return res
         .status(401)
         .send({ success: false, message: "لم يتم العثور على المقالة" });
-
+    let message: string
     const isSavedBefore = user.saved.find(
-      (s) => String(s.article) === String(articleId)
+      (s) => s.article === articleId
     );
     if (isSavedBefore) {
-      user.saved = user.saved.filter(
-        (s) => String(s.article) !== String(articleId)
-      );
       article.savedCount--;
       await article.save();
-      await user.save();
-      return res
-        .status(201)
-        .send({ success: true, message: "تم الازالة من المحفوظة" });
+      user.saved = user.saved.filter(
+        (s) => s.article !== articleId
+      );
+      await user.save()
+      message = "تم الازالة من المحفوظة"
     } else {
-      user.saved.push({ article: new ObjectId(articleId), createdAt: formatDateToYMD(new Date(), "_") });
       article.savedCount++;
       await article.save();
-      await user.save();
-      return res
-        .status(201)
-        .send({ success: true, message: "تم الاضافة الى المحفوظة" });
+      user.saved.push({ article: articleId, createdAt: formatDateToYMD(new Date(), "_") });
+      await user.save()
+      message = "تم الاضافة الى المحفوظة"
     }
+    setRedisCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`, user, USER_CACHE_EXPIARY)
+    setRedisCache(redisClient, `${USER_ID_KEY}=${user._id}`, user, USER_CACHE_EXPIARY)
+    delCache(redisClient, `${USER_SAVED_ID_KEY}=${user._id}`)
+    return res
+      .status(201)
+      .send({ success: true, message });
   } catch (err) {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal server error" });
@@ -474,6 +506,7 @@ export {
   deleteArticle,
   saveArticle,
   getPublisherArticles,
+  getSavedArticles,
   getPublisherArticlesCount,
   addReader,
   readersAnalysis,
