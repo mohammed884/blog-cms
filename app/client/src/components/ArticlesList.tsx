@@ -1,18 +1,19 @@
 import dayjs from "dayjs";
-import { Link } from "react-router-dom";
-import { IArticle } from "../interfaces/global";
-import { useSaveArticleMutation } from "../store/services/article";
+import { Link, useParams } from "react-router-dom";
+import { IArticleList } from "../interfaces/global";
 import { SaveIcon, SavedIcon, UserAvatarIcon } from "./Icons";
 import { useMemo, useState } from "react";
+import { useSaveArticleMutation } from "../services/queries/article";
 interface IProps {
   page: "feed" | "saved-feed" | "profile";
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
-  article: IArticle;
+  article: IArticleList;
   userSavedArticles?: Array<{
     createdAt: Date;
     article: string;
   }>;
   providedPublisher?: {
+    _id: string;
     username: string;
     avatar: string;
   };
@@ -30,8 +31,10 @@ const ArticlesList = ({
 }: IProps) => {
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
+  const params = useParams();
+  const username = params.username?.replace(/-/g, " ");
   const [isArticleSaved, setIsArticleSaved] = useState<boolean>();
-  const [saveArticle] = useSaveArticleMutation();
+  const saveArticleMutation = useSaveArticleMutation();
   useMemo(() => {
     setIsArticleSaved(
       page === "saved-feed"
@@ -46,16 +49,14 @@ const ArticlesList = ({
     document.body.style.overflowY = "hidden";
     dialogRef?.current?.showModal();
   };
-  const handleSaveArticle = async () => {
-    await saveArticle({ _id })
-      .unwrap()
-      .then((fulfilled) => {
-        setIsArticleSaved((prev) => !prev);
-      })
-      .catch((reason) => {
-        console.log(reason);
-        setErrorMessage && setErrorMessage(reason.data.message);
-      });
+  const handleSaveArticle = () => {
+    saveArticleMutation.mutate({
+      articleId: _id,
+      action: isArticleSaved ? "un-save" : "save",
+      publisherId: publisher?._id || providedPublisher?._id || "",
+      username: username || "profile",
+    });
+    setIsArticleSaved((prev) => !prev);
   };
   return (
     <li

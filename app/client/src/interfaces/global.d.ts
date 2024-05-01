@@ -23,13 +23,13 @@ export interface IUser {
     createdAt: Date
   }>
 }
-export interface IArticle {
+export interface IArticleList {
   _id: string;
   title: string;
   subTitle: string;
   cover: string;
   publisher?: {
-    _id: String;
+    _id: string;
     username: string;
     avatar: string;
   };
@@ -64,4 +64,38 @@ export interface INotification {
   createdAt: Date,
   isFollowingYou?: boolean;
   youFollowing?: boolean;
+};
+export interface IFollowing {
+  user: {
+    _id: string,
+    username: string,
+    avatar: string,
+    bio: {
+      _id: string;
+      text: string;
+    };
+  };
+  followedBy: string;
+  createdAt: Date;
+  isFollowingYou: boolean;
+  youFollowing: boolean;
+  bio: {
+    _id: string;
+    text: string
+  }
+}
+export interface IFollower {
+  user: string;
+  followedBy: {
+    _id: string;
+    username: string;
+    avatar: string;
+    bio: {
+      _id: string;
+      text: string;
+    };
+  };
+  createdAt: Date,
+  isFollowingYou: boolean;
+  youFollowing: boolean;
 };

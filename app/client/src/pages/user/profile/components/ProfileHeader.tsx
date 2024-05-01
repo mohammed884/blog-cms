@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { AlertIcon, Ellipsis } from "../../../../components/Icons";
+import { userSelector } from "../../../../services/queries/user";
 interface IProfileHeaderProps {
   username: string;
   email: string;
@@ -32,8 +33,8 @@ const ProfileHeader = ({
   ];
   return (
     <React.Fragment>
-      <div className="w-[100%] flex justify-between items-center pr-4 pl-4 gap-8">
-        <h1 className="text-4xl font-bold">{username}</h1>
+      <div className="flex justify-between items-center gap-8">
+        <h1 className="text-3xl font-bold">{username}</h1>
         <div id="options-container" className="relative">
           <button
             id="ellipsis"
@@ -49,11 +50,11 @@ const ProfileHeader = ({
             } shadow-md mx-auto absolute top-6 left-4 rounded-md`}
           >
             {/* <h4>{email}</h4> */}
-            <ul id="notifications-list" className="divide-y divide-gray-300">
+            <ul id="notifications-list" className="divide-y divide-stone-300">
               {menuOptions.map((option) => (
                 <li
                   key={option.context}
-                  className={`text-sm px-3 p-3 hover:bg-slate-50 shadow-sm cursor-pointer ${
+                  className={`text-sm px-3 p-3 hover:bg-stone-50 shadow-sm cursor-pointer ${
                     option.profileOwner !== isSameUser && "hidden"
                   }`}
                 >

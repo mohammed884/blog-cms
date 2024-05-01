@@ -87,6 +87,7 @@ const validateInputs = (
 };
 export default function useMultistepForm(
   steps: Array<ReactElement>,
+  messageContext: string | undefined,
   setMessage: React.Dispatch<
     React.SetStateAction<
       | {
@@ -106,15 +107,19 @@ export default function useMultistepForm(
       setMessage
     );
     if (!areValid) return;
+    if (messageContext) setMessage({ success: false, context: "" });
     setCurrentIndex((prev) => prev + 1);
   };
   const previous = () => {
     if (currentIndex <= 0) return 0;
+    if (messageContext) setMessage({ success: false, context: "" });
     setCurrentIndex((prev) => prev - 1);
   };
   const byStep = (step: number): void => {
     if (currentIndex < 0 || step > steps.length - 1) return;
     if (step < currentIndex) {
+      if (messageContext) setMessage({ success: false, context: "" });
+      setMessage({ success: false, context: "" });
       return setCurrentIndex(step);
     }
   };

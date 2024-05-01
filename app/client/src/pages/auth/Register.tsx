@@ -5,13 +5,12 @@ import { Link } from "react-router-dom";
 import Loader from "../../components/Loader";
 import useMultistepForm from "./components/useMultistepForm";
 import { StepsIndicator, MenuButtons } from "./components/StepsControl";
-import { useRegisterMutation } from "../../store/services/auth";
+import { useRegisterMutation } from "../../services/queries/auth";
 const TopicsSelectionStep = lazy(
   () => import("./components/TopicsSelectionStep")
 );
 const Register = () => {
-  const [addRegister, { isLoading: isRegistertionLoading }] =
-    useRegisterMutation();
+  const registerMutation = useRegisterMutation();
   const navigate = useNavigate();
   const [selectedTopics, setSelectedTopics] = useState<Array<string>>([]);
   const [message, setMessage] = useState<{
@@ -51,35 +50,64 @@ const Register = () => {
   ) => {
     e.preventDefault();
     if (!isLastStep) return next();
-    await addRegister({
+    registerMutation.mutate({
       username,
       email,
       password,
       topics: selectedTopics,
-    })
-      .unwrap()
-      .then((fulfilled: any) => {
-        setMessage({ success: true, context: "تم انشاء الحساب" });
-        setTimeout(() => {
-          navigate("/feed");
-        }, 250);
-      })
-      .catch((reason) => {
-        if (reason.data.usedUsername) {
-          byStep(0);
-          return setMessage({
-            success: false,
-            context: "هذا الاسم مسخدم سابقا",
-          });
-        }
-        if (reason.data.usedEmail) {
-          byStep(1);
-          return setMessage({
-            success: false,
-            context: "هذا الايميل مستخدم سابقا",
-          });
-        }
-      });
+    });
+    if (registerMutation.isSuccess) {
+      setMessage({ success: true, context: "تم انشاء الحساب" });
+      setTimeout(() => {
+        navigate("/feed");
+      }, 250);
+    }
+    if (registerMutation.isError) {
+      const error = registerMutation.error.response.data;
+      if (error.usedUsername) {
+        byStep(0);
+        return setMessage({
+          success: false,
+          context: "هذا الاسم مسخدم سابقا",
+        });
+      }
+      if (error.usedEmail) {
+        byStep(1);
+        return setMessage({
+          success: false,
+          context: "هذا الايميل مستخدم سابقا",
+        });
+      }
+    }
+    // await addRegister({
+    //   username,
+    //   email,
+    //   password,
+    //   topics: selectedTopics,
+    // })
+    //   .unwrap()
+    //   .then((fulfilled: any) => {
+    //     setMessage({ success: true, context: "تم انشاء الحساب" });
+    //     setTimeout(() => {
+    //       navigate("/feed");
+    //     }, 250);
+    //   })
+    //   .catch((reason) => {
+    //     if (reason.data.usedUsername) {
+    //       byStep(0);
+    //       return setMessage({
+    //         success: false,
+    //         context: "هذا الاسم مسخدم سابقا",
+    //       });
+    //     }
+    //     if (reason.data.usedEmail) {
+    //       byStep(1);
+    //       return setMessage({
+    //         success: false,
+    //         context: "هذا الايميل مستخدم سابقا",
+    //       });
+    //     }
+    //   });
   };
   const {
     step,
@@ -90,10 +118,10 @@ const Register = () => {
     next,
     previous,
     byStep,
-  } = useMultistepForm(steps, setMessage);
+  } = useMultistepForm(steps, message?.context, setMessage);
   return (
     <section className="w-full h-[100vh] flex flex-col justify-center items-center">
-      {isRegistertionLoading && <Loader />}
+      {registerMutation.isPending && <Loader />}
       <div className="lg:w-[60vw] md:w-[70vw] sm:w-[95vw] lg:h-[80vh] md:h-[70vh] sm:h-[70vh] flex flex-col justify-center items-center gap-4 shadow-md rounded-lg">
         <h1 className="text-[2.1rem] font-bold">انشئ حسابك</h1>
         <div className="w-[80%] flex flex-col justify-center items-center gap-7">
@@ -108,7 +136,7 @@ const Register = () => {
               currentIndex < totalSteps - 1 && "mt-4"
             }`}
           >
-            {message && (
+            {message?.context && (
               <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md">
                 <div
                   className={`w-2 h-[100%] rounded-r-md ${

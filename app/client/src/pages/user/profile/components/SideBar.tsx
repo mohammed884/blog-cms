@@ -1,14 +1,16 @@
 import { Link, useParams } from "react-router-dom";
 import { UserAvatarIcon } from "../../../../components/Icons";
 import {
-  useGetFollowersCountQuery,
-  useGetFollowingQuery,
-} from "../../../../store/services/follow";
-import { useGetUserQuery } from "../../../../store/services/user";
+  getFollowersCountQuery,
+  getFollowingQuery,
+} from "../../../../services/queries/follow";
+import { getUserQuery } from "../../../../services/queries/user";
 import FollowButton from "../../../../components/FollowButton";
 import Loader from "../../../../components/Loader";
 import { Ellipsis } from "../../../../components/Icons";
 import { useState } from "react";
+import { useEffect } from "react";
+import { IFollowing } from "../../../../interfaces/global";
 interface IFollowingListProps {
   user: {
     _id: string;
@@ -22,60 +24,47 @@ interface IFollowingListProps {
   isFollowingYou: boolean;
   youFollowing: boolean;
   isSameUser: boolean;
+  followButtonOwnerId: string;
 }
 const SideBar = () => {
   const params = useParams();
   const username = params.username?.replace(/-/g, " ") || " ";
-  const { data: profileViewer, isLoading: isProfileViewerLoading } =
-    useGetUserQuery({
-      username: "profile",
-    });
-  const { data: userProfile, isLoading: isUserProfileLoading } =
-    useGetUserQuery({
-      username,
-    });
-  const { data: followersCount, isLoading: isFollowersCountLoading } =
-    useGetFollowersCountQuery(
-      { id: userProfile?.user._id || "" },
-      { skip: isUserProfileLoading }
-    );
-  const {
-    data: followingData,
-    isLoading,
-    // isError,
-  } = useGetFollowingQuery(
-    { id: userProfile?.user._id || "" },
-    { skip: isUserProfileLoading }
+  const userProfile = getUserQuery(username);
+  const followersCountData = getFollowersCountQuery(
+    userProfile?.data?.user._id || ""
   );
-  if (isUserProfileLoading || isProfileViewerLoading || isFollowersCountLoading)
-    return <Loader />;
-  const { user, isSameUser, isFollowingYou, youFollowing } = userProfile as any;
+  const following = getFollowingQuery(userProfile?.data?.user._id || "");
+  if (!userProfile) return <Loader />;
+  const user = userProfile?.data?.user;
+  const isSameUser = userProfile.data?.isSameUser;
   return (
     <aside className="w-[28%] p-2 pr-12 border-r border-l-gray-300 sticky">
       <div className="flex flex-col gap-4">
         <span className="w-28 h-28">
           <UserAvatarIcon
-            avatar={user.avatar}
-            alt={`${user.username}'s Avatar`}
+            avatar={user?.avatar}
+            alt={`${user?.username}'s Avatar`}
           />
         </span>
         <div>
-          <h2 className="text-[1.2rem] font-bold mb-2">{user.username}</h2>
+          <h2 className="text-[1.2rem] font-bold mb-2">{user?.username}</h2>
           <Link
             to={`/user/${username}/followers`}
             className="text-[.85rem] opacity-60 hover:underline"
           >
             <span className="font-bold">
               {new Intl.NumberFormat("en-US", { notation: "compact" }).format(
-                followersCount?.count || 0
+                followersCountData?.data?.count || 0
               )}
             </span>
             <span className="mr-2">
-              {Number(followersCount?.count) <= 1 ? "متابع" : "متابعين"}
+              {Number(followersCountData?.data?.count) <= 1
+                ? "متابع"
+                : "متابعين"}
             </span>
           </Link>
-          <span>{user.bio?.title}</span>
-          <span>{user.bio?.text}</span>
+          <span>{user?.bio?.title}</span>
+          <span>{user?.bio?.text}</span>
         </div>
         {isSameUser ? (
           <Link
@@ -86,9 +75,10 @@ const SideBar = () => {
           </Link>
         ) : (
           <FollowButton
-            id={user._id}
-            youFollowing={youFollowing}
-            isFollowingYou={isFollowingYou}
+            userId={user?._id || ""}
+            ownerId={user?._id || ""}
+            youFollowing={!!userProfile?.data?.youFollowing}
+            isFollowingYou={!!userProfile?.data?.isFollowingYou}
           />
         )}
         <div className="mt-3">
@@ -101,13 +91,14 @@ const SideBar = () => {
             </Link>
           </div>
           <ul className="mb-4">
-            {followingData?.following.map((follow: any) => (
+            {following.data?.pages[0].following.map((follow: IFollowing) => (
               <FollowingList
+                followButtonOwnerId={user?._id || ""}
                 key={follow.user._id}
+                user={follow.user}
                 isFollowingYou={follow.isFollowingYou}
                 youFollowing={follow.youFollowing}
-                user={follow.user}
-                isSameUser={profileViewer?.user._id === follow.user._id}
+                isSameUser={!!isSameUser}
               />
             ))}
           </ul>
@@ -124,12 +115,23 @@ const SideBar = () => {
 };
 const FollowingList = ({
   user,
+  followButtonOwnerId,
   isFollowingYou,
   youFollowing,
   isSameUser,
 }: IFollowingListProps) => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { _id, username, avatar, bio } = user;
+  const handleCloseDetails = (e: any) => {
+    if (isDetailsOpen) return;
+    const targetParent = e.target.closest(`#details-container-${_id}`);
+    if (!targetParent) setIsDetailsOpen(false);
+  };
+  useEffect(() => {
+    window.document.body.addEventListener("click", handleCloseDetails);
+    return () =>
+      window.document.body.removeEventListener("click", handleCloseDetails);
+  }, []);
   return (
     <li className="w-[90%] flex items-center justify-between gap-2 pt-2">
       <Link to={`/user/${username}`}>
@@ -149,7 +151,7 @@ const FollowingList = ({
           </div>
         </div>
       </Link>
-      <div className="relative">
+      <div id={`details-container-${_id}`} className="relative">
         <div
           className={`w-[14rem] h-[10rem] bg-off_white flex flex-col justify-between p-2 pt-3 rounded-sm shadow-md absolute bottom-9 left-[50%] translate-x-[-50%] ${
             !isDetailsOpen && "hidden"
@@ -172,7 +174,8 @@ const FollowingList = ({
           </div>
           <div>
             <FollowButton
-              id={_id}
+              userId={_id}
+              ownerId={followButtonOwnerId}
               youFollowing={youFollowing}
               isFollowingYou={isFollowingYou}
               className={`font-normal text-[.8rem] py-1 ${

@@ -18,6 +18,18 @@ export const Ellipsis = ({ width, height }: IconProps) => {
     />
   );
 };
+export const VerticalEllipsis = ({ width, height }: IconProps) => {
+  return (
+    <img
+      className={`w-${width} h-${height}`}
+      src="../../public/svgs/vertical-ellipsis.svg"
+      //   width=""
+      //   height=""
+      alt="vertical ellipsis icon"
+      loading="lazy"
+    />
+  );
+};
 export const UserIcon = ({ width, height }: IconProps) => {
   return (
     <img
@@ -121,6 +133,17 @@ export const FollowIcon = ({ width, height }: IconProps) => {
       //   height=""
       src="../../public/svgs/follow-icon.svg"
       alt="Follow icon"
+    />
+  );
+};
+export const MarkAsReaded = ({ width, height }: IconProps) => {
+  return (
+    <img
+      className={`w-${width} h-${height}`}
+      //   width=""
+      //   height=""
+      src="../../public/svgs/Mark-as-readed.svg"
+      alt="Mark as readed icon"
     />
   );
 };

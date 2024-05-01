@@ -123,9 +123,6 @@ const index = () => {
   ];
   if (isLoading) return <div>Loading..</div>;
   // if (isError) return <div>Error</div>;
-  console.log("feed data ->", feedData, isLoading);
-  console.log("profile index", feedData);
-
   return (
     <main className="w-[100vw] h-fit text-center">
       <LoginPopup ref={LoginPopupRef} />

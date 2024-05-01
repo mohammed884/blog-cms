@@ -1,27 +1,18 @@
 import { useState, useEffect, Suspense, lazy } from "react";
-import { Link } from "react-router-dom";
-import {
-  useGetUnSeenNotificationsQuery,
-  useGetUserQuery,
-} from "../store/services/user";
+import { Link, useParams } from "react-router-dom";
+import Loader from "./Loader";
 import { BellIcon, FeatherIcon, PinNib, UserIcon } from "./Icons";
+import {
+  getUnSeenNotificationsQuery,
+  getUserQuery,
+} from "../services/queries/user";
 const Notifications = lazy(() => import("./Notifications"));
 const Header = () => {
-  const {
-    data: userData,
-    // isLoading,
-    // isError,
-    // error,
-  } = useGetUserQuery({ username: "profile" });
-  const { user } = userData as any;
-  const {
-    data: unSeenNotifications,
-    isLoading,
-    isError,
-    error,
-  } = useGetUnSeenNotificationsQuery({}, { skip: !user.isSuccess });
-  const [scrollY, setScrollY] = useState(0);
-  const [openNotifications, setOpenNotifications] = useState(false);
+  const userData = getUserQuery("profile");
+
+  const unSeenNotificationsData = getUnSeenNotificationsQuery(
+    !!userData?.data?.isLoggedIn
+  );
   const handleScroll = () => {
     setScrollY(window.scrollY);
   };
@@ -31,10 +22,14 @@ const Header = () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, []);
+  if (!userData) return <Loader />;
+  const user = userData?.data?.user;
+  const [scrollY, setScrollY] = useState(0);
+  const [openNotifications, setOpenNotifications] = useState(false);
   return (
     <header
       className={`w-full h-[4.2rem] bg-off_white ${
-        scrollY < 300 && !user.username ? "border-0" : "border-b-[1px]"
+        scrollY < 300 && !user?.username ? "border-0" : "border-b-[1px]"
       } border-b-gray-300 border-dark_green flex justify-center items-center fixed z-[1000]`}
     >
       <div className="w-[85%] flex justify-between items-center">
@@ -42,22 +37,22 @@ const Header = () => {
           <ul
             id="links-list"
             className={`w-fit flex justify-center items-center ${
-              user.username ? "gap-8" : "gap-6"
+              user?.username ? "gap-8" : "gap-6"
             }`}
           >
-            {user.username ? (
+            {user?.username ? (
               <>
                 <li>
-                  <Link to={`/user/${user.username?.replace(/ /g, "-")}`}>
+                  <Link to={`/user/${user?.username?.replace(/ /g, "-")}`}>
                     <UserIcon width={6} height={6} />
                   </Link>
                 </li>
                 <li className="relative">
-                  {!isLoading && unSeenNotifications?.success && (
-                    <span className="w-5 h-5 text-sm font-bold border border-black bg-red-500 absolute text-center rounded-[50%] left-2 z-10">
-                      {unSeenNotifications?.count}
-                    </span>
-                  )}
+                  <span className="w-5 h-5 text-sm font-bold border border-black bg-red-500 absolute text-center rounded-[50%] left-2 z-10">
+                    {!unSeenNotificationsData.isLoading &&
+                      unSeenNotificationsData.data?.count}
+                  </span>
+
                   <button
                     type="button"
                     onClick={() => setOpenNotifications((prev) => !prev)}
@@ -70,7 +65,7 @@ const Header = () => {
                       openNotifications
                         ? "opacity-100 pointer-events-auto"
                         : "opacity-0 pointer-events-none"
-                    } bg-off_white p-4 rounded-md shadow-md absolute right-2 overflow-hidden transition-opacity ease-linear`}
+                    } overflow-y-auto bg-off_white p-4 rounded-md shadow-md absolute right-2 overflow-hidden transition-opacity ease-linear`}
                   >
                     <div className="w-[95%] flex justify-between mx-auto pb-3">
                       <span className="text-[1.2rem] font-black">
@@ -84,13 +79,7 @@ const Header = () => {
                       </button>
                     </div>
                     {openNotifications && (
-                      <Suspense
-                        fallback={
-                          <div className="w-full h-full bg-gray-100 animate-pulse">
-                            ...Loading
-                          </div>
-                        }
-                      >
+                      <Suspense fallback={<div className="">...Loading</div>}>
                         <Notifications
                           setOpenNotifications={setOpenNotifications}
                         />
@@ -101,8 +90,8 @@ const Header = () => {
                 <li className="mt-1">
                   <Link to="/article/publish">
                     <div
-                      style={{ background: "rgba(96, 108, 56, .4)" }}
-                      className="p-2 px-5 rounded-md"
+                      // style={{ background: "rgba(96, 108, 56, .4)" }}
+                      className="p-2 bg-[#606c3866] hover:bg-[#545f3098] px-5 rounded-md"
                     >
                       <PinNib width={4} height={4} />
                     </div>
@@ -122,7 +111,7 @@ const Header = () => {
           </ul>
         </nav>
         <div className="w-fit flex justify-between items-center gap-8">
-          <div className={`${!user.username && "hidden"}`}>
+          <div className={`${!user?.username && "hidden"}`}>
             <input
               type="search"
               className="bg-[#f9f9f9] w-[16vw] border text-sm p-[.4rem] px-3 rounded-2xl"

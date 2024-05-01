@@ -25,7 +25,7 @@ const FeedOptions = ({
     setFeedSectionToShow("published");
   }, [username]);
   return (
-    <div className="w-[100%] grid grid-cols-2 justify-around border-b mt-6 p-2">
+    <div className="w-[100%] grid grid-cols-2 justify-around border-b mt-6 p-2 pb-3">
       <OptionButton
         feedToShow="المقالات"
         feedType="published"

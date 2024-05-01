@@ -1,10 +1,10 @@
 import TopicsList from "../../../components/TopicsList";
 import ArticlesList from "../../../components/ArticlesList";
-import { IArticle, ITopic } from "../../../interfaces/global";
+import { IArticleList, ITopic } from "../../../interfaces/global";
 import { Link } from "react-router-dom";
 import Loader from "../../../components/Loader";
 interface IProps {
-  feed: Array<IArticle>;
+  feed: Array<IArticleList>;
   topics: Array<ITopic>;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
   setPage: React.Dispatch<React.SetStateAction<number>>;

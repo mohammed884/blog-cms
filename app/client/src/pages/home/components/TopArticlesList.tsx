@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import dayjs from "dayjs";
-import { IArticle } from "../../../interfaces/global";
+import { IArticleList } from "../../../interfaces/global";
 interface ITopArticlesListProps {
   index: number;
-  article: IArticle;
+  article: IArticleList;
 }
 const topArticlesList = ({ index, article }: ITopArticlesListProps) => {
   const { title, publisher, readTime, createdAt } = article;

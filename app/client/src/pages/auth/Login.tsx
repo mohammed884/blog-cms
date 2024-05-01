@@ -1,20 +1,23 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useLoginMutation } from "../../store/services/auth";
+// import { useLoginMutation } from "../../store/services/auth";
 import Loader from "../../components/Loader";
-import { useAppDispatch } from "../../store/hooks";
-import apiService from "../../store/services/index";
+// import { useAppDispatch } from "../../store/hooks";
+// import apiService from "../../store/services/index";
 import {} from "../../store/services/index";
+import { useLoginMutation } from "../../services/queries/auth";
+import { getUserQuery } from "../../services/queries/user";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
   const [message, setMessage] = useState<{
     context: string;
     success: boolean;
   }>();
-  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+
+  const loginMutation = useLoginMutation();
   const handleSubmit = async (
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
@@ -37,19 +40,17 @@ const Login = () => {
         context: "يجب ان لا يزيد الباسوورد عن 32 ارقام واحرف",
       });
     }
-    await login({ password, email })
-      .unwrap()
-      .then((fulfilled) => {
-        setMessage({ success: true, context: "تم تسجيل الدخول بنجاح" });
-        dispatch(apiService.util.resetApiState());
-        setTimeout(() => {
-          navigate("/feed");
-        }, 450);
-      })
-      .catch((reason) => {
-        console.log("catch error ->", reason);
-        setMessage({ success: false, context: reason.data?.message });
+    loginMutation.mutate({ email, password });
+    console.log("login error", loginMutation.error?.response.data.message);
+    if (loginMutation.isError) {
+      setMessage({
+        success: false,
+        context: loginMutation.error?.response.data.message,
       });
+    }
+    if (loginMutation.isSuccess) {
+      navigate(`/user/${loginMutation.data.username}`);
+    }
   };
   const inputsClasses =
     "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
@@ -57,7 +58,7 @@ const Login = () => {
     "w-full font-bold bg-black text-white text-sm rounded-md mb-3 px-3 py-3";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
-      {isLoginLoading && <Loader />}
+      {loginMutation.isPending && <Loader />}
       <div className="lg:w-[60vw] md:w-[70vw] sm:w-[95vw] lg:h-[80vh] md:h-[70vh] sm:h-[70vh] flex flex-col gap-5 justify-center items-center shadow-md rounded-lg">
         <div className="text-center">
           <h1 className="text-[2.1rem] font-bold">اهلا بعودتك</h1>

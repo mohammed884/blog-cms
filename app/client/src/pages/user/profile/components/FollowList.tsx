@@ -1,10 +1,9 @@
 import { Link } from "react-router-dom";
 import { UserAvatarIcon } from "../../../../components/Icons";
 import FollowButton from "../../../../components/FollowButton";
-import { Ellipsis } from "../../../../components/Icons";
-import { useState } from "react";
+import { getUserQuery } from "../../../../services/queries/user";
 interface IProps {
-  user: {
+  follower: {
     _id: string;
     username: string;
     avatar: string;
@@ -15,32 +14,46 @@ interface IProps {
   };
   isFollowingYou: boolean;
   youFollowing: boolean;
+  followButtonOwnerId: string;
 }
-const UsersList = ({ user, isFollowingYou, youFollowing }: IProps) => {
-  const { username, avatar, bio } = user;
+const UsersList = ({
+  follower,
+  followButtonOwnerId,
+  isFollowingYou,
+  youFollowing,
+}: IProps) => {
+  const { _id, username, avatar, bio } = follower;
+  const viewer = getUserQuery("profile");
   return (
-    <li className="flex items-center justify-between gap-2 pt-2">
+    <li className="flex items-center p-2 justify-between gap-2 mx-auto shadow-sm rounded-md hover:bg-stone-50 ease-out transition-colors mb-5">
       <Link to={`/user/${username}`}>
-        <div className="flex items-center gap-2">
-          <span>
-            <UserAvatarIcon
-              width={6}
-              height={6}
-              avatar={avatar}
-              alt={`${username}'s avatar`}
-            />
-          </span>
+        <div className="flex items-center gap-4">
           <div>
-            <span className="text-sm font-semibold opacity-60 hover:underline">
+            <span>
+              <UserAvatarIcon
+                width={8}
+                height={8}
+                avatar={avatar}
+                alt={`${username}'s avatar`}
+              />
+            </span>
+          </div>
+          <div>
+            <span className="text-lg font-bold hover:underline">
               {username}
             </span>
-            <span>{bio.text}</span>
+            <p className="text-[.85rem] opacity-70">{bio.text}</p>
           </div>
         </div>
       </Link>
-      <button className="p-2 hover:bg-gray-200 rounded-md">
-        <Ellipsis width={4} height={4} />
-      </button>
+      {viewer?.data?.user._id !== _id && (
+        <FollowButton
+          userId={_id}
+          isFollowingYou={isFollowingYou}
+          youFollowing={youFollowing}
+          ownerId={followButtonOwnerId}
+        />
+      )}
     </li>
   );
 };
