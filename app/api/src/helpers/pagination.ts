@@ -59,10 +59,11 @@ const pagination = async ({
                     {
                         $group: {
                             _id: null,
-                            [unwindField]: { $push: `$${unwindField}` }
+                            [unwindField]: { $push: `$${unwindField}` },
+                            ...(unwindField === "notifications" && { "receiver": { "$first": "$receiver" } }),
                         }
                     }
-                ]
+                ];
             }
         };
         if (articleBlockChecking && articleBlockChecking.toString() !== "{}") {

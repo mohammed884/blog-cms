@@ -31,20 +31,33 @@ const isBlocked = ({
 }: IOptions) => {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
+            const requestReciverIdentifier = getRequestReciverInfo(req, dataHolder, requestReciverInfoField);
+            const searchQuery = buildSearchQuery(queryField, requestReciverInfoField, requestReciverIdentifier);
+
             const accessToken = req.cookies.access_token;
             const decodedToken = verifyToken(accessToken);
-            if (!decodedToken.success) return next();
+            if (!decodedToken.success) {
+                if (storeRequestReciver) {
+                    const requestReciver = await findRequestReciver(searchQuery);
+                    req.requestReciver = requestReciver
+                };
+                return next();
+            }
             const requestSender = req.user || await getOrSetCache(
                 redisClient,
                 `${USER_ID_KEY}=${decodedToken.decoded._id}`,
                 async () => (await getUserFromToken("_", decodedToken.decoded._id)),
                 USER_CACHE_EXPIARY,
             );
-            if (!requestSender) return next();
-            const requestReciverIdentifier = getRequestReciverInfo(req, dataHolder, requestReciverInfoField);
-            const searchQuery = buildSearchQuery(queryField, requestReciverInfoField, requestReciverIdentifier);
+            if (!requestSender) {
+                if (storeRequestReciver) {
+                    const requestReciver = await findRequestReciver(searchQuery);
+                    req.requestReciver = requestReciver
+                }
+                return next();
+            }
             if (!isValidSearchQuery(searchQuery)) {
-                return res.status(401).json({ success: false, message: "User not found" });
+                return res.status(401).json({ success: false, message: "لم يتم العثور على المستخدم المطلوب" });
             }
             if (isSameUser(searchQuery, requestSender)) {
                 return next();
@@ -55,7 +68,7 @@ const isBlocked = ({
             }
             const isBlocked = await checkBlockingStatus(requestSender, requestReciver);
             if (isBlocked) {
-                return res.status(401).json({ success: false, isBlocked: true, message: "You are blocked from this content" });
+                return res.status(403).json({ success: false, isBlocked: true, message: "انت محظور من هذا المحتوى" });
             };
             if (storeRequestReciver) req.requestReciver = requestReciver
             next();

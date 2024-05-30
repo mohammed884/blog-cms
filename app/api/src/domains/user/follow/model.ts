@@ -9,10 +9,10 @@ const Schema = new mongoose.Schema({
     followedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        unique:true,
+        // unique:true,
         required: true,
     },
-    createdAt:{
+    createdAt: {
         type: Date,
         required: true,
     }

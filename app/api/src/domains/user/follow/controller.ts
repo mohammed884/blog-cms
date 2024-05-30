@@ -12,17 +12,19 @@ const followActions = async (req: Request, res: Response) => {
         const userIdToOpreateOn = req.params.userId;
         const action = req.query.action;
         if (!action || !userIdToOpreateOn) {
-            return res.status(401).send({ success: false, message: "يرجى التاكد من المعطيات" })
+            return res.status(403).send({ success: false, message: "يرجى التاكد من المعطيات" })
         }
         if (String(user._id) === userIdToOpreateOn) {
-            return res.status(401).send({ success: false, message: "لا يمكنك متابعة نفسك" })
+            return res.status(403).send({ success: false, message: "لا يمكنك متابعة نفسك" })
         }
         const userToOpreateOn = await User.findById(userIdToOpreateOn);
         if (!userToOpreateOn) {
-            return res.status(401).send({ success: false, message: "المستخدم غير موجود" })
+            return res.status(200).send({ success: false, message: "المستخدم غير موجود" })
         }
         switch (action) {
             case "follow":
+                const hasFollowed = await Follow.findOne({ user: userIdToOpreateOn, followedBy: user._id }).lean();
+                if (hasFollowed) return res.status(403).send({ success: false, message: "لقد قمت بمتابعة هذا المستخدم مسبقا" })
                 const createFollow = await Follow.create(
                     {
                         user: userToOpreateOn,
@@ -47,7 +49,7 @@ const followActions = async (req: Request, res: Response) => {
                         user: userToOpreateOn,
                         followedBy: user._id
                     }
-                ).lean()
+                ).lean();
                 if (!deleteStatus) {
                     return res.status(401).send({ success: false, message: "لم يتم الغاء المتابعة" })
                 }
@@ -58,7 +60,7 @@ const followActions = async (req: Request, res: Response) => {
                 if (!notificationDeletion.success) {
                     return res.status(401).send({ success: false, message: notificationDeletion.err });
                 }
-                res.status(201).send({ success: true, message: "تم الغاء المتابعة" })
+                res.status(200).send({ success: true, message: "تم الغاء المتابعة" })
                 break;
             default:
                 res.status(401).send({ success: false, message: "خطأ في العملية" })
@@ -66,7 +68,7 @@ const followActions = async (req: Request, res: Response) => {
     } catch (err) {
         console.log(err);
         if (err.code === 11000) {
-            return res.status(401).send({ success: false, message: "لقد تابعت هذا المستخدم من قبل" })
+            return res.status(403).send({ success: false, message: "لقد تابعت هذا المستخدم من قبل" })
         }
         res.status(500).send({ success: false, message: "Internal server error" })
     }
@@ -75,7 +77,7 @@ const getFollowing = async (req: Request, res: Response) => {
     try {
         const user = req.user;
         const userId = req.params.userId;
-        const isSameUser = String(user?._id) === userId
+        const isSameUser = String(user?._id) === userId;
         const page = Number(req.query.page) || 1;
         const matchQuery = { followedBy: new ObjectId(userId) };
         const result = await pagination({
@@ -97,21 +99,22 @@ const getFollowing = async (req: Request, res: Response) => {
             Model: Follow,
         });
         const followingIds = result.data.map(follow => follow.user._id)
-        const followingStatus: any =
+        const followingStatus: any = user && (
             isSameUser
                 ?
                 await getRequestReciversFollowingList(user._id, followingIds)
                 :
-                await getRequestSenderAndReciverFollowingList(user._id, followingIds);
+                await getRequestSenderAndReciverFollowingList(user?._id, followingIds)
+        )
         const following = followingStatus
             ?
             transformFollowingStatus({
                 data: result.data,
-                requestReciversFollowingList: isSameUser ? followingStatus : followingStatus.requestReciversFollowingList,
-                requestSenderFollowingList: isSameUser ? null : followingStatus.requestSenderFollowingList,
+                requestReciversFollowingList: isSameUser ? followingStatus : followingStatus.requestReciverFollowingList,
+                requestSenderFollowingList: !user || isSameUser ? null : followingStatus.requestSenderFollowingList,
             })
             : result.data;
-        res.status(201).send({ success: true, following: following || [] })
+        res.status(200).send({ success: true, following: following || [] })
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
@@ -158,7 +161,7 @@ const getFollowers = async (req: Request, res: Response) => {
             })
             :
             result.data;
-        res.status(201).send({ success: true, followers: followers || [] })
+        res.status(200).send({ success: true, followers: followers || [] })
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
@@ -168,7 +171,7 @@ const getFollowersCount = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const count = await Follow.countDocuments({ user: userId })
-        res.status(201).send({ success: true, count });
+        res.status(200).send({ success: true, count });
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
@@ -178,7 +181,7 @@ const getFollowingCount = async (req: Request, res: Response) => {
     try {
         const userId = req.params.userId;
         const count = await Follow.countDocuments({ followedBy: userId })
-        res.status(201).send({ success: true, count })
+        res.status(200).send({ success: true, count })
     } catch (error) {
         console.log(error);
         res.status(500).send({ success: false, message: "Internal server error" })
@@ -251,7 +254,7 @@ const followersAnalysis = async (req: Request, res: Response) => {
             }
         ]
         const data = await Follow.aggregate(pipeline)
-        res.status(201).send({ success: true, data })
+        res.status(200).send({ success: true, data })
     } catch (err) {
         console.log(err);
         res.status(500).send({ success: false, message: "Internal server error" })

@@ -12,11 +12,13 @@ const Schema = new mongoose.Schema({
                 sender: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'User',
-                    required: true
+                    required: true,
+                    index: true,
                 },
                 retrieveId: {
                     type: String,
-                    required: true
+                    required: true,
+                    index: true,
                 },
                 article: {
                     type: mongoose.Schema.Types.ObjectId,

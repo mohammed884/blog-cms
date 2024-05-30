@@ -31,21 +31,22 @@ const formatDateToYMD = (
 const convertToMs = (time: string) => {
     const [a, type]: Array<string> = time.split("-");
     const amount = Number(a)
+    const ms = 1000;
     switch (type) {
         case "seconds" || "s":
-            return amount * 1000;
-        case "minutes" || "m":
-            return amount * 60 * 1000;
-        case "hours" || "h":
-            return amount * 60 * 60 * 1000;
-        case "days" || "d":
-            return amount * 24 * 60 * 60 * 1000;
-        case "weeks" || "w":
-            return amount * 7 * 24 * 60 * 60 * 1000;
-        case "months" || "m":
-            return amount * 30 * 24 * 60 * 60 * 1000;
-        case "years" || "y":
-            return amount * 365 * 24 * 60 * 60 * 1000;
+            return amount * ms;
+        case "minutes" || "minute" || "min":
+            return amount * 60 * ms;
+        case "hours" || "hour" || "h":
+            return amount * 60 * 60 * ms;
+        case "days" || "day" || "d":
+            return amount * 24 * 60 * 60 * ms;
+        case "weeks" || "week" || "w":
+            return amount * 7 * 24 * 60 * 60 * ms;
+        case "months" || "month" || "m":
+            return amount * 30 * 24 * 60 * 60 * ms;
+        case "years" || "year" || "y":
+            return amount * 365 * 24 * 60 * 60 * ms;
     }
 }
 export {

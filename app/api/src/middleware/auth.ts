@@ -26,7 +26,7 @@ const isLoggedIn = (isAuthRequired: boolean | "_", setStatusOnly: boolean = fals
       }
       if (user && !isAuthRequired) {
         return res
-          .status(401)
+          .status(403)
           .send({ success: false, isLoggedIn: true, message: "تم تسجيل الدخول مسبقا" });
       }
       if (user && isAuthRequired) {

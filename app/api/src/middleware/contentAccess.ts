@@ -57,18 +57,18 @@ const isBlocked = ({ contentType, dataHolder, contentIdField, queryField }: IISB
             );
             const contentId = getProvidedId(req, dataHolder, contentIdField);
             if (!contentId) {
-                return res.status(401).send({ success: false, message: "Please provide content id" });
+                return res.status(401).send({ success: false, message: "الرجاء توفير معرف المحتوى" });
             }
             const searchQuery = buildSearchQuery(queryField, contentIdField, contentId);
             if (!isValidSearchQuery(searchQuery)) {
-                return res.status(401).send({ success: false, message: "User not found" });
+                return res.status(401).send({ success: false, message: "لم يتم العثور على المستخدم" });
             }
             const { contentNotFound, isBlocked, articlePublisherId, commentAuthorId, article } = await checkBlockingStatus({ contentType, requestSender, contentId });
             if (contentNotFound) {
-                return res.status(401).send({ success: false, message: "Content not found" });
+                return res.status(401).send({ success: false, message: "لم يتم العثور على المحتوى" });
             }
             if (isBlocked) {
-                return res.status(401).send({ success: false, isBlocked: true, message: "You are blocked from this content" });
+                return res.status(403).send({ success: false, isBlocked: true, message: "انت محظور من هذا المحتوى" });
             }
             if (article) {
                 req.article = article;

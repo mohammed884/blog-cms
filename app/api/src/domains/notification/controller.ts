@@ -4,7 +4,7 @@ import Notification from "./model";
 import { Types } from "mongoose";
 import { formatDateToYMD } from "../../helpers/date";
 import { INotifications } from "interfaces/global";
-import { getRequestSenderAndReciverFollowingList, getRequestSenderFollowingList, isFollowingYou, youFollowing } from "../../helpers/follow";
+import { getRequestSenderFollowingList, youFollowing } from "../../helpers/follow";
 interface ISendNotifications {
     receiver: string;
     sender: Types.ObjectId;
@@ -38,12 +38,20 @@ const getNotifications = async (req: Request, res: Response) => {
             },
             select: {
                 notifications: 1,
+                receiver: 1
             },
             page,
             Model: Notification,
-            limit: 1
+            limit: 1,
         });
         const notifications: Array<INotifications> = result.data[0]?.notifications;
+        if (!notifications) {
+            return res.status(200).send({
+                success: true,
+                notifications: [],
+                receiver: user._id
+            });
+        }
         const followNotificationSendersIds = notifications.map(notification => notification.type === "follow" && notification.sender._id)
         const requestSenderFollowingList = user && await getRequestSenderFollowingList(user._id, followNotificationSendersIds)
         const finalNotifications = requestSenderFollowingList.length > 0 ? notifications.map((notification) => {
@@ -54,10 +62,11 @@ const getNotifications = async (req: Request, res: Response) => {
                 };
             } else return notification;
         }) : notifications;
-        //here i need to map the result to the notifications with the type of follow
-        //then i need to check the follow status for the requestSender and the requestReciver
-        //then i need to update those notifications
-        res.status(201).send({ success: true, notifications: finalNotifications });
+        res.status(200).send({
+            success: true,
+            notifications: finalNotifications,
+            receiver: user._id
+        });
     } catch (err) {
         res.status(500).send({ success: false, message: "Interal server error" });
         console.log(err);
@@ -68,7 +77,7 @@ const getUnSeenNotificationsCount = async (req: Request, res: Response) => {
         const user = req.user;
         const count = await Notification.countDocuments({
             receiver: user._id,
-            "comments.seen": false
+            "notifications.seen": false
         });
         res.status(201).send({ success: true, count });
     } catch (error) {
@@ -123,6 +132,32 @@ const sendNotification = async ({ receiver, sender, article, retrieveId, type }:
         };
     }
 };
+const updateNotificationSeenStatus = async ({ receiver, retrieveId }) => {
+    try {
+        const updateStatus = await Notification.updateOne({ receiver, "notifications.retrieveId": retrieveId },
+            {
+                $set: {
+                    "notifications.$.seen": true,
+                },
+            });
+        if (updateStatus.modifiedCount === 0) {
+            return {
+                success: false,
+                err: "unable to update the notification status"
+            };
+        }
+        return {
+            success: true,
+            err: "Notification status was updated"
+        };
+    } catch (err) {
+        console.log(err);
+        return {
+            success: false,
+            err: err.message,
+        };
+    }
+}
 const deleteNotification = async ({ receiver, retrieveId }: IDeleteNotifications) => {
     try {
         const updateStatus = await Notification.updateOne({ receiver, "notifications.retrieveId": retrieveId },
@@ -156,6 +191,7 @@ const deleteNotification = async ({ receiver, retrieveId }: IDeleteNotifications
 }
 export {
     getNotifications,
+    updateNotificationSeenStatus,
     getUnSeenNotificationsCount,
     sendNotification,
     deleteNotification,

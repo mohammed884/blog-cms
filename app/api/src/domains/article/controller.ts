@@ -14,9 +14,9 @@ import { getUserFromToken } from "../../helpers/jwt";
 import { redisClient, getOrSetCache, setRedisCache, delCache } from "../../redis-cache";
 import { USER_ID_KEY, USER_SAVED_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
 import { USER_CACHE_EXPIARY, USER_SAVED_CACHE_EXPIARY } from "../../redis-cache/expiries";
-interface IAddPostBody {
+interface IPublishPostBody {
   title: string;
-  content: object;
+  content: string;
   topics: [];
 };
 const getTopArticles = async (req: Request, res: Response) => {
@@ -104,6 +104,7 @@ const getFeed = async (req: Request, res: Response) => {
     const result = await pagination({
       matchQuery,
       page,
+      limit: 5,
       populate: {
         from: "users",
         foreignField: "_id",
@@ -115,6 +116,7 @@ const getFeed = async (req: Request, res: Response) => {
         },
         as: "publisher"
       },
+
       articleBlockChecking: user ? { userIdToCheck: user._id } : {},
       Model: Article,
     });
@@ -131,7 +133,13 @@ const getPublisherArticles = async (req: Request, res: Response) => {
       return res.status(401).send({ success: false, message: "Please provide the publisher ID" });
     }
     const matchQuery = { publisher: new ObjectId(publisherId) };
-    const result = await pagination({ matchQuery, Model: Article, page, limit: 5 });
+    const result = await pagination({
+      matchQuery, select: {
+        content: 0,
+        collaborators: 0,
+        savedCount: 0,
+      }, Model: Article, page, limit: 5,
+    });
     res.status(201).send({ success: true, articles: result.data });
   } catch (err) {
     console.log(err);
@@ -147,7 +155,7 @@ const getSavedArticles = async (req: Request, res: Response) => {
         await Article
           .find({ _id: { $in: savedArticlesIds } })
           .populate("publisher", "username avatar")
-          .select("title subTitle cover")
+          .select("-content -collaborators -savedCount")
       )
     }
     const savedArticles = await getOrSetCache(
@@ -156,7 +164,7 @@ const getSavedArticles = async (req: Request, res: Response) => {
       cacheCb,
       USER_SAVED_CACHE_EXPIARY
     );
-    res.status(201).send({ success: true, savedArticles })
+    res.status(201).send({ success: true, articles: savedArticles })
   } catch (error) {
     console.log(error);
     res.status(500).send({ success: false, message: "Internal server error" })
@@ -253,10 +261,10 @@ const searchArticles = async (req: Request, res: Response) => {
     console.log(err);
   }
 };
-const addArticle = async (req: Request, res: Response) => {
+const publishArticle = async (req: Request, res: Response) => {
   try {
     //you should make sure that the content isn't empty after implementing the frontend
-    const body: IAddPostBody = req.body;
+    const body: IPublishPostBody = req.body;
     await addArticleSchema.validateAsync(body);
     let filePath: string;
     //upload cover
@@ -501,7 +509,7 @@ export {
   getFeed,
   getArticle,
   searchArticles,
-  addArticle,
+  publishArticle,
   editArticle,
   deleteArticle,
   saveArticle,

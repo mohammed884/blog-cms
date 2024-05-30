@@ -10,7 +10,7 @@ interface ICheckFollowingStatusReturnValue {
     isFollowingYou: boolean
 }
 interface ICheckMultiableFollowingStatusReturnValue {
-    requestReciversFollowingList: Array<{ followedBy: ObjectId }>,
+    requestReciverFollowingList: Array<{ followedBy: ObjectId }>,
     requestSenderFollowingList: Array<{ user: ObjectId }>
 }
 interface ITransformDataProps {
@@ -30,7 +30,7 @@ const requestSenderAndReciverFollowingStatus = async (requestSenderId: ObjectId,
     return { youFollowing, isFollowingYou }
 };
 const getRequestSenderAndReciverFollowingList = async (requestSenderId: ObjectId, requestReciversIds: Array<ObjectId>): Promise<ICheckMultiableFollowingStatusReturnValue> => {
-    const requestReciversFollowingList: Array<{ followedBy: ObjectId }> = await Follow.find({
+    const requestReciverFollowingList: Array<{ followedBy: ObjectId }> = await Follow.find({
         user: requestSenderId,
         followedBy: { $in: requestReciversIds }
     }).select("-_id followedBy").lean();
@@ -38,7 +38,7 @@ const getRequestSenderAndReciverFollowingList = async (requestSenderId: ObjectId
         user: { $in: requestReciversIds },
         followedBy: requestSenderId,
     }).select("-_id user").lean();
-    return { requestReciversFollowingList, requestSenderFollowingList };
+    return { requestReciverFollowingList, requestSenderFollowingList };
 };
 const getRequestSenderFollowingList = async (requestSenderId: ObjectId, requestReciversIds: Array<ObjectId>): Promise<Array<{ user: ObjectId }>> => {
     const requestSenderFollowingList: Array<{ user: ObjectId }> = await Follow.find({

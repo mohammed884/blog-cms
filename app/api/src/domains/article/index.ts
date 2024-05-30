@@ -4,7 +4,7 @@ import {
     getArticle,
     getPublisherArticles,
     getSavedArticles,
-    addArticle,
+    publishArticle,
     searchArticles,
     saveArticle,
     editArticle,
@@ -17,6 +17,7 @@ import userDataAccess from "../../middleware/userDataAccess";
 import contentAccess from "../../middleware/contentAccess";
 const router = Router();
 //articles functionality 
+router.get("/saved", isLoggedIn(true), getSavedArticles);
 router.get("/feed", isLoggedIn("_", true), getFeed);
 router.get("/search", isLoggedIn(true), searchArticles);
 router.get("/publisher/:publisherId",
@@ -26,9 +27,7 @@ router.get("/publisher/:publisherId",
         queryField: "_id"
     }),
     getPublisherArticles,
-);
-router.get("/saved", isLoggedIn(true), getSavedArticles);
-router.get("/top", getTopArticles)
+); router.get("/top", getTopArticles)
 router.get("/:id",
     contentAccess({
         contentType: "get-article",
@@ -38,10 +37,10 @@ router.get("/:id",
     }),
     getArticle,
 );
-router.post("/add",
+router.post("/publish",
     isLoggedIn(true),
     isConfirmed(true),
-    addArticle
+    publishArticle
 );
 router.patch("/edit/:id",
     isLoggedIn(true),

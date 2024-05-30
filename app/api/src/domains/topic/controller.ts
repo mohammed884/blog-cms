@@ -23,7 +23,7 @@ const getTopics = async (req: Request, res: Response) => {
         },
       },
     ]);
-    res.status(201).send({ success: true, topics: topics[0].data });
+    res.status(200).send({ success: true, topics: topics[0].data });
   } catch (err) {
     console.log(err.code);
   }
@@ -35,9 +35,9 @@ const addTopic = async (req: Request, res: Response) => {
     await Topic.create({
       title,
       subTopics,
-      createdAt:formatDateToYMD(new Date(),"_"),
+      createdAt: formatDateToYMD(new Date(), "_"),
     });
-    res.status(201).send({ success: true, message: "تم الاضافة" });
+    res.status(200).send({ success: true, message: "تم الاضافة" });
   } catch (err) {
     switch (true) {
       case err.isJoi:
@@ -61,7 +61,7 @@ const addMultipleTopic = async (req: Request, res: Response) => {
         .status(401)
         .send({ success: false, message: "لم يتم اعطاء البيانات" });
     await Topic.insertMany(data, { ordered: false });
-    res.status(201).send({ success: false, message: "تم اضافة المواضيع" });
+    res.status(200).send({ success: false, message: "تم اضافة المواضيع" });
   } catch (err) {
     console.log(err);
   }
@@ -152,7 +152,7 @@ const deleteTopic = async (req: Request, res: Response) => {
         }
       }
     );
-    res.send({ success: true, message: "تم حذف الموضوع" });
+    res.status(200).send({ success: true, message: "تم حذف الموضوع" });
   } catch (err) {
     console.log(err);
   }
@@ -191,7 +191,7 @@ const deleteSubTopic = async (req: Request, res: Response) => {
       // { arrayFilters: [{ "topic.subTopic": subTopicStatus.title }] }
 
     );
-    res.send({ success: true, message: "تم حذف الموضوع الفرعي" });
+    res.status(200).send({ success: true, message: "تم حذف الموضوع الفرعي" });
   } catch (err) {
     console.log(err);
   }

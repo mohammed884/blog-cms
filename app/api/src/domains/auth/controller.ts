@@ -5,7 +5,7 @@ import { hash, compare } from "../../helpers/bcrypt";
 import { loginSchema, registerSchema } from "../../validation/auth";
 import { sendMail } from "../../helpers/nodemailer";
 import { IRegisterBody, ILoginBody } from "../../interfaces/body";
-import { formatDateToYMD } from "../../helpers/date";
+import { convertToMs, formatDateToYMD } from "../../helpers/date";
 import Topic from "../topic/model";
 const register = async (req: Request, res: Response) => {
   try {
@@ -22,11 +22,11 @@ const register = async (req: Request, res: Response) => {
       createdAt: formatDateToYMD(new Date(), "_"),
     });
     const accessToken = signAccessToken(newUser._id.toString());
-    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+    const MONTH_IN_MS = convertToMs("1-month");
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production" ? true : false,
-      maxAge: SIX_MONTHS_MS
+      maxAge: MONTH_IN_MS
     });
     return res.status(200).send({ success: true, message: "تم انشاء الحساب" });
   } catch (err) {
@@ -35,14 +35,14 @@ const register = async (req: Request, res: Response) => {
     switch (true) {
       case err.isJoi:
         const { message, context } = err.details[0];
-        return res.status(401).send({ success: false, message, context });
+        return res.status(401).send({ success: false, message });
       case err.code === 11000 && err.keyPattern.email === 1:
         return res
-          .status(401)
+          .status(403)
           .send({ success: false, usedEmail: true });
       case err.code === 11000 && err.keyPattern.username === 1:
         return res
-          .status(401)
+          .status(403)
           .send({ success: false, usedUsername: true });
       default:
         res
@@ -68,19 +68,24 @@ const login = async (req: Request, res: Response) => {
         success: false,
         message: "الايميل و الباسوورد لا يتطباقان",
       });
-    const SIX_MONTHS_MS = 6 * 30 * 24 * 60 * 60 * 1000;
+    const MONTH_IN_MS = convertToMs("1-month");
     const accessToken = signAccessToken(String(user._id));
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production" ? true : false,
-      maxAge: SIX_MONTHS_MS
+      maxAge: MONTH_IN_MS
     });
     res
       .status(201)
       .send({ success: true, username: user.username });
   } catch (err) {
     console.log(err);
-    res.status(500).send({ success: false, message: "Interal server error" })
+    if (err.isJoi) {
+      const { message, context } = err.details[0];
+      res.status(401).send({ success: false, message, context });
+    } else {
+      res.status(500).send({ success: false, message: "Interal server error" })
+    }
   }
 };
 const logout = async (req: Request, res: Response) => {

@@ -9,16 +9,9 @@ import { delCache, getOrSetCache, redisClient } from "../../redis-cache";
 import { USER_BLOCKED_ID_KEY, USER_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
 import { USER_BLOCKED_CACHE_EXPIARY, USER_CACHE_EXPIARY } from "../../redis-cache/expiries";
 import { requestSenderAndReciverFollowingStatus } from "../../helpers/follow";
-// const getProfile = async (req: Request, res: Response) => {
-//   try {
-//     const user = req.user;
-//     res.status(201).send({ success: true, user })
-//   } catch (err) {
-//     console.log(err);
-//     res.status(500).send({ success: false, message: "Internal server error" })
-
-//   };
-// };
+import { updateNotificationSeenStatus } from "../../domains/notification/controller";
+import Follow from "./follow/model";
+import Notification from "../../domains/notification/model";
 const getBlockedUsers = async (req: Request, res: Response) => {
   try {
     const user = req.user;
@@ -45,13 +38,15 @@ const getUser = async (req: Request, res: Response) => {
     const username = req.params.username;
     const requestSender = req.user;
     const requestReciver = req.requestReciver;
-
+    if (!requestSender && !requestReciver) {
+      return res.status(200).send({ success: false, message: "لم يتم العثور على المستخدم" })
+    };
     const isSameUser =
       requestSender?._id === requestReciver?._id
       ||
       (!requestReciver && requestSender && true);
     if (isSameUser && username === "profile") {
-      return res.status(201).send({
+      return res.status(200).send({
         success: true,
         isSameUser: true,
         isLoggedIn: true,
@@ -72,19 +67,19 @@ const getUser = async (req: Request, res: Response) => {
         redisClient, `${USER_USERNAME_KEY}=${username}`,
         getRequestReciverInfo,
         USER_CACHE_EXPIARY,
-      ))
+      ));
     if (!user) {
-      return res.status(401).send({ success: false, message: "لم يتم العثور على المستخدم" })
+      return res.status(201).send({ success: false, message: "لم يتم العثور على المستخدم" })
     }
     if (isSameUser) {
-      res.status(201).send({
+      res.status(200).send({
         success: true,
         isSameUser: true,
         isLoggedIn: true,
         user,
       })
     } else {
-      res.status(201).send({
+      res.status(200).send({
         success: true,
         isSameUser: false,
         isLoggedIn: !!requestSender,
@@ -136,6 +131,11 @@ const blockUser = async (req: Request, res: Response) => {
         }
       }
     );
+    //delete follows
+    await Follow.deleteOne({ user: user._id, followedBy: userIdToBlock });
+    await Follow.deleteOne({ user: userIdToBlock, followedBy: user._id });
+    //notifications
+    await Notification.deleteMany({ receiver: user._id, sender: userIdToBlock })
     await delCache(redisClient, `${USER_ID_KEY}=${user._id}`)
     await delCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`)
     await delCache(redisClient, `${USER_BLOCKED_ID_KEY}=${user._id}`)
@@ -149,7 +149,6 @@ const unBlockUser = async (req: Request, res: Response) => {
   try {
     const user = req.user;
     const userIdToUnBlock = req.params.id;
-    // Check && Add the user ID to the blocked list
     const updatedUser = await User.findByIdAndUpdate(
       { _id: user._id },
       {
@@ -160,14 +159,15 @@ const unBlockUser = async (req: Request, res: Response) => {
         }
       }
     );
-    if (updatedUser) {
+    if (!updatedUser) {
       return res
         .status(401)
         .send({ success: false, message: "حدث خطأ أثناء فك الحظر على المستخدم" });
     }
+    await delCache(redisClient, `${USER_BLOCKED_ID_KEY}=${user._id}`)
     await delCache(redisClient, `${USER_ID_KEY}=${user._id}`)
     await delCache(redisClient, `${USER_USERNAME_KEY}=${user.username}`)
-    res.status(201).send({ success: true, message: "تم فك الحظر على المستخدم بنجاح" });
+    res.status(200).send({ success: true, message: "تم فك الحظر على المستخدم بنجاح" });
   } catch (err) {
     console.log(err);
     res.status(500).send({ success: false, message: "Internal Server error" });
@@ -182,7 +182,7 @@ const searchUser = async (req: Request, res: Response) => {
     };
     const users = await pagination({ matchQuery, Model: User, page: 1 });
     console.log(users);
-    res.status(201).send({ success: true, users })
+    res.status(200).send({ success: true, users })
   } catch (err) {
     console.log(err);
 
@@ -248,12 +248,32 @@ const editProfile = async (req: Request, res: Response) => {
     }
   }
 };
+const markNotificationAsReaded = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    const retrieveId = req.params.retrieveId;
+    if (!retrieveId) return res.status(401).send({
+      success: false,
+      message: "Please provide retrieveId for the notification"
+    });
+    const updateStatus = await updateNotificationSeenStatus({ receiver: String(user._id), retrieveId })
+    if (!updateStatus.success) {
+      return res
+        .status(401)
+        .send({ success: false, message: updateStatus.err })
+    };
+    res.status(200).send({ success: true, message: "Notification seen status was update" })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Internal server error" })
+  }
+};
 export {
-  // getProfile,
   getBlockedUsers,
   getUser,
   editProfile,
   searchUser,
   blockUser,
   unBlockUser,
+  markNotificationAsReaded,
 }

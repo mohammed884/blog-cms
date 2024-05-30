@@ -1,8 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../domains/user/model";
 import { IUser } from "../interfaces/global";
-import { ObjectId } from "bson";
-import { PipelineStage } from "mongoose";
 const JWT_SECRET = process.env.JWT_SECRET;
 interface verifyInterface {
     success: boolean,
