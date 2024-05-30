@@ -1,4 +1,4 @@
-import { INotification, IUser } from "../../interfaces/global";
+import { IBlockedUser, INotification, IUser } from "../../interfaces/global";
 import axios from "../axiosInstance";
 export const getUser = async (username: string) => {
     return (await axios.get<{
@@ -39,6 +39,35 @@ export const getUnSeenNotificationsCount = async () => {
         count: number
     }>("/user/notifications/count/unseen", { withCredentials: true })).data;
 };
-export const markNotificationAsSeen = async (notificationId: string) => {
-    return (await axios.post(`/user/notification/${notificationId}/seen`)).data;
+export const markNotificationAsReaded = async (retrieveId: string) => {
+    return (
+        await axios.patch(
+            `/user/notifications/mark-as-readed/${retrieveId}`,
+            {}, { withCredentials: true }
+        )
+    ).data;
 };
+export const getBlockedUsers = async () => {
+    return (
+        (await axios.get<{ blockedUsers: Array<IBlockedUser>, success: boolean }>("/user/blocked", { withCredentials: true })).data
+    )
+};
+export const handleBlockActions = async (userId: string, action: "block" | "un-block") => {
+    return (
+        action === "block" ?
+            (
+                await axios.patch<{
+                    message: string,
+                    success: boolean
+                }>
+                    (`/user/block/${userId}`, {}, { withCredentials: true })).data
+            :
+            (
+                (await axios.patch<{
+                    message: string,
+                    success: boolean
+                }>
+                    (`/user/unblock/${userId}`, {}, { withCredentials: true })).data
+            )
+    )
+}

@@ -1,6 +1,7 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const NotFound = () => {
+  const navigate = useNavigate();
   return (
     <main className="h-screen w-full flex flex-col justify-center items-center">
       <h1 className="text-9xl font-extrabold text-[#1A2238] tracking-widest">
@@ -12,10 +13,12 @@ const NotFound = () => {
       <button className="mt-5">
         <a className="relative inline-block text-sm font-medium text-dark_green group active:text-dark_green focus:outline-none focus:ring">
           <span className="absolute inset-0 transition-transform translate-x-0.5 translate-y-0.5 bg-dark_green group-hover:translate-y-0 group-hover:translate-x-0 rounded"></span>
-
-          <span className="relative block px-8 py-3 text-off_white bg-[#1A2238] border border-current rounded">
-            <Link to="/">رجوع</Link>
-          </span>
+          <button
+            className="relative block px-8 py-3 text-off_white bg-[#1A2238] border border-current rounded"
+            onClick={() => navigate(-1)}
+          >
+            رجوع
+          </button>
         </a>
       </button>
     </main>

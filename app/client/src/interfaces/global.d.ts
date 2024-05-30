@@ -99,3 +99,8 @@ export interface IFollower {
   isFollowingYou: boolean;
   youFollowing: boolean;
 };
+export interface IBlockedUser {
+  _id: string;
+  username: string;
+  avatar: string;
+}

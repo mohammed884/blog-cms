@@ -1,8 +1,11 @@
 import { useParams } from "react-router-dom";
-
-const UserLocation = ({ location }: { location: string }) => {
+interface IUserLocation {
+  location: string;
+  providedUsername?: string;
+}
+const UserLocation = ({ location, providedUsername }: IUserLocation) => {
   const params = useParams();
-  const username = params.username?.replace(/-/g, " ");
+  const username = providedUsername || params.username?.replace(/-/g, " ");
   return (
     <div className="flex gap-2 text-sm opacity-50">
       <span>{username}</span>

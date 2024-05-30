@@ -1,8 +1,6 @@
 import { useState, forwardRef, FormEvent, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useLoginMutation } from "../store/services/auth";
-import apiService from "../store/services";
-import { useAppDispatch } from "../store/hooks";
+import { Link } from "react-router-dom";
+import { useLoginMutation } from "../services/queries/auth";
 const LoginPopup = forwardRef<HTMLDialogElement, {}>(
   (props, dialogRef: any) => {
     const [email, setEmail] = useState("");
@@ -11,9 +9,7 @@ const LoginPopup = forwardRef<HTMLDialogElement, {}>(
       success: boolean;
       context: string;
     }>();
-    const dispatch = useAppDispatch();
-    const navigate = useNavigate();
-    const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+    const loginMutation = useLoginMutation();
     useEffect(() => {
       dialogRef.current?.addEventListener("click", backdropEventListener);
       return () => {
@@ -52,19 +48,20 @@ const LoginPopup = forwardRef<HTMLDialogElement, {}>(
           context: "يجب ان لا يزيد الباسوورد عن 32 ارقام واحرف",
         });
       }
-      await login({ password, email })
-        .unwrap()
-        .then((fulfilled) => {
-          setMessage({ success: true, context: "تم تسجيل الدخول بنجاح" });
-          dispatch(apiService.util.resetApiState());
-          setTimeout(() => {
-            navigate("/feed");
-          }, 250);
-        })
-        .catch((reason) => {
-          setMessage({ success: false, context: reason.data.message });
-          console.log("catch error ->", reason);
+      loginMutation.mutate({ password, email });
+      // })
+      // .catch((reason) => {
+      //   console.log("catch error ->", reason);
+      // });
+      if (loginMutation.isSuccess) {
+        setMessage({ success: true, context: "تم تسجيل الدخول بنجاح" });
+      }
+      if (loginMutation.isError) {
+        setMessage({
+          success: false,
+          context: loginMutation.error.response.data.message,
         });
+      }
     };
     const inputsClasses =
       "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";

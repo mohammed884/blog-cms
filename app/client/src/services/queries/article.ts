@@ -1,15 +1,34 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SAVED_ARTICLES_KEY, PUBLISHER_ARTICLES_KEY, USER_QUERY_KEY } from "../keys";
-import { getPublisherArticles, getSavedArticles, saveArticle } from "../api/article"
+import { SAVED_ARTICLES_KEY, PUBLISHER_ARTICLES_KEY, USER_KEY, FEED_KEY } from "../keys";
+import { getPublisherArticles, getSavedArticles, saveArticle, getFeed } from "../api/article"
 export const getPublisherArticlesQuery = (publisherId: string) => {
+    const LIMIT = 5;
     return useInfiniteQuery({
         queryKey: [PUBLISHER_ARTICLES_KEY, { publisherId }],
         queryFn: async (keys) => await getPublisherArticles(publisherId, keys.pageParam),
-        getNextPageParam: (lastPage, pages, lastPageParam) => {
-            if (lastPage.articles.length < 1) return undefined;
+        getNextPageParam: (lastPage, _, lastPageParam) => {
+            const publisherArticlesLength = lastPage.articles.length;
+            if (publisherArticlesLength < 1 || publisherArticlesLength < LIMIT) return undefined;
             return lastPageParam + 1;
         },
         initialPageParam: 1,
+        enabled: !!publisherId,
+        retry: false
+    })
+};
+export const getFeedQuery = () => {
+    const LIMIT = 5;
+    return useInfiniteQuery({
+        queryKey: [FEED_KEY],
+        queryFn: async (keys) => await getFeed(keys.pageParam),
+        getNextPageParam: (lastPage, _, lastPageParam) => {
+            const feedArticlesLength = lastPage.articles.length;
+            if (feedArticlesLength < 1 || feedArticlesLength < LIMIT) return undefined;
+            return lastPageParam + 1;
+        },
+        initialPageParam: 1,
+        // enabled: !!publisherId,
+        retry: false
     })
 };
 export const getSavedArticlesQuery = (skip: boolean) => {
@@ -33,15 +52,15 @@ export const useSaveArticleMutation = () => {
             mutationFn: (data) => saveArticle(data.articleId),
             onMutate: (variables) => {
                 if (variables.action === "save") {
-                    queryClient.setQueryData([USER_QUERY_KEY, { username: variables.username }], (data: any) => {
+                    queryClient.setQueryData([USER_KEY, { username: variables.username }], (data: any) => {
                         data?.user.saved.push({ createdAt: new Date(), article: variables.articleId, _id: variables.articleId })
                     });
                 };
             },
-            onSuccess: (response, variables) => {
+            onSuccess: (_, variables) => {
                 queryClient.invalidateQueries({ queryKey: [SAVED_ARTICLES_KEY] });
                 if (variables.action === "un-save") {
-                    queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY, { username: variables.username }] });
+                    queryClient.invalidateQueries({ queryKey: [USER_KEY, { username: variables.username }] });
                 };
             }
         })

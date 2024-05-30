@@ -1,28 +1,37 @@
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import { MarkAsReaded, UserAvatarIcon, VerticalEllipsis } from "./Icons";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { INotification } from "../interfaces/global";
 import FollowButton from "./FollowButton";
-import { getNotificationsQuery } from "../services/queries/user";
+import {
+  getNotificationsQuery,
+  useMarkNotificationAsReadedMutation,
+} from "../services/queries/user";
 interface INotificationListProps {
+  pageIndex: number;
+  notificationIndex: number;
   receiver: string;
   notification: INotification;
+  messages: Array<{
+    type: string;
+    context: string;
+  }>;
   setOpenNotifications: React.Dispatch<React.SetStateAction<boolean>>;
 }
-const messages = [
-  { type: "follow", context: "قام بمتابعتك" },
-  { type: "comment", context: "علق على منشورك" },
-  { type: "reply", context: "رد على تعليقك" },
-  { type: "collaboration-request", context: "طلب التعاون" },
-  { type: "collaboration-accept", context: "قبل التعاون" },
-  { type: "collaboration-deny", context: "رفض التعاون" },
-];
 const Notifications = ({
   setOpenNotifications,
 }: {
   setOpenNotifications: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const messages = [
+    { type: "follow", context: "قام بمتابعتك" },
+    { type: "comment", context: "علق على منشورك" },
+    { type: "reply", context: "رد على تعليقك" },
+    { type: "collaboration-request", context: "طلب التعاون" },
+    { type: "collaboration-accept", context: "قبل التعاون" },
+    { type: "collaboration-deny", context: "رفض التعاون" },
+  ];
   const notificationsData = getNotificationsQuery();
   useEffect(() => {
     window.document.body.addEventListener("click", handleCloseNotfications);
@@ -48,10 +57,13 @@ const Notifications = ({
   const pages = notificationsData?.data?.pages || [];
   return (
     <ul id="notifications-list" className="w-[95%] mx-auto">
-      {Number(pages.length) > 0 ? (
-        pages.map((page) =>
-          page.notifications.map((notification) => (
+      {Number(pages[0].notifications.length) > 0 ? (
+        pages.map((page, pageIndex) =>
+          page.notifications.map((notification, notificationIndex) => (
             <NotificationList
+              pageIndex={pageIndex}
+              notificationIndex={notificationIndex}
+              messages={messages}
               key={notification.retrieveId}
               receiver={notificationsData.data?.pages[0].receiver || ""}
               notification={notification}
@@ -60,20 +72,31 @@ const Notifications = ({
           ))
         )
       ) : (
-        <span>no notifications</span>
+        <span className="text-sm opacity-80">
+          لا يوجد لديك اشعارات حاليا ⚡
+        </span>
       )}
     </ul>
   );
 };
 const NotificationList = ({
+  messages,
   receiver,
   notification,
+  pageIndex,
+  notificationIndex,
   setOpenNotifications,
 }: INotificationListProps) => {
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const { retrieveId, seen, sender, createdAt, type, youFollowing } =
     notification;
   const { username, avatar } = sender;
+  const markAsReadedMutation = useMarkNotificationAsReadedMutation();
+  useEffect(() => {
+    window.document.body.addEventListener("click", handleCloseOptionMenu);
+    return () =>
+      window.document.body.removeEventListener("click", handleCloseOptionMenu);
+  }, []);
   const handleCloseOptionMenu = (e: any) => {
     if (isOptionsMenuOpen) return;
     const targetParent = e.target.closest(
@@ -81,13 +104,17 @@ const NotificationList = ({
     );
     if (!targetParent) setIsOptionsMenuOpen(false);
   };
-  useEffect(() => {
-    window.document.body.addEventListener("click", handleCloseOptionMenu);
-    return () =>
-      window.document.body.removeEventListener("click", handleCloseOptionMenu);
-  }, []);
   return (
     <li
+      onClick={() => {
+        seen &&
+          markAsReadedMutation.mutate({
+            retrieveId,
+            pageIndex,
+            notificationIndex,
+          });
+        setIsOptionsMenuOpen(false);
+      }}
       className={`flex p-3 py-3 gap-2 rounded-md shadow-md cursor-pointer hover:bg-stone-50 ${
         isOptionsMenuOpen && "bg-stone-50"
       }`}
@@ -114,7 +141,7 @@ const NotificationList = ({
             >
               <span className="font-bold hover:underline">{username} </span>
             </Link>
-            <span>{messages.find((message) => type === type)?.context}</span>
+            <span>{messages.find(() => type === type)?.context}</span>
           </div>
           <span className="opacity-80 text-[.8rem] mt-2">
             قبل
@@ -134,7 +161,7 @@ const NotificationList = ({
           <div id={`option-container-${retrieveId}`} className="relative">
             <button
               onClick={() => setIsOptionsMenuOpen((prev) => !prev)}
-              className="p-2 rounded-md hover:bg-stone-200 mt-2"
+              className="p-2 rounded-md hover:bg-stone-200"
             >
               <VerticalEllipsis width={4} height={4} />
             </button>
@@ -149,7 +176,17 @@ const NotificationList = ({
                   <MarkAsReaded width={2} height={2} />
                 </span>
               ) : (
-                <button className="flex gap-2 px-1 min-w-[7rem] items-center justify-center  text-[.8rem]">
+                <button
+                  onClick={() => {
+                    markAsReadedMutation.mutate({
+                      retrieveId,
+                      pageIndex,
+                      notificationIndex,
+                    });
+                    setIsOptionsMenuOpen(false);
+                  }}
+                  className="flex gap-2 px-1 min-w-[7rem] items-center justify-center  text-[.8rem]"
+                >
                   <span>التعليم كمقروء</span>
                   <MarkAsReaded width={2} height={2} />
                 </button>

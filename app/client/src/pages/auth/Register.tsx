@@ -59,8 +59,9 @@ const Register = () => {
     if (registerMutation.isSuccess) {
       setMessage({ success: true, context: "تم انشاء الحساب" });
       setTimeout(() => {
-        navigate("/feed");
+        navigate(`/user/${username}`);
       }, 250);
+      return;
     }
     if (registerMutation.isError) {
       const error = registerMutation.error.response.data;
@@ -79,35 +80,6 @@ const Register = () => {
         });
       }
     }
-    // await addRegister({
-    //   username,
-    //   email,
-    //   password,
-    //   topics: selectedTopics,
-    // })
-    //   .unwrap()
-    //   .then((fulfilled: any) => {
-    //     setMessage({ success: true, context: "تم انشاء الحساب" });
-    //     setTimeout(() => {
-    //       navigate("/feed");
-    //     }, 250);
-    //   })
-    //   .catch((reason) => {
-    //     if (reason.data.usedUsername) {
-    //       byStep(0);
-    //       return setMessage({
-    //         success: false,
-    //         context: "هذا الاسم مسخدم سابقا",
-    //       });
-    //     }
-    //     if (reason.data.usedEmail) {
-    //       byStep(1);
-    //       return setMessage({
-    //         success: false,
-    //         context: "هذا الايميل مستخدم سابقا",
-    //       });
-    //     }
-    //   });
   };
   const {
     step,

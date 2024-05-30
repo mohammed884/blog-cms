@@ -19,7 +19,10 @@ const Following = () => {
   );
   if (userProfile.isLoading || followingCount.isLoading || following.isLoading)
     return <Loader />;
-  // const { user, isSameUser } = userProfile as any;
+  if (userProfile.error) {
+    console.log(userProfile.error);
+    return <div>error</div>;
+  }
   return (
     <section className="pt-[6rem]">
       <div className="w-[90%] flex justify-center mx-auto">
@@ -43,7 +46,7 @@ const Following = () => {
                 page.following.map((follow) => (
                   <FollowList
                     followButtonOwnerId={userProfile.data?.user._id || ""}
-                    key={follow.followedBy}
+                    key={follow.followedBy + " following"}
                     isFollowingYou={follow.isFollowingYou}
                     youFollowing={follow.youFollowing}
                     follower={follow.user}
@@ -55,7 +58,7 @@ const Following = () => {
               fetchNextPage={following.fetchNextPage}
               hasMore={following.hasNextPage}
               isDataLoading={following.isFetchingNextPage}
-              messageAfterFetchingAllData="تم تحميل جميع المتابعين ⚡"
+              messageAfterFetchingAllData="تم تحميل جميع المتابعون ⚡"
               btnStyle="ml-auto"
               messageStyle="mt-2 pr-4"
             />

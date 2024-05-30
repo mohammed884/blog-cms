@@ -11,6 +11,8 @@ import { Ellipsis } from "../../../../components/Icons";
 import { useState } from "react";
 import { useEffect } from "react";
 import { IFollowing } from "../../../../interfaces/global";
+import LoginPopup from "../../../../components/LoginPopup";
+import { useRef } from "react";
 interface IFollowingListProps {
   user: {
     _id: string;
@@ -28,17 +30,29 @@ interface IFollowingListProps {
 }
 const SideBar = () => {
   const params = useParams();
-  const username = params.username?.replace(/-/g, " ") || " ";
+  const LoginPopupRef = useRef<HTMLDialogElement>(null);
+  const username = params.username?.replace(/-/g, " ") || "profile";
   const userProfile = getUserQuery(username);
+  const viwerProfile = getUserQuery("profile");
+  if (userProfile.isLoading || viwerProfile.isLoading) return <Loader />;
+  if (userProfile.error) {
+    console.log("profile error", userProfile.error);
+    return <div>error</div>;
+  }
+  if (viwerProfile.error) {
+    console.log("profile error", viwerProfile.error);
+    return <div>error</div>;
+  }
   const followersCountData = getFollowersCountQuery(
-    userProfile?.data?.user._id || ""
+    userProfile?.data?.user?._id || ""
   );
-  const following = getFollowingQuery(userProfile?.data?.user._id || "");
+  const following = getFollowingQuery(userProfile?.data?.user?._id || "");
   if (!userProfile) return <Loader />;
   const user = userProfile?.data?.user;
   const isSameUser = userProfile.data?.isSameUser;
   return (
     <aside className="w-[28%] p-2 pr-12 border-r border-l-gray-300 sticky">
+      <LoginPopup ref={LoginPopupRef} />
       <div className="flex flex-col gap-4">
         <span className="w-28 h-28">
           <UserAvatarIcon
@@ -64,7 +78,8 @@ const SideBar = () => {
             </span>
           </Link>
           <span>{user?.bio?.title}</span>
-          <span>{user?.bio?.text}</span>
+          <br />
+          <p className="text-sm opacity-90 mt-2">{user?.bio?.text}</p>
         </div>
         {isSameUser ? (
           <Link
@@ -73,12 +88,28 @@ const SideBar = () => {
           >
             تعديل الحساب
           </Link>
+        ) : viwerProfile.data?.user?._id === undefined ? (
+          <button
+            className=" 
+          text-[.8rem] 
+          p-[.41rem] 
+          py-2 
+          px-6 
+          transition-colors 
+          ease-out 
+          rounded-xl bg-vivid_green ml-auto"
+            onClick={() => LoginPopupRef.current?.showModal()}
+          >
+            متابعة
+          </button>
         ) : (
           <FollowButton
             userId={user?._id || ""}
             ownerId={user?._id || ""}
+            viewerId={viwerProfile.data?.user?._id}
             youFollowing={!!userProfile?.data?.youFollowing}
             isFollowingYou={!!userProfile?.data?.isFollowingYou}
+            className="w-fit"
           />
         )}
         <div className="mt-3">
@@ -134,7 +165,7 @@ const FollowingList = ({
   }, []);
   return (
     <li className="w-[90%] flex items-center justify-between gap-2 pt-2">
-      <Link to={`/user/${username}`}>
+      <Link to={`/user/${username.replace(/ /g, "-")}`}>
         <div className="flex items-center gap-2">
           <span>
             <UserAvatarIcon

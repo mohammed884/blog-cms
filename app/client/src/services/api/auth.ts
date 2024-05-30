@@ -12,5 +12,5 @@ export const register = async ({ username, email, password, topics }: IRegisterD
         password,
         email,
         topics
-    })).data;
+    }, { withCredentials: true })).data;
 };

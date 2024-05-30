@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useSaveArticleMutation } from "../services/queries/article";
 interface IProps {
   page: "feed" | "saved-feed" | "profile";
+  width?: string;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
   article: IArticleList;
   userSavedArticles?: Array<{
@@ -20,14 +21,14 @@ interface IProps {
   isLoggedIn?: boolean;
   setErrorMessage?: React.Dispatch<React.SetStateAction<string>>;
 }
-const ArticlesList = ({
+const ArticleList = ({
   page,
   article,
   providedPublisher,
   userSavedArticles,
   isLoggedIn,
   dialogRef,
-  setErrorMessage,
+  width,
 }: IProps) => {
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
@@ -46,16 +47,22 @@ const ArticlesList = ({
   }, []);
   const publisherDetails = providedPublisher ?? publisher;
   const handleShowCreateAccountPopUp = () => {
+    console.log("show popup");
+    console.log(dialogRef);
+
     document.body.style.overflowY = "hidden";
     dialogRef?.current?.showModal();
   };
   const handleSaveArticle = () => {
+    console.log("save article");
     saveArticleMutation.mutate({
       articleId: _id,
       action: isArticleSaved ? "un-save" : "save",
       publisherId: publisher?._id || providedPublisher?._id || "",
       username: username || "profile",
     });
+    console.log(saveArticleMutation.error, saveArticleMutation.data);
+
     setIsArticleSaved((prev) => !prev);
   };
   return (
@@ -64,7 +71,7 @@ const ArticlesList = ({
         page === "feed"
           ? "xl:w-[90%] lg:w-[70%] md:w-[80%] sm:w-[98%]"
           : "xl:w-[85%] md:w-[85%] sm:w-[90%]"
-      }`}
+      } ${width}`}
     >
       <article className="flex justify-between items-center gap-2 md:mb-10 pb-10">
         <div className="flex flex-col justify-center flex-grow">
@@ -115,7 +122,7 @@ const ArticlesList = ({
         </div>
         <div>
           <img
-            className="sm:w-[10rem] sm:h-[6.2rem] lg:w-[12.5rem] lg:h-[8.3rem]"
+            className="sm:w-[9rem] sm:h-[6rem] lg:w-[12.5rem] lg:h-[8.3rem]"
             width={"200"}
             height={"134"}
             loading="lazy"
@@ -127,4 +134,4 @@ const ArticlesList = ({
     </li>
   );
 };
-export default ArticlesList;
+export default ArticleList;

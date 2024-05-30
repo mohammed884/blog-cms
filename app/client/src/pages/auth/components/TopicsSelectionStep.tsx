@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useState } from "react";
-import { useGetTopicsQuery } from "../../../store/services/topics";
+import { getTopicsQuery } from "../../../services/queries/topic";
 import TopicList from "./TopicList";
 interface ITopicsProps {
   selectedTopics: Array<string>;
@@ -10,7 +10,7 @@ const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
     const [openTopicsPopup, setOpenTopicsPopup] = useState(
       selectedTopics.length === 0 ? true : false
     );
-    const { data, isLoading, isError, error } = useGetTopicsQuery({});
+    const topics = getTopicsQuery();
     useEffect(() => {
       ref?.current?.addEventListener("click", handleClose);
       return () => {
@@ -20,8 +20,8 @@ const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
     const handleClose = (e: any) => {
       if (e.target === ref?.current) setOpenTopicsPopup(false);
     };
-    if (isLoading) return;
-    if (isError) return <div>Error</div>;
+    if (topics.isLoading) return;
+    if (topics.isError) return <div>Error</div>;
     return (
       <fieldset>
         <div className="flex items-center justify-center text-center">
@@ -72,7 +72,7 @@ const TopicsSelectionStep = forwardRef<HTMLDivElement, ITopicsProps>(
               className="w-[60%] flex justify-center items-center flex-wrap gap-2"
               id="topics"
             >
-              {data?.topics.map((topic, index) => (
+              {topics.data?.topics.map((topic, index) => (
                 <TopicList
                   isSelected={
                     selectedTopics.findIndex((t) => t === topic.title) !== -1

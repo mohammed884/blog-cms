@@ -1,8 +1,7 @@
-import { useNavigate } from "react-router-dom";
 import { useQueryClient, useMutation } from "@tanstack/react-query"
 import { login, register } from "../api/auth";
 import { IRegisterData, ILoginData } from "../types/auth";
-import { USER_QUERY_KEY } from "../keys";
+import { USER_KEY } from "../keys";
 interface ILoginErrorBody {
     response: {
         data: {
@@ -15,7 +14,7 @@ interface ILoginErrorBody {
 interface IRegisterErrorBody {
     response: {
         data: {
-            success: boolean,
+            success: false,
             isLoggedIn: boolean,
             message: string,
             usedEmail: boolean,
@@ -27,25 +26,19 @@ export const useLoginMutation = () => {
     const queryClient = useQueryClient();
     return useMutation<{ success: boolean, username: string; }, ILoginErrorBody, ILoginData>({
         mutationFn: (data) => login(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: [USER_QUERY_KEY, { username: "profile" }] });
+        onSuccess: ({ username }) => {
+            queryClient.invalidateQueries({ queryKey: [USER_KEY, { username: "profile" }] });
+            queryClient.invalidateQueries({ queryKey: [USER_KEY, { username: username }] });
         },
-        // onSuccess: (data) => {
-        //     const navigate = useNavigate();
-        //     navigate(`/user/${data.username}`)
-        // },
     })
 };
 export const useRegisterMutation = () => {
     const queryClient = useQueryClient();
     return useMutation<{ success: boolean, username: string; }, IRegisterErrorBody, IRegisterData>({
         mutationFn: (data) => register(data),
-        onMutate: () => {
-            queryClient.invalidateQueries({ queryKey: ["user", { username: "profile" }] });
-        },
         onSuccess: (data) => {
-            const navigate = useNavigate();
-            navigate(`/user/${data.username}`)
+            queryClient.invalidateQueries({ queryKey: [USER_KEY, { username: "profile" }] });
+            queryClient.invalidateQueries({ queryKey: [USER_KEY, { username: data.username }] });
         },
     })
 }

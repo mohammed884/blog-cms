@@ -2,7 +2,7 @@ interface IPorps {
   fetchNextPage: any;
   hasMore: boolean;
   isDataLoading: boolean;
-  messageAfterFetchingAllData: string;
+  messageAfterFetchingAllData?: string;
   btnStyle?: string;
   messageStyle?: string;
 }

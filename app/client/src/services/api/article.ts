@@ -1,9 +1,8 @@
 import axios from "../axiosInstance";
 import { IArticleList } from "../../interfaces/global"
-import { ISavedArticle } from "../types/follow";
-export const getFeed = async (page: number): Promise<Array<IArticleList>> => {
+export const getFeed = async (page: number): Promise<{ success: boolean, articles: Array<IArticleList>, message?: string }> => {
     return (
-        (await axios.get(`/article/feed?page=${page}`)).data
+        (await axios.get<{ success: boolean, articles: Array<IArticleList>, message?: string }>(`/article/feed?page=${page}`)).data
     )
 };
 export const getTopArticles = async (): Promise<Array<IArticleList>> => {
@@ -38,9 +37,9 @@ export const saveArticle = async (id: string) => {
         (await axios.patch(`/article/save/${id}`, {}, { withCredentials: true })).data
     )
 };
-// export const addArticle = async (data) => {
+// export const publishArticle = async (data) => {
 //     return (
-//         (await axios.post("/article/add", { data }, { withCredentials: true })).data
+//         (await axios.post("/article/publish", { data }, { withCredentials: true })).data
 //     )
 // };
 export const editArticle = async (id: string) => {

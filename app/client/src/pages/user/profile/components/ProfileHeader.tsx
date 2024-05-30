@@ -1,35 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { AlertIcon, Ellipsis } from "../../../../components/Icons";
-import { userSelector } from "../../../../services/queries/user";
+import { useBlockUserActionsMutation } from "../../../../services/queries/user";
+import { Link } from "react-router-dom";
 interface IProfileHeaderProps {
   username: string;
   email: string;
+  userId: string;
   isSameUser: boolean;
   isConfirmed: boolean;
 }
 const ProfileHeader = ({
   username,
-  email,
+  userId,
   isSameUser,
   isConfirmed,
 }: IProfileHeaderProps) => {
   const [showOptions, setShowOptions] = useState(false);
-  const handleHideOptions = (e: any) => {
-    const parent = e.target.closest("#options-container");
-    if (parent) return;
-    setShowOptions(false);
-  };
   useEffect(() => {
     window.document.body.addEventListener("click", handleHideOptions);
     return () =>
       window.document.body.removeEventListener("click", handleHideOptions);
   }, []);
+  const blockUserActionsMutation = useBlockUserActionsMutation();
+  const handleHideOptions = (e: any) => {
+    const parent = e.target.closest("#options-container");
+    if (parent) return;
+    setShowOptions(false);
+  };
   const menuOptions = [
-    // { context: "نسخ رابط الحساب" },
-    { context: "تحليل البيانات", profileOwner: true },
-    { context: "تاكيد الحساب", profileOwner: true },
-    { context: "قائمة المحظورين", profileOwner: true },
-    { context: "حظر المستخدم", profileOwner: false },
+    {
+      context: "تحليل البيانات",
+      profileOwnerOption: true,
+      href: "/user/analysis",
+      requireConfirmation: false,
+    },
+    {
+      context: "تاكيد الحساب",
+      profileOwnerOption: true,
+      requireConfirmation: false,
+      href: "/user/analysis",
+    },
+    {
+      context: "قائمة المحظورين",
+      profileOwnerOption: true,
+      href: "/user/blocked",
+      requireConfirmation: true,
+    },
+    {
+      context: "حظر المستخدم",
+      profileOwnerOption: false,
+      requireConfirmation: true,
+    },
   ];
   return (
     <React.Fragment>
@@ -49,18 +70,40 @@ const ProfileHeader = ({
               !showOptions && "hidden"
             } shadow-md mx-auto absolute top-6 left-4 rounded-md`}
           >
-            {/* <h4>{email}</h4> */}
-            <ul id="notifications-list" className="divide-y divide-stone-300">
-              {menuOptions.map((option) => (
-                <li
-                  key={option.context}
-                  className={`text-sm px-3 p-3 hover:bg-stone-50 shadow-sm cursor-pointer ${
-                    option.profileOwner !== isSameUser && "hidden"
-                  }`}
-                >
-                  {option.context}
-                </li>
-              ))}
+            <ul
+              id="notifications-list"
+              className="divide-y-reverse divide-stone-300"
+            >
+              {menuOptions.map(
+                ({ href, profileOwnerOption, context, requireConfirmation }) =>
+                  href && isSameUser ? (
+                    <Link to={href} key={context}>
+                      <li
+                        className={`text-sm px-3 p-3 hover:bg-stone-50 shadow-sm cursor-pointer 
+                  ${profileOwnerOption !== isSameUser && "hidden"}`}
+                      >
+                        {context}
+                      </li>
+                    </Link>
+                  ) : (
+                    <li
+                      onClick={() => {
+                        context === "حظر المستخدم" &&
+                          blockUserActionsMutation.mutate({
+                            action: "block",
+                            userId,
+                          });
+                      }}
+                      key={context}
+                      className={`text-sm px-3 p-3 hover:bg-stone-50 shadow-sm cursor-pointer 
+                  ${isSameUser && "hidden"} ${
+                        isConfirmed !== requireConfirmation && "hidden"
+                      }`}
+                    >
+                      {context}
+                    </li>
+                  )
+              )}
             </ul>
           </div>
         </div>

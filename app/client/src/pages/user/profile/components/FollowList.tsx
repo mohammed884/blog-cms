@@ -16,7 +16,7 @@ interface IProps {
   youFollowing: boolean;
   followButtonOwnerId: string;
 }
-const UsersList = ({
+const FollowList = ({
   follower,
   followButtonOwnerId,
   isFollowingYou,
@@ -46,16 +46,17 @@ const UsersList = ({
           </div>
         </div>
       </Link>
-      {viewer?.data?.user._id !== _id && (
+      {viewer.data?.user?._id !== _id && (
         <FollowButton
           userId={_id}
           isFollowingYou={isFollowingYou}
           youFollowing={youFollowing}
           ownerId={followButtonOwnerId}
+          viewerId={viewer.data?.user?._id || ""}
         />
       )}
     </li>
   );
 };
 
-export default UsersList;
+export default FollowList;

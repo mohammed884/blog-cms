@@ -1,24 +1,30 @@
 import { useParams } from "react-router-dom";
 import { useFollowMutation } from "../services/queries/follow";
-interface IFollowButtonProps {
+
+interface IButton {
+  className?: string;
+  userId: string;
+  ownerId: string;
+  viewerId?: string;
+}
+interface IFollowButtonProps extends IButton {
   isFollowingYou: boolean;
   youFollowing: boolean;
-  className?: string;
-  userId: string;
-  ownerId: string;
 }
-interface IButtonProps {
-  userId: string;
+interface IButtonProps extends IButton {
   text: "متابعة" | "رد المتابعة" | "اتابع";
   action: "follow" | "un-follow";
-  className?: string;
-  ownerId: string;
 }
-const Button = ({ userId, ownerId, text, action, className }: IButtonProps) => {
+const Button = ({
+  userId,
+  ownerId,
+  text,
+  action,
+  className,
+  viewerId,
+}: IButtonProps) => {
   const params = useParams();
   const ownerUsername = params?.username?.replace(/-/g, " ");
-  console.log(params);
-
   const btnStyle = ` 
     text-[.8rem] 
     p-[.41rem] 
@@ -27,13 +33,13 @@ const Button = ({ userId, ownerId, text, action, className }: IButtonProps) => {
     transition-colors 
     ease-out 
     rounded-xl`;
-
   const followUserMutation = useFollowMutation();
   const handleFollow = async (action: "follow" | "un-follow") => {
     followUserMutation.mutate({
       userId,
       action,
       ownerId,
+      viewerId,
       ownerUsername: ownerUsername || "",
     });
   };
@@ -53,9 +59,8 @@ const FollowButton = ({
   userId,
   className,
   ownerId,
+  viewerId,
 }: IFollowButtonProps) => {
-  console.log(ownerId);
-
   return youFollowing ? (
     <Button
       className={`text-vivid_green border border-vivid_green ${className}`}
@@ -63,6 +68,7 @@ const FollowButton = ({
       text={"اتابع"}
       action="un-follow"
       ownerId={ownerId}
+      viewerId={viewerId}
     />
   ) : isFollowingYou ? (
     <Button
@@ -71,6 +77,7 @@ const FollowButton = ({
       text={"رد المتابعة"}
       action="follow"
       ownerId={ownerId}
+      viewerId={viewerId}
     />
   ) : (
     <Button
@@ -79,6 +86,7 @@ const FollowButton = ({
       text={"متابعة"}
       action="follow"
       ownerId={ownerId}
+      viewerId={viewerId}
     />
   );
 };

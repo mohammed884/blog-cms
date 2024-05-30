@@ -6,7 +6,11 @@ export interface IFollowData {
     userId: string;
     ownerId: string;
     ownerUsername?: string;
-    action: "follow" | "un-follow"
+    action: "follow" | "un-follow";
+    viewerId?: string;
+    pageIndex?: number;
+    followIndex?: number;
+    page?: "followers" | "following"
 }
 export interface ISavedArticle {
     _id: string;

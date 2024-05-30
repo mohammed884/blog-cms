@@ -40,7 +40,7 @@ const Following = () => {
               {followers?.data?.pages.map((page) =>
                 page.followers.map((follower) => (
                   <FollowList
-                    key={follower.user}
+                    key={follower.user + " followers"}
                     isFollowingYou={follower.isFollowingYou}
                     youFollowing={follower.youFollowing}
                     followButtonOwnerId={userProfile.data?.user._id || ""}

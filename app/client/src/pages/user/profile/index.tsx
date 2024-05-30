@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../components/Loader";
 import { useState } from "react";
 import { IUser } from "../../../interfaces/global";
@@ -7,9 +7,9 @@ import FeedSection from "./components/FeedSection";
 import FeedOptions from "./components/FeedOptions";
 import Error from "../../../components/Error";
 import ProfileHeader from "./components/ProfileHeader";
-import { getUserQuery, userSelector } from "../../../services/queries/user";
+import { getUserQuery } from "../../../services/queries/user";
 const Profile = () => {
-  //bug i need to clear the cache when the username changes
+  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
   const [feedSectionToShow, setFeedSectionToShow] = useState<
     "published" | "saved" | "about"
@@ -19,6 +19,7 @@ const Profile = () => {
   const userData = getUserQuery(username);
   if (userData.isLoading) return <Loader />;
   if (userData.isError) {
+    navigate("/user/blocked");
     setErrorMessage((userData.error as any)?.message);
     return <div>error</div>;
   }
@@ -31,6 +32,7 @@ const Profile = () => {
         <div className="flex-1">
           <div className="flex flex-col justify-center w-[95%] mx-auto">
             <ProfileHeader
+              userId={user?._id}
               email={user?.email}
               username={user?.username}
               isConfirmed={user?.confirmed}

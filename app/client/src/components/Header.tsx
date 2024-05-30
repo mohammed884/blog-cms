@@ -1,15 +1,16 @@
 import { useState, useEffect, Suspense, lazy } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Loader from "./Loader";
 import { BellIcon, FeatherIcon, PinNib, UserIcon } from "./Icons";
+import { XIcon } from "lucide-react";
 import {
   getUnSeenNotificationsQuery,
   getUserQuery,
 } from "../services/queries/user";
 const Notifications = lazy(() => import("./Notifications"));
 const Header = () => {
+  const location = useLocation();
   const userData = getUserQuery("profile");
-
   const unSeenNotificationsData = getUnSeenNotificationsQuery(
     !!userData?.data?.isLoggedIn
   );
@@ -73,9 +74,9 @@ const Header = () => {
                       </span>
                       <button
                         onClick={() => setOpenNotifications((prev) => !prev)}
-                        className="text-sm font-bold p-2"
+                        className="text-sm font-bold"
                       >
-                        X
+                        <XIcon size={18} />
                       </button>
                     </div>
                     {openNotifications && (
@@ -87,12 +88,15 @@ const Header = () => {
                     )}
                   </div>
                 </li>
-                <li className="mt-1">
+                <li
+                  className={`${
+                    location.pathname === "/article/publish"
+                      ? "opacity-0"
+                      : "opacity-100"
+                  } mt-1 transition-opacity ease-in-out`}
+                >
                   <Link to="/article/publish">
-                    <div
-                      // style={{ background: "rgba(96, 108, 56, .4)" }}
-                      className="p-2 bg-[#606c3866] hover:bg-[#545f3098] px-5 rounded-md"
-                    >
+                    <div className="p-2 bg-[#606c3866] hover:bg-[#545f3098] px-5 rounded-md">
                       <PinNib width={4} height={4} />
                     </div>
                   </Link>

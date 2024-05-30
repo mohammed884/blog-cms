@@ -1,12 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-// import { useLoginMutation } from "../../store/services/auth";
 import Loader from "../../components/Loader";
-// import { useAppDispatch } from "../../store/hooks";
-// import apiService from "../../store/services/index";
-import {} from "../../store/services/index";
 import { useLoginMutation } from "../../services/queries/auth";
-import { getUserQuery } from "../../services/queries/user";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
