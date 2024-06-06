@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle } from "react";
+import { forwardRef } from "react";
 interface IUsernameProps {
   username: string;
   usernameRef: React.RefObject<HTMLInputElement>;
@@ -12,7 +12,8 @@ interface IAuthProps {
   setEmail: React.Dispatch<React.SetStateAction<string>>;
   setPassword: React.Dispatch<React.SetStateAction<string>>;
 }
-const inputClasses = "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
+const inputClasses =
+  "w-full border border-gray-300 rounded-md mb-3 px-3 py-2 outline-none";
 const UsernameStep = forwardRef<HTMLInputElement, IUsernameProps>(
   ({ username, setUsername, usernameRef }, ref) => {
     return (

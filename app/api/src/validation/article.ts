@@ -1,7 +1,7 @@
 import Joi from "joi";
 export const addArticleSchema = Joi.object({
-    title: Joi.string().required(),
-    subTitle: Joi.string().required(),
-    content:Joi.object().required(),
-    topics:Joi.array().required(),
+    title: Joi.string().min(3).max(50).required(),
+    subTitle: Joi.string().min(3).max(75).required(),
+    content: Joi.string().min(3).required(),
+    topics: Joi.array().required().max(5),
 });

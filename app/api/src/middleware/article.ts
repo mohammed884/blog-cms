@@ -18,9 +18,9 @@ export const isOwner = (expectedStatus: boolean, expectedOwner?: string) => {
                     req.article = article;
                     return next();
                 case article && !expectedStatus:
-                    return res.status(401).send({ success: false, message: "غير مصرح لا يمكنك اتمام هذا الاجراء 1" });
+                    return res.status(403).send({ success: false, message: "غير مصرح لا يمكنك اتمام هذا الاجراء" });
                 case !article && expectedStatus:
-                    return res.status(401).send({ success: false, message: "غير مصرح لا يمكنك اتمام هذا الاجراء 2" });
+                    return res.status(403).send({ success: false, message: "غير مصرح لا يمكنك اتمام هذا الاجراء" });
             }
         }
     } catch (err) {

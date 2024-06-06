@@ -6,6 +6,7 @@ import Loader from "../../components/Loader";
 import useMultistepForm from "./components/useMultistepForm";
 import { StepsIndicator, MenuButtons } from "./components/StepsControl";
 import { useRegisterMutation } from "../../services/queries/auth";
+import Message from "../../components/Message";
 const TopicsSelectionStep = lazy(
   () => import("./components/TopicsSelectionStep")
 );
@@ -109,14 +110,7 @@ const Register = () => {
             }`}
           >
             {message?.context && (
-              <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md">
-                <div
-                  className={`w-2 h-[100%] rounded-r-md ${
-                    message.success ? "bg-emerald-500" : "bg-red-500"
-                  }`}
-                ></div>
-                <span className="p-3">{message.context}</span>
-              </div>
+              <Message context={message.context} success={message.success} />
             )}
 
             <Suspense fallback={<Loader />}>{step}</Suspense>

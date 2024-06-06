@@ -1,14 +1,8 @@
 import { IBlockedUser, INotification, IUser } from "../../interfaces/global";
 import axios from "../axiosInstance";
+import { IGetUserSuccess } from "../types/user";
 export const getUser = async (username: string) => {
-    return (await axios.get<{
-        success: boolean,
-        isLoggedIn: boolean,
-        isSameUser: boolean,
-        user: IUser,
-        youFollowing: boolean;
-        isFollowingYou: boolean;
-    }>(`/user/${username}`, { withCredentials: true })).data;
+    return (await axios.get<IGetUserSuccess>(`/user/${username}`, { withCredentials: true })).data;
 };
 export const followUser = async (username: string) => {
     return (await axios.post(`/user/follow/${username}`)).data;

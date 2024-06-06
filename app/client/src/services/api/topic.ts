@@ -5,3 +5,8 @@ export const getTopics = async () => {
         (await (axios.get<{ sucess: boolean, topics: Array<ITopic> }>("/topics"))).data
     )
 };
+export const searchTopics = async (title: string) => {
+    return (
+        (await (axios.get<{ sucess: boolean, topics: Array<ITopic> }>(`/topics/search?title=${title}`))).data
+    )
+};

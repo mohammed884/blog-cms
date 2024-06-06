@@ -14,10 +14,14 @@ import { getUserFromToken } from "../../helpers/jwt";
 import { redisClient, getOrSetCache, setRedisCache, delCache } from "../../redis-cache";
 import { USER_ID_KEY, USER_SAVED_ID_KEY, USER_USERNAME_KEY } from "../../redis-cache/keys";
 import { USER_CACHE_EXPIARY, USER_SAVED_CACHE_EXPIARY } from "../../redis-cache/expiries";
+import sanitizeHtml from 'sanitize-html';
+import Topic from "../topic/model";
+import { nanoid } from "nanoid";
 interface IPublishPostBody {
   title: string;
+  subTitle: string;
   content: string;
-  topics: [];
+  topics: string;
 };
 const getTopArticles = async (req: Request, res: Response) => {
   try {
@@ -265,22 +269,33 @@ const publishArticle = async (req: Request, res: Response) => {
   try {
     //you should make sure that the content isn't empty after implementing the frontend
     const body: IPublishPostBody = req.body;
-    await addArticleSchema.validateAsync(body);
+    const topics = JSON.parse(body.topics);
+    await addArticleSchema.validateAsync({ ...body, topics });
+    const topicsCount = await Topic.countDocuments({ title: { $in: topics } });
+    if (topics.length !== topicsCount) return res.status(401).send({ success: false, message: "الرجاء التاكد من الاهتمامات المعطاة" })
     let filePath: string;
-    //upload cover
+
     if (req.files && req.files.cover) {
       const uploadStatus = uploadSingle(req.files.cover);
       if (!uploadStatus.success) return res.status(401).send({ success: false, message: uploadStatus.err });
       filePath = uploadStatus.path || "";
     };
+    const sanatizedContent = sanitizeHtml(body.content);
+    if (sanatizedContent.length < 5) return res.status(403).send({
+      success: false,
+      message: "الرجاء كتابة المحتوى"
+    })
     const article = await Article.create({
-      ...body,
+      title: `${body.title}-${nanoid()}`,
+      subTitle: body.subTitle,
       publisher: req.user._id,
       estimatedReadTime: "5 mins",
       cover: filePath,
-      createdAt: formatDateToYMD(new Date(), "_")
+      createdAt: formatDateToYMD(new Date(), "_"),
+      content: sanatizedContent,
+      topics: topics.map(t => ({ mainTopic: t })),
     });
-    res.status(201).send({ success: true, article, message: "تم نشر المقالة" });
+    res.status(201).send({ success: true, title: article.title, message: "تم نشر المقالة" });
   } catch (err) {
     console.log(err);
     if (err.isJoi) {

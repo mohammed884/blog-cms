@@ -1,6 +1,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SAVED_ARTICLES_KEY, PUBLISHER_ARTICLES_KEY, USER_KEY, FEED_KEY } from "../keys";
-import { getPublisherArticles, getSavedArticles, saveArticle, getFeed } from "../api/article"
+import { getPublisherArticles, getSavedArticles, saveArticle, getFeed, publishArticle } from "../api/article";
+import { IPublishArticleBody } from "../types/article";
 export const getPublisherArticlesQuery = (publisherId: string) => {
     const LIMIT = 5;
     return useInfiniteQuery({
@@ -64,4 +65,9 @@ export const useSaveArticleMutation = () => {
                 };
             }
         })
-}
+};
+export const usePublishArticleMutation = () => {
+    return useMutation<{ success: true; title: string }, { success: false, message: string }, IPublishArticleBody>({
+        mutationFn: async (data) => await publishArticle(data),
+    });
+};

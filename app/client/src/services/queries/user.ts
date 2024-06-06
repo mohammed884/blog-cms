@@ -1,21 +1,9 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getUser, getBlockedUsers, getNotifications, getUnSeenNotificationsCount, markNotificationAsReaded, handleBlockActions } from "../api/user";
-import { IUser } from "../../interfaces/global"
 import { NOTIFICATIONS_KEY, UNSEEN_NOTIFICATIONS_COUNT, USER_KEY, BLOCKED_USERS_KEY } from "../keys";
-interface IUserSelector {
-    data: {
-        success: boolean;
-        isLoggedIn: boolean;
-        isSameUser: boolean;
-        youFollowing: boolean;
-        isFollowingYou: boolean;
-        user: IUser;
-    };
-    isLoading: false;
-    isError: false;
-}
+import { IGetUserError, IGetUserSuccess } from "../types/user";
 export const getUserQuery = (username: string) => {
-    return useQuery({
+    return useQuery<IGetUserSuccess, IGetUserError>({
         queryKey: [USER_KEY, { username }],
         queryFn: async () => await getUser(username),
         refetchOnWindowFocus: false,
@@ -46,14 +34,6 @@ export const getUnSeenNotificationsQuery = (loggedIn: boolean) => {
         enabled: loggedIn,
     });
 }
-export const userSelector = (username: string) => {
-    const queryClient = useQueryClient();
-    const userData = queryClient.getQueryData<IUserSelector>([
-        USER_KEY,
-        { username },
-    ]);
-    return userData
-};
 export const useMarkNotificationAsReadedMutation = () => {
     const queryClient = useQueryClient();
     return useMutation<{ success: boolean, username: string; }, { success: false, message: string }, { retrieveId: string, pageIndex: number, notificationIndex: number }>({
@@ -70,8 +50,6 @@ export const useBlockUserActionsMutation = () => {
     return useMutation<{ success: boolean, message: string; }, { success: boolean, message: string }, { userId: string, action: "block" | "un-block", blockIndex?: number; }>({
         mutationFn: async ({ userId, action }) => {
             const data = await handleBlockActions(userId, action);
-            console.log(data);
-
             return data;
         },
         onMutate: ({ userId, action }) => {
@@ -88,7 +66,7 @@ export const useBlockUserActionsMutation = () => {
             }
         },
     })
-}
+};
 export const getBlockedUsersQuery = () => {
     return useQuery({
         queryKey: [BLOCKED_USERS_KEY],

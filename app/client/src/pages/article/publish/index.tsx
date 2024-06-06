@@ -1,118 +1,88 @@
-import { useEffect, useState } from "react";
+import { lazy, useEffect, useRef, useState, Suspense } from "react";
 import Editor from "./components/Editor";
 import useLocalStorage from "../../../hooks/useLocalStorage";
-import { getUserQuery } from "../../../services/queries/user";
 import useDebounce from "../../../hooks/useDebounce";
-interface IStepControlButton {
-  context: string;
-  className?: string;
-  event: () => void;
-  ariaLabel: string;
-}
+const DetailsDialog = lazy(() => import("./components/DetailsDialog"));
+
+const ARTICLE_CONTENT_KEY = "ARTICLE_CONTENT_KEY";
+const ARTICLE_TITLE_KEY = "ARTICLE_TITLE";
 const Publish = () => {
   const { setItem, getItem } = useLocalStorage();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [savingStatus, setSavingStatus] = useState(true);
-  const [step, setStep] = useState(1);
   const [title, setTitle] = useState(
-    (getItem("un-published-article-title") as string) || ""
+    (getItem(ARTICLE_TITLE_KEY) as string) || ""
   );
-  const [description, setDescription] = useState(
-    (getItem("un-published-article-body") as string) || ""
+  const [content, setContent] = useState(
+    (getItem(ARTICLE_CONTENT_KEY) as string) || ""
   );
+  const articleDetailsDialogRef = useRef<HTMLDialogElement>(null);
   const debouncedTitle = useDebounce(title);
-  const debouncedDescription = useDebounce(description);
-  const profile = getUserQuery("profile");
+  const debouncedContent = useDebounce(content);
   useEffect(() => {
     setSavingStatus(true);
-  }, [debouncedDescription, debouncedTitle]);
-  const handleTypingTitle = (title: string) => {
+  }, [debouncedContent, debouncedTitle]);
+  const handleTyping = (
+    value: string,
+    localStorageKey: string,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => {
     setSavingStatus(false);
-    setTitle(title);
-    setItem("un-published-article-title", title);
+    setter(value);
+    setItem(localStorageKey, value);
   };
-  const handleTyping = (richText: string) => {
-    setSavingStatus(false);
-    setDescription(richText);
-    setItem("un-published-article-body", description);
-  };
-  const handleSubmit = () => {};
   return (
     <section className="pt-[6.5rem]">
+      <Suspense fallback={"...loading "}>
+        {isDialogOpen && (
+          <DetailsDialog
+            content={content}
+            title={title}
+            setTitle={setTitle}
+            setSavingStatus={setSavingStatus}
+            articleContentKey={ARTICLE_CONTENT_KEY}
+            articleTitleKey={ARTICLE_TITLE_KEY}
+            ref={articleDetailsDialogRef}
+          />
+        )}
+      </Suspense>
       <div className="w-[70%] mx-auto">
         <form onSubmit={(e) => e.preventDefault()}>
-          <div className={`${step !== 1 && "hidden"}`}>
+          <div>
             <input
               className="w-full text-xl font-bold border-r-2 border-gray-300 px-2 py-4 mb-6 outline-none"
               type="text"
               placeholder="العنوان"
               autoFocus={true}
               value={title}
-              onChange={(e) => handleTypingTitle(e.target.value)}
+              onChange={(e) =>
+                handleTyping(e.target.value, ARTICLE_TITLE_KEY, setTitle)
+              }
             />
             <Editor
               savingStatus={savingStatus}
-              description={description}
+              content={content}
+              setContent={setContent}
+              localStorageKey={ARTICLE_CONTENT_KEY}
               handleTyping={handleTyping}
             />
           </div>
-          <div
-            className={`w-full bg-red-50 flex justify-between ${
-              step !== 2 && "hidden"
-            }`}
-          >
-            <div>
-              <p>
-                النشر الى:
-                <b> {profile.data?.user.username}</b>
-              </p>
-              <p>
-                <span>يمكنك اضافة خمس مواضيع بحد اقصى</span>
-              </p>
-            </div>
-            <div>preview + sub title</div>
-          </div>
-          <div className="flex gap-3">
-            {step === 1 ? (
-              <StepControlButton
-                context="التالي"
-                ariaLabel="next button"
-                event={() => setStep((prev) => prev + 1)}
-              />
-            ) : (
-              <StepControlButton
-                context="انشر"
-                ariaLabel="publish article button"
-                event={handleSubmit}
-              />
-            )}
-            <StepControlButton
-              context="رجوع"
-              ariaLabel="previous button"
-              event={() => setStep((prev) => prev - 1)}
-              className={`${step === 1 && "hidden"}`}
-            />
-          </div>
         </form>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            aria-label="next button"
+            onClick={() => {
+              setIsDialogOpen(true);
+              articleDetailsDialogRef.current?.showModal();
+            }}
+            className={`bg-[#606c3866] text-sm rounded-md py-2 px-4 mt-3`}
+          >
+            التالي
+          </button>
+        </div>
       </div>
     </section>
   );
 };
-const StepControlButton = ({
-  context,
-  event,
-  className,
-  ariaLabel,
-}: IStepControlButton) => {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      onClick={event}
-      className={`bg-light_green rounded-md py-2 px-4 mt-3 ${className}`}
-    >
-      {context}
-    </button>
-  );
-};
-
 export default Publish;

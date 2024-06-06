@@ -15,7 +15,7 @@ import userRouter from "./domains/user";
 import followRouter from "./domains/user/follow";
 import fileUpload from "express-fileupload";
 import { IUser, IArticle } from "./interfaces/global";
-import path from "node:path"
+import path from "node:path";
 const app = express();
 // coonect to database
 mongoose.set("strictQuery", true);

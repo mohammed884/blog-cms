@@ -32,6 +32,8 @@ const ArticleList = ({
 }: IProps) => {
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
+  let lastDashIndex = title.lastIndexOf("-");
+  const cleanedTitle = title.substring(0, lastDashIndex);
   const params = useParams();
   const username = params.username?.replace(/-/g, " ");
   const [isArticleSaved, setIsArticleSaved] = useState<boolean>();
@@ -47,22 +49,20 @@ const ArticleList = ({
   }, []);
   const publisherDetails = providedPublisher ?? publisher;
   const handleShowCreateAccountPopUp = () => {
-    console.log("show popup");
-    console.log(dialogRef);
-
     document.body.style.overflowY = "hidden";
     dialogRef?.current?.showModal();
   };
+  const publisherUsernameForLinks = publisherDetails?.username.replace(
+    / /g,
+    "-"
+  );
   const handleSaveArticle = () => {
-    console.log("save article");
     saveArticleMutation.mutate({
       articleId: _id,
       action: isArticleSaved ? "un-save" : "save",
       publisherId: publisher?._id || providedPublisher?._id || "",
       username: username || "profile",
     });
-    console.log(saveArticleMutation.error, saveArticleMutation.data);
-
     setIsArticleSaved((prev) => !prev);
   };
   return (
@@ -85,17 +85,15 @@ const ArticleList = ({
               />
             </span>
             <span className="md:text-[.85rem] sm:text-[.75rem] font-bold">
-              <Link
-                to={`/user/${publisherDetails?.username.replace(/ /g, "-")}`}
-              >
+              <Link to={`/user/${publisherUsernameForLinks}`}>
                 {publisherDetails?.username}
               </Link>
             </span>
           </div>
           <div className="h-fit text-right mt-4">
-            <Link to={`/article/${article._id}`}>
+            <Link to={`/article/${publisherUsernameForLinks}/${title}`}>
               <p className="lg:text-[1.5rem] md:text-[1.3rem] sm:text-[1.05rem] font-black mb-2">
-                {title}
+                {cleanedTitle}
               </p>
               <summary className="md:inline sm:hidden text-[1rem] font-medium opacity-75">
                 {subTitle}
@@ -126,8 +124,8 @@ const ArticleList = ({
             width={"200"}
             height={"134"}
             loading="lazy"
-            src={`${import.meta.env.VITE_API_URL}/uploads/${"writing.jpeg"}`}
-            alt={`${title} cover`}
+            src={`${import.meta.env.VITE_API_URL}/uploads/${cover}`}
+            alt={`${cleanedTitle} cover`}
           />
         </div>
       </article>

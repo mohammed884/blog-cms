@@ -19,9 +19,12 @@ const Profile = () => {
   const userData = getUserQuery(username);
   if (userData.isLoading) return <Loader />;
   if (userData.isError) {
-    navigate("/user/blocked");
-    setErrorMessage((userData.error as any)?.message);
-    return <div>error</div>;
+    const error = userData.error.response.data;
+    if (error.isBlocked) {
+      navigate("/user/blocked");
+    } else {
+      navigate("/not-found");
+    }
   }
   const user = userData?.data?.user as IUser;
   const isSameUser = userData.data?.isSameUser as boolean;

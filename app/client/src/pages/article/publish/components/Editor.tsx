@@ -11,8 +11,14 @@ import { createLowlight, common } from "lowlight";
 import "../../../../styles/publish.css";
 import { CheckCircle, Loader } from "lucide-react";
 interface IEditorProps {
-  description: string;
-  handleTyping: (richText: string) => void;
+  content: string;
+  setContent: React.Dispatch<React.SetStateAction<string>>;
+  localStorageKey: string;
+  handleTyping: (
+    value: string,
+    localStorageKey: string,
+    setter: React.Dispatch<React.SetStateAction<string>>
+  ) => void;
   savingStatus: boolean;
 }
 const extensions = [
@@ -68,10 +74,16 @@ const extensions = [
   }),
 ];
 
-const Editor = ({ description, savingStatus, handleTyping }: IEditorProps) => {
+const Editor = ({
+  content,
+  savingStatus,
+  handleTyping,
+  setContent,
+  localStorageKey,
+}: IEditorProps) => {
   const editor = useEditor({
     extensions,
-    content: description,
+    content,
     editorProps: {
       attributes: {
         class:
@@ -79,7 +91,7 @@ const Editor = ({ description, savingStatus, handleTyping }: IEditorProps) => {
       },
     },
     onUpdate: ({ editor }) => {
-      handleTyping(editor.getHTML());
+      handleTyping(editor.getHTML(), localStorageKey, setContent);
     },
   });
   return (

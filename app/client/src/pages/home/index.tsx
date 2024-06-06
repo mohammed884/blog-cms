@@ -5,7 +5,7 @@ import TopArticlesSection from "./components/TopArticlesSection";
 import FeedSection from "./components/FeedSection";
 import { getFeedQuery } from "../../services/queries/article";
 import LoginPopup from "../../components/LoginPopup";
-
+import { Loader } from "lucide-react";
 const index = () => {
   const LoginPopupRef = useRef<HTMLDialogElement>(null);
   const feed = getFeedQuery();
@@ -116,7 +116,7 @@ const index = () => {
       title: "تصميم داخلي",
     },
   ];
-  if (feed.isLoading) return <div>Loading..</div>;
+  if (feed.isLoading) return <Loader />;
   return (
     <main className="w-[100vw] h-fit text-center">
       <LoginPopup ref={LoginPopupRef} />

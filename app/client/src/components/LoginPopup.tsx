@@ -1,6 +1,7 @@
 import { useState, forwardRef, FormEvent, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLoginMutation } from "../services/queries/auth";
+import { XIcon } from "lucide-react";
 const LoginPopup = forwardRef<HTMLDialogElement, {}>(
   (props, dialogRef: any) => {
     const [email, setEmail] = useState("");
@@ -9,24 +10,24 @@ const LoginPopup = forwardRef<HTMLDialogElement, {}>(
       success: boolean;
       context: string;
     }>();
-    const loginMutation = useLoginMutation();
     useEffect(() => {
-      dialogRef.current?.addEventListener("click", backdropEventListener);
+      dialogRef.current?.addEventListener("click", closeBackdrop);
       return () => {
         document.body.style.overflowY = "visible";
-        dialogRef.current?.removeEventListener("click", backdropEventListener);
+        dialogRef.current?.removeEventListener("click", closeBackdrop);
       };
     }, []);
-    const backdropEventListener = (e: any) => {
+    const loginMutation = useLoginMutation();
+    const closeBackdrop = (e: any) => {
       const target = e.target;
       if (target.tagName !== "DIALOG") return;
       const dialog = e.target.closest("dialog");
       dialog.close();
       document.body.style.overflowY = "visible";
     };
-    const handleClose = () => {
+    const handleCloseDialog = () => {
       document.body.style.overflowY = "visible";
-      dialogRef.current?.removeEventListener("click", backdropEventListener);
+      dialogRef.current?.close();
     };
     const handleLogin = async (e: FormEvent) => {
       e.preventDefault();
@@ -76,13 +77,10 @@ const LoginPopup = forwardRef<HTMLDialogElement, {}>(
           <form
             method="dialog"
             className="w-full flex items-start mt-3 mx-auto"
-            onSubmit={handleClose}
+            onSubmit={handleCloseDialog}
           >
-            <button className="w-5 h-5 ml-auto mb-2">
-              <img
-                src="../../../../public/svgs/close-button.svg"
-                alt="close button"
-              />
+            <button className="w-5 h-5 rounded-sm ml-auto mb-2">
+              <XIcon size={20} />
             </button>
           </form>
           <div className="w-full sm:h-[50vh] flex flex-col sm:justify-evenly">

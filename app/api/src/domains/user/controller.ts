@@ -175,17 +175,16 @@ const unBlockUser = async (req: Request, res: Response) => {
 };
 const searchUser = async (req: Request, res: Response) => {
   try {
-    const username = req.params.username;
+    const username = req.query.username as string || "";
+    const page = 1;
     const matchQuery = {
       // "bio.title": new RegExp(username, "i"),
       username: new RegExp(username, "i"),
     };
-    const users = await pagination({ matchQuery, Model: User, page: 1 });
-    console.log(users);
-    res.status(200).send({ success: true, users })
+    const users = await pagination({ matchQuery, Model: User, page });
+    res.status(200).send({ success: true, users: users.data })
   } catch (err) {
     console.log(err);
-
   }
 };
 const editProfile = async (req: Request, res: Response) => {

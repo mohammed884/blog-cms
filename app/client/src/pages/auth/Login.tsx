@@ -2,6 +2,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Loader from "../../components/Loader";
 import { useLoginMutation } from "../../services/queries/auth";
+import Message from "../../components/Message";
+const inputsClasses =
+  "w-full border border-gray-300 rounded-md mb-3 px-3 py-2 outline-none placeholder:text-sm";
+const btnClasses =
+  "w-full font-bold bg-black text-white text-sm rounded-md mb-3 px-3 py-3";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,7 +41,6 @@ const Login = () => {
       });
     }
     loginMutation.mutate({ email, password });
-    console.log("login error", loginMutation.error?.response.data.message);
     if (loginMutation.isError) {
       setMessage({
         success: false,
@@ -47,10 +51,6 @@ const Login = () => {
       navigate(`/user/${loginMutation.data.username}`);
     }
   };
-  const inputsClasses =
-    "w-full border border-gray-300 rounded-md mb-3 px-3 py-2";
-  const btnClasses =
-    "w-full font-bold bg-black text-white text-sm rounded-md mb-3 px-3 py-3";
   return (
     <section className="w-full h-[100vh] flex justify-center items-center">
       {loginMutation.isPending && <Loader />}
@@ -65,19 +65,12 @@ const Login = () => {
           <label htmlFor="email" className="hidden">
             البريد الالكتروني
           </label>
-          {message && (
-            <div className="w-full h-fit text-md flex font-medium bg-gray-50 rounded-md mb-3">
-              <div
-                className={`w-2 h-[100%] rounded-r-md ${
-                  message.success ? "bg-emerald-500" : "bg-red-500"
-                }`}
-              ></div>
-              <span className="p-3">{message.context}</span>
-            </div>
+          {message?.context && (
+            <Message context={message.context} success={message.success} />
           )}
           <input
             required
-            className={inputsClasses}
+            className={inputsClasses + " mt-3"}
             autoFocus
             type="email"
             placeholder="البريد الالكتروني"

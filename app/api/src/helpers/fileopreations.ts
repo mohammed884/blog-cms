@@ -1,12 +1,13 @@
 import path from "node:path";
-import { v4 as uuid } from "uuid";
 import { mimeTypes } from "../constants/constants";
-import { unlink } from "node:fs"
+import { unlink } from "node:fs";
+import { nanoid } from "nanoid"
+
 export const uploadSingle = (file) => {
   try {
     if (!mimeTypes.find((type) => type === file.mimetype))
       return { success: false, err: "صيغة الصورة غير مصرح بها" };
-    const imagePath = `${uuid()}-${file.name}`;
+    const imagePath = `${nanoid()}-${file.name.replace(/ /g, "-")}`;
     const filePath = `${path.join(__dirname, "../uploads")}/${imagePath}`;
     file.mv(filePath, (err: Error) => {
       if (err) {
@@ -45,7 +46,7 @@ export const uploadMultiple = <T>(files: T, loopCount: number) => {
       const [field, file] = mappedFiles[i];
       if (!mimeTypes.find((type) => type === file.mimetype))
         return { success: false, message: "صيغة الصورة غير مصرح بها" };
-      const imagePath = `${uuid()}-${file.name}`;
+      const imagePath = `${nanoid()}-${file.name}`;
       const filePath = `${path.join(__dirname, "../uploads")}/${imagePath}`;
       file.mv(filePath, (err: Error) => {
         if (err) {

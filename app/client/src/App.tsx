@@ -14,6 +14,7 @@ const Followers = lazy(() => import("./pages/user/profile/pages/Followers"));
 const Blocked = lazy(() => import("./pages/user/profile/pages/Blocked"));
 const Feed = lazy(() => import("./pages/user/Feed"));
 //article pages
+const Article = lazy(() => import("./pages/article/Article"));
 const Publish = lazy(() => import("./pages/article/publish"));
 function App() {
   const user = getUserQuery("profile");
@@ -65,6 +66,7 @@ function App() {
           </Route>
           <Route path="/article">
             <Route path="publish" element={<Publish />} />
+            <Route path=":username/:title" element={<Article />} />
           </Route>
         </Routes>
       </Suspense>

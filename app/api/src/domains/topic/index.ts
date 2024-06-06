@@ -6,10 +6,12 @@ import {
   // editTopic,
   deleteTopic,
   deleteSubTopic,
+  searchTopics,
 } from "./controller";
 import { isLoggedIn, role } from "../../middleware/auth";
 const router = Router();
 router.get("/", getTopics);
+router.get("/:search", searchTopics);
 router.use(isLoggedIn(true));
 router.use(role("moderator"));
 router.post("/add", addTopic);

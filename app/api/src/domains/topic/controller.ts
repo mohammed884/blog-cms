@@ -4,6 +4,8 @@ import Article from "../article/models/article";
 import topicSchema from "../../validation/topic";
 import User from "../user/model";
 import { formatDateToYMD } from "../../helpers/date";
+import pagination from "../../helpers/pagination";
+
 const getTopics = async (req: Request, res: Response) => {
   try {
     const page = req.query.page || 1;
@@ -28,6 +30,20 @@ const getTopics = async (req: Request, res: Response) => {
     console.log(err.code);
   }
 };
+const searchTopics = async (req: Request, res: Response) => {
+  try {
+    const title = req.query.title as string || "";
+    const page = 1;
+    const matchQuery = {
+      title: new RegExp(title, "i"),
+    };
+    const topics = await pagination({ matchQuery, Model: Topic, page });
+    res.status(200).send({ success: true, topics: topics.data })
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ success: false, message: "Interal server error" })
+  }
+}
 const addTopic = async (req: Request, res: Response) => {
   try {
     const { title, subTopics } = req.body;
@@ -198,6 +214,7 @@ const deleteSubTopic = async (req: Request, res: Response) => {
 };
 export {
   getTopics,
+  searchTopics,
   addTopic,
   addMultipleTopic,
   // editTopic,
