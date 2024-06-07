@@ -32,8 +32,6 @@ const ArticleList = ({
 }: IProps) => {
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
-  let lastDashIndex = title.lastIndexOf("-");
-  const cleanedTitle = title.substring(0, lastDashIndex);
   const params = useParams();
   const username = params.username?.replace(/-/g, " ");
   const [isArticleSaved, setIsArticleSaved] = useState<boolean>();
@@ -91,9 +89,9 @@ const ArticleList = ({
             </span>
           </div>
           <div className="h-fit text-right mt-4">
-            <Link to={`/article/${publisherUsernameForLinks}/${title}`}>
+            <Link to={`/article/${publisherUsernameForLinks}/${title}/${_id}`}>
               <p className="lg:text-[1.5rem] md:text-[1.3rem] sm:text-[1.05rem] font-black mb-2">
-                {cleanedTitle}
+                {title}
               </p>
               <summary className="md:inline sm:hidden text-[1rem] font-medium opacity-75">
                 {subTitle}
@@ -125,7 +123,7 @@ const ArticleList = ({
             height={"134"}
             loading="lazy"
             src={`${import.meta.env.VITE_API_URL}/uploads/${cover}`}
-            alt={`${cleanedTitle} cover`}
+            alt={`${title} cover`}
           />
         </div>
       </article>

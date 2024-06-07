@@ -64,4 +64,4 @@ export const handleBlockActions = async (userId: string, action: "block" | "un-b
                     (`/user/unblock/${userId}`, {}, { withCredentials: true })).data
             )
     )
-}
+};
