@@ -31,13 +31,15 @@ export interface IArticle {
   title: string;
   subTitle: string;
   publisher: ObjectId;
-  content: object;
+  content: string;
   topics: Array<{ mainTopic?: string; subTopic?: string }>;
   estimatedReadTime: string;
   savedCount: number;
   cover?: string;
   save?: () => Promise<{}>;
   createdAt?: Date;
+  likesCount: number;
+  commentsCount: number;
 }
 export interface INotifications {
   sender: ObjectId;

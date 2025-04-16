@@ -1,0 +1,91 @@
+Date : 2025-04-14 16:36:41
+Directory : c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src
+Total : 47 files,  4061 codes, 185 comments, 56 blanks, all 4302 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| TypeScript |         47 |      4,061 |        185 |         56 |      4,302 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                        | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                           |         47 |      4,061 |        185 |         56 |      4,302 |
+| . (Files)                                                                                                   |          1 |         56 |          4 |          1 |         61 |
+| constants                                                                                                   |          1 |          1 |          0 |          0 |          1 |
+| domains                                                                                                     |         25 |      3,032 |         95 |         33 |      3,160 |
+| domains\article                                                                                             |         12 |      1,611 |         29 |         13 |      1,653 |
+| domains\article (Files)                                                                                     |          2 |        593 |          5 |          3 |        601 |
+| domains\article\collaboration                                                                               |          2 |        156 |          2 |          0 |        158 |
+| domains\article\comment                                                                                     |          3 |        507 |         16 |          6 |        529 |
+| domains\article\like                                                                                        |          3 |        237 |          2 |          2 |        241 |
+| domains\article\models                                                                                      |          2 |        118 |          4 |          2 |        124 |
+| domains\auth                                                                                                |          2 |        184 |          0 |          4 |        188 |
+| domains\notification                                                                                        |          2 |        258 |          1 |          1 |        260 |
+| domains\topic                                                                                               |          3 |        216 |         55 |          7 |        278 |
+| domains\user                                                                                                |          6 |        763 |         10 |          8 |        781 |
+| domains\user (Files)                                                                                        |          3 |        428 |          9 |          5 |        442 |
+| domains\user\follow                                                                                         |          3 |        335 |          1 |          3 |        339 |
+| helpers                                                                                                     |          8 |        418 |         65 |         10 |        493 |
+| interfaces                                                                                                  |          2 |         72 |          9 |          3 |         84 |
+| middleware                                                                                                  |          4 |        406 |          7 |          6 |        419 |
+| redis-cache                                                                                                 |          3 |         47 |          4 |          2 |         53 |
+| validation                                                                                                  |          3 |         29 |          1 |          1 |         31 |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                    | language   | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\constants\constants.ts                      | TypeScript |          1 |          0 |          0 |          1 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\collaboration\controller.ts | TypeScript |        129 |          2 |          0 |        131 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\collaboration\index.ts      | TypeScript |         27 |          0 |          0 |         27 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\comment\controller.ts       | TypeScript |        375 |         14 |          2 |        391 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\comment\index.ts            | TypeScript |         65 |          0 |          2 |         67 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\comment\model.ts            | TypeScript |         67 |          2 |          2 |         71 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\controller.ts               | TypeScript |        528 |          4 |          3 |        535 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\index.ts                    | TypeScript |         65 |          1 |          0 |         66 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\like\controller.ts          | TypeScript |        179 |          0 |          1 |        180 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\like\index.ts               | TypeScript |         33 |          0 |          0 |         33 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\like\model.ts               | TypeScript |         25 |          2 |          1 |         28 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\models\article.ts           | TypeScript |         89 |          3 |          1 |         93 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\article\models\reader.ts            | TypeScript |         29 |          1 |          1 |         31 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\auth\controller.ts                  | TypeScript |        158 |          0 |          3 |        161 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\auth\index.ts                       | TypeScript |         26 |          0 |          1 |         27 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\notification\controller.ts          | TypeScript |        198 |          0 |          0 |        198 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\notification\model.ts               | TypeScript |         60 |          1 |          1 |         62 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\topic\controller.ts                 | TypeScript |        167 |         53 |          4 |        224 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\topic\index.ts                      | TypeScript |         20 |          2 |          1 |         23 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\topic\model.ts                      | TypeScript |         29 |          0 |          2 |         31 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\controller.ts                  | TypeScript |        270 |          5 |          3 |        278 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\follow\controller.ts           | TypeScript |        270 |          0 |          1 |        271 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\follow\index.ts                | TypeScript |         44 |          0 |          1 |         45 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\follow\model.ts                | TypeScript |         21 |          1 |          1 |         23 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\index.ts                       | TypeScript |         42 |          1 |          1 |         44 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\domains\user\model.ts                       | TypeScript |        116 |          3 |          1 |        120 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\bcrypt.ts                           | TypeScript |         17 |          0 |          1 |         18 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\block.ts                            | TypeScript |         20 |          0 |          1 |         21 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\date.ts                             | TypeScript |         55 |          1 |          1 |         57 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\fileopreations.ts                   | TypeScript |         65 |          9 |          1 |         75 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\follow.ts                           | TypeScript |         99 |          7 |          1 |        107 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\jwt.ts                              | TypeScript |         37 |         48 |          3 |         88 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\nodemailer.ts                       | TypeScript |         20 |          0 |          1 |         21 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\helpers\pagination.ts                       | TypeScript |        105 |          0 |          1 |        106 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\index.ts                                    | TypeScript |         56 |          4 |          1 |         61 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\interfaces\body.ts                          | TypeScript |         13 |          2 |          1 |         16 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\interfaces\global.d.ts                      | TypeScript |         59 |          7 |          2 |         68 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\middleware\article.ts                       | TypeScript |         29 |          0 |          1 |         30 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\middleware\auth.ts                          | TypeScript |         85 |          0 |          2 |         87 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\middleware\contentAccess.ts                 | TypeScript |        190 |          4 |          1 |        195 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\middleware\userDataAccess.ts                | TypeScript |        102 |          3 |          2 |        107 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\redis-cache\expiries.ts                     | TypeScript |          4 |          0 |          1 |          5 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\redis-cache\index.ts                        | TypeScript |         39 |          4 |          1 |         44 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\redis-cache\keys.ts                         | TypeScript |          4 |          0 |          0 |          4 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\validation\article.ts                       | TypeScript |          7 |          0 |          0 |          7 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\validation\auth.ts                          | TypeScript |         14 |          1 |          0 |         15 |
+| c:\Users\ASUS\Desktop\Development\projects\blog cms\app\api\src\validation\topic.ts                         | TypeScript |          8 |          0 |          1 |          9 |
+| Total                                                                                                       |            |      4,061 |        185 |         56 |      4,302 |
++-------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

@@ -90,7 +90,7 @@ const ToolBar = ({ editor }: { editor: Editor | null }) => {
   ];
 
   return (
-    <div className="w-[42%] flex flex-wrap justify-between">
+    <div className="w-[42%] flex flex-wrap flex-row justify-between">
       {tools.map(({ Icon, className, onClick, disabled }, index) => (
         <Tool
           key={index + "icon"}

@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { AlertIcon, Ellipsis } from "../../../../components/Icons";
+import {
+  AlertIcon,
+  Ellipsis,
+  UserAvatarIcon,
+} from "../../../../components/Icons";
 import { useBlockUserActionsMutation } from "../../../../services/queries/user";
 import { Link } from "react-router-dom";
 interface IProfileHeaderProps {
@@ -55,7 +59,15 @@ const ProfileHeader = ({
   return (
     <React.Fragment>
       <div className="flex justify-between items-center gap-8">
-        <h1 className="text-3xl font-bold">{username}</h1>
+        <div className="flex gap-4">
+          <UserAvatarIcon
+            width={8}
+            height={8}
+            avatar=""
+            alt={`${username}' avatar`}
+          />
+          <h1 className="text-3xl font-bold">{username}</h1>
+        </div>
         <div id="options-container" className="relative">
           <button
             id="ellipsis"
@@ -68,18 +80,18 @@ const ProfileHeader = ({
           <div
             className={`w-[14rem] bg-off_white h-fit ${
               !showOptions && "hidden"
-            } shadow-md mx-auto absolute top-6 left-4 rounded-md`}
+            } shadow-md mx-auto absolute top-6 left-4 rounded-md z-[10000]`}
           >
             <ul
               id="notifications-list"
-              className="divide-y-reverse divide-stone-300"
+              className="divide-y-reverse divide-stone-300 "
             >
               {menuOptions.map(
                 ({ href, profileOwnerOption, context, requireConfirmation }) =>
                   href && isSameUser ? (
                     <Link to={href} key={context}>
                       <li
-                        className={`text-sm px-3 p-3 hover:bg-stone-50 shadow-sm cursor-pointer 
+                        className={`text-sm px-3 p-3 hover:bg-light_gray shadow-sm cursor-pointer 
                   ${profileOwnerOption !== isSameUser && "hidden"}`}
                       >
                         {context}

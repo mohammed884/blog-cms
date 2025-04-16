@@ -16,7 +16,6 @@ import { USER_ID_KEY, USER_SAVED_ID_KEY, USER_USERNAME_KEY } from "../../redis-c
 import { USER_CACHE_EXPIARY, USER_SAVED_CACHE_EXPIARY } from "../../redis-cache/expiries";
 import sanitizeHtml from 'sanitize-html';
 import Topic from "../topic/model";
-import { nanoid } from "nanoid";
 interface IPublishPostBody {
   title: string;
   subTitle: string;
@@ -207,17 +206,16 @@ const getArticle = async (req: Request, res: Response) => {
                 username: 1,
                 avatar: 1
               }
-            },
+            }
           ]
-        }
-      }
+        },
+      },
+      { $unwind: "$publisher" },
     ]
     const article = req.article
       ||
       await Article.aggregate(pipeline);
-    console.log(article);
-
-    res.status(201).send({ success: true, article: article[0] });
+    res.status(200).send({ success: true, article: article[0] });
   } catch (err) {
     console.log(err);
   }
@@ -286,7 +284,7 @@ const publishArticle = async (req: Request, res: Response) => {
       message: "الرجاء كتابة المحتوى"
     })
     const article = await Article.create({
-      title: `${body.title}-${nanoid()}`,
+      title: body.title,
       subTitle: body.subTitle,
       publisher: req.user._id,
       estimatedReadTime: "5 mins",
@@ -295,7 +293,7 @@ const publishArticle = async (req: Request, res: Response) => {
       content: sanatizedContent,
       topics: topics.map(t => ({ mainTopic: t })),
     });
-    res.status(201).send({ success: true, title: article.title, message: "تم نشر المقالة" });
+    res.status(201).send({ success: true, articleId: article._id, message: "تم نشر المقالة" });
   } catch (err) {
     console.log(err);
     if (err.isJoi) {

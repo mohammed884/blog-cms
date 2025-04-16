@@ -45,8 +45,7 @@ export const BellIcon = ({ width, height }: IconProps) => {
   return (
     <img
       className={`w-${width} h-${height}`}
-      //   width=""
-      //   height=""
+=[k ]      //   height=""
       src="../../public/svgs/bell-icon.svg"
       alt="bell icon"
     />
@@ -84,7 +83,7 @@ export const UserAvatarIcon = ({
 export const SaveIcon = ({ width, height }: IconProps) => {
   return (
     <img
-      className={`w-${width} h-${height}`}
+      className={`w-${width} h-${height} cursor-pointer`}
       //   width=""
       //   height=""
       src="../../public/svgs/save-icon.svg"

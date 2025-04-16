@@ -51,6 +51,7 @@ const FeedSection = ({ setErrorMessage, feedSectionToShow }: IProps) => {
                           ? "profile"
                           : "saved-feed"
                       }`}
+                      className="xl:w-[90%] lg:w-[70%]"
                       userSavedArticles={isSameUser ? user?.saved : []}
                       isLoggedIn={isLoggedIn}
                       article={article}
@@ -69,6 +70,7 @@ const FeedSection = ({ setErrorMessage, feedSectionToShow }: IProps) => {
                     setErrorMessage={setErrorMessage}
                     key={article._id}
                     page={"saved-feed"}
+                    className="xl:w-[90%] lg:w-[70%]"
                     userSavedArticles={isSameUser ? user?.saved : []}
                     isLoggedIn={isLoggedIn}
                     article={article}

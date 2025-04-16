@@ -25,7 +25,7 @@ const FeedOptions = ({
     setFeedSectionToShow("published");
   }, [username]);
   return (
-    <div className="w-[100%] grid grid-cols-2 justify-around border-b mt-6 p-2 pb-3">
+    <div className="w-[100%] grid grid-cols-2 justify-around border-b mt-6 p-2 pb-3 z-30">
       <OptionButton
         feedToShow="المقالات"
         feedType="published"
@@ -59,9 +59,9 @@ const OptionButton = ({
   return (
     <button
       onClick={() => setFeedSectionToShow(feedType)}
-      className={`w-fit mx-auto text-sm  transition-colors ease-linear ${
+      className={`w-fit text-sm font-bold opacity-50 transition-colors ease-linear ${
         feedSectionToShow === feedType && "border-b-dark_green"
-      } border-b-2 border-off_white `}
+      } border-b-2 border-off_white mx-auto`}
     >
       {feedToShow}
     </button>

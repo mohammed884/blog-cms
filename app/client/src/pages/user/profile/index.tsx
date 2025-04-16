@@ -31,7 +31,7 @@ const Profile = () => {
   return (
     <section className="pt-[6.4rem]">
       <Error message={errorMessage} setErrorMessage={setErrorMessage} />
-      <div className="w-[90%] flex justify-center mx-auto">
+      <div className="w-[90%] flex flex-col-reverse lg:flex-row justify-center mx-auto">
         <div className="flex-1">
           <div className="flex flex-col justify-center w-[95%] mx-auto">
             <ProfileHeader

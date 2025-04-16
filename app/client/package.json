@@ -23,6 +23,7 @@
     "autoprefixer": "^9.8.8",
     "axios": "^1.6.8",
     "dayjs": "^1.11.10",
+    "html-react-parser": "^5.1.12",
     "lowlight": "^3.1.0",
     "lucide-react": "^0.379.0",
     "postcss": "^8.4.33",

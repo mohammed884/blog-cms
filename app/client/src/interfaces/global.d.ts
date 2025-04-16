@@ -23,7 +23,7 @@ export interface IUser {
     createdAt: Date
   }>
 }
-export interface IArticleList {
+export interface IArticle {
   _id: string;
   title: string;
   subTitle: string;
@@ -33,8 +33,15 @@ export interface IArticleList {
     username: string;
     avatar: string;
   };
+  content: string;
   readTime: number;
   createdAt: Date;
+  topics: Array<{
+    mainTopic: string,
+    subTopic: string
+  },>
+  likesCount: number;
+  commentsCount: number;
 };
 export interface ITopic {
   _id: string;
@@ -103,4 +110,4 @@ export interface IBlockedUser {
   _id: string;
   username: string;
   avatar: string;
-}
+};

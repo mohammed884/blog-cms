@@ -18,7 +18,7 @@ const Schema = new mongoose.Schema({
     required: true,
   },
   content: {
-    type: Object,
+    type: String,
     required: true,
   },
   collaborators: {
@@ -78,6 +78,14 @@ const Schema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  likesCount: {
+    type: Number,
+    default: 0
+  },
+  commentsCount: {
+    type: Number,
+    default: 0
+  }
 });
 type ArticleType = mongoose.InferSchemaType<typeof Schema>;
 const Article = mongoose.model<ArticleType>("Article", Schema);

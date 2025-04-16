@@ -104,7 +104,9 @@ const DetailsDialog = forwardRef<HTMLDialogElement, IDetailsDialogProps>(
         setItem(ARTICLE_SUB_TITLE_KEY, "");
         setItem(articleContentKey, "");
         navigate(
-          `/article/${profile.data?.user.username}/${publishMutation.data.title}`
+          `/article/${title.replace(/ /g, "-")}/${
+            publishMutation.data.articleId
+          }`
         );
       }
     };

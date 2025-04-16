@@ -1,8 +1,8 @@
 import ArticleList from "../../components/ArticlesList";
 import LoadMoreBtn from "../../components/LoadMoreBtn";
-import { IArticleList } from "../../interfaces/global";
+import { IArticle } from "../../interfaces/global";
 interface IProps {
-  feed: Array<{ success: boolean; articles: Array<IArticleList> }>;
+  feed: Array<{ success: boolean; articles: Array<IArticle> }>;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
   fetchNextPage: any;
   hasNextPage: boolean;

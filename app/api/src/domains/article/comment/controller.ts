@@ -71,6 +71,12 @@ const addComment = async (req: Request, res: Response) => {
     ).lean();
     if (updateCommentBucket) {
       comments = updateCommentBucket.comments;
+      //update the article comments count
+      await Article.updateOne({ _id: articleId }, {
+        $inc: {
+          commentsCount: 1
+        }
+      })
     } else {
       const article = await Article.findById(articleId).select("publisher");
       if (!article) {
@@ -92,6 +98,12 @@ const addComment = async (req: Request, res: Response) => {
         createdAt: formatDateToYMD(new Date(), "_"),
       });
       comments = commentBucket.comments;
+      //update the article comments count
+      await Article.updateOne({ _id: articleId }, {
+        $inc: {
+          commentsCount: 1
+        }
+      })
     };
     const notificationStatus = await sendNotification({
       receiver: articlePublisherId,
@@ -295,8 +307,8 @@ const commentsAnalysis = async (req: Request, res: Response) => {
       return res.status(401).send({ success: false, message: "Please Provide the date" });
     }
     const { year, month } = getDateYMD(new Date(date));
-    const monthLength = new Date(year, month + 1, 0).getDate();    
-    const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");    
+    const monthLength = new Date(year, month + 1, 0).getDate();
+    const dateList = formatDateToYMD(date, [1, 15, monthLength], "DATE");
     //i need to unwind the data to get the comments count      
     const pipeline = [
       {

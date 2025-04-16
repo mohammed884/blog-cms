@@ -29,7 +29,6 @@ const getCache = async <T>(client: ioredisTypes.Redis, key: string): Promise<T |
         return value ? JSON.parse(value) : null;
     });
 };
-
 const delCache = async (client: ioredisTypes.Redis, key: string): Promise<number> => {
     return await withIOredisClient(client, async (client) => {
         return client.del(key);

@@ -21,7 +21,7 @@ function App() {
   if (user.isLoading) return <Loader />;
   if (user.isError) {
     console.log(user.error);
-    return <div>error</div>;
+    // return <div>error</div>;
   }
   return (
     <>
@@ -66,7 +66,7 @@ function App() {
           </Route>
           <Route path="/article">
             <Route path="publish" element={<Publish />} />
-            <Route path=":username/:title" element={<Article />} />
+            <Route path=":title/:id" element={<Article />} />
           </Route>
         </Routes>
       </Suspense>

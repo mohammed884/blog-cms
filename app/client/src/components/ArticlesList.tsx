@@ -1,14 +1,14 @@
 import dayjs from "dayjs";
 import { Link, useParams } from "react-router-dom";
-import { IArticleList } from "../interfaces/global";
+import { IArticle } from "../interfaces/global";
 import { SaveIcon, SavedIcon, UserAvatarIcon } from "./Icons";
 import { useMemo, useState } from "react";
 import { useSaveArticleMutation } from "../services/queries/article";
 interface IProps {
   page: "feed" | "saved-feed" | "profile";
-  width?: string;
+  className?: string;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
-  article: IArticleList;
+  article: IArticle;
   userSavedArticles?: Array<{
     createdAt: Date;
     article: string;
@@ -28,7 +28,7 @@ const ArticleList = ({
   userSavedArticles,
   isLoggedIn,
   dialogRef,
-  width,
+  className,
 }: IProps) => {
   const { _id, title, readTime, createdAt, publisher, subTitle, cover } =
     article;
@@ -54,23 +54,21 @@ const ArticleList = ({
     / /g,
     "-"
   );
-  const handleSaveArticle = () => {
-    saveArticleMutation.mutate({
-      articleId: _id,
-      action: isArticleSaved ? "un-save" : "save",
-      publisherId: publisher?._id || providedPublisher?._id || "",
-      username: username || "profile",
-    });
-    setIsArticleSaved((prev) => !prev);
+  const handleSaveArticle = async () => {
+    try {
+      saveArticleMutation.mutateAsync({
+        articleId: _id,
+        action: isArticleSaved ? "un-save" : "save",
+        publisherId: publisher?._id || providedPublisher?._id || "",
+        username: username || "profile",
+      });
+      setIsArticleSaved((prev) => !prev);
+    } catch (err) {
+      console.log(err);
+    }
   };
   return (
-    <li
-      className={`${
-        page === "feed"
-          ? "xl:w-[90%] lg:w-[70%] md:w-[80%] sm:w-[98%]"
-          : "xl:w-[85%] md:w-[85%] sm:w-[90%]"
-      } ${width}`}
-    >
+    <li className={`${className}`}>
       <article className="flex justify-between items-center gap-2 md:mb-10 pb-10">
         <div className="flex flex-col justify-center flex-grow">
           <div className="flex gap-3 items-center ">
@@ -89,11 +87,9 @@ const ArticleList = ({
             </span>
           </div>
           <div className="h-fit text-right mt-4">
-            <Link to={`/article/${publisherUsernameForLinks}/${title}/${_id}`}>
-              <p className="lg:text-[1.5rem] md:text-[1.3rem] sm:text-[1.05rem] font-black mb-2">
-                {title}
-              </p>
-              <summary className="md:inline sm:hidden text-[1rem] font-medium opacity-75">
+            <Link to={`/article/${title}/${_id}`}>
+              <p className="lg:text-2xl sm:text-xl font-bold mb-2">{title}</p>
+              <summary className="md:inline sm:hidden text-lg font-medium opacity-75">
                 {subTitle}
               </summary>
             </Link>

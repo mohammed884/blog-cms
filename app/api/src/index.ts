@@ -24,8 +24,11 @@ mongoose.connection.on("connection", () =>
   console.log("DB connection established")
 );
 mongoose.connection.on("error", (e: Error) => console.log(e));
-// applay middlewares
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+// apply middleware
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true
+}));
 app.use(compression());
 app.use("/uploads", express.static(path.join(__dirname, 'uploads')))
 app.use(express.json());

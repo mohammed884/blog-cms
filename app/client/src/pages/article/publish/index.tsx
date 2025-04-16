@@ -46,7 +46,7 @@ const Publish = () => {
           />
         )}
       </Suspense>
-      <div className="w-[70%] mx-auto">
+      <div className="w-[85%] mx-auto">
         <form onSubmit={(e) => e.preventDefault()}>
           <div>
             <input

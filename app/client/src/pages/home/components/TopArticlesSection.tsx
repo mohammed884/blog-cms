@@ -1,7 +1,7 @@
-import { IArticleList } from "../../../interfaces/global";
+import { IArticle } from "../../../interfaces/global";
 import TopArticlesList from "./TopArticlesList";
 interface IProps {
-  articles: Array<IArticleList>;
+  articles: Array<IArticle>;
 }
 const TopArticlesSection = ({ articles }: IProps) => {
   return (

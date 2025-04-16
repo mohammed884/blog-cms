@@ -1,10 +1,10 @@
 import TopicList from "../../../components/TopicList";
 import ArticlesList from "../../../components/ArticlesList";
-import { IArticleList, ITopic } from "../../../interfaces/global";
+import { IArticle, ITopic } from "../../../interfaces/global";
 import { Link } from "react-router-dom";
 import LoadMoreBtn from "../../../components/LoadMoreBtn";
 interface IProps {
-  feed: Array<{ success: boolean; articles: Array<IArticleList> }>;
+  feed: Array<{ success: boolean; articles: Array<IArticle> }>;
   topics: Array<ITopic>;
   dialogRef?: React.RefObject<HTMLDialogElement | null>;
   fetchNextPage: any;

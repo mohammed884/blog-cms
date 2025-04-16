@@ -51,7 +51,7 @@ const SideBar = () => {
   const user = userProfile?.data?.user;
   const isSameUser = userProfile.data?.isSameUser;
   return (
-    <aside className="w-[28%] p-2 pr-12 border-r border-l-gray-300 sticky">
+    <aside className="sm:hidden lg:block w-[28%] p-2 pr-12 border-r border-l-gray-300 sticky">
       <LoginPopup ref={LoginPopupRef} />
       <div className="flex flex-col gap-4">
         <span className="w-28 h-28">
@@ -188,19 +188,21 @@ const FollowingList = ({
             !isDetailsOpen && "hidden"
           }`}
         >
-          <div className="flex items-center gap-2">
-            <UserAvatarIcon
-              width={6}
-              height={6}
-              avatar={avatar}
-              alt={`${username}'s avatar`}
-            />
-            <Link
-              to={`/user/${username}/following`}
-              className="text-md font-semibold hover:underline"
-            >
-              {username}
-            </Link>
+          <div className="flex flex-col  gap-2">
+            <div className="flex items-center gap-2">
+              <UserAvatarIcon
+                width={8}
+                height={8}
+                avatar={avatar}
+                alt={`${username}'s avatar`}
+              />
+              <Link
+                to={`/user/${username}/following`}
+                className="text-md font-bold hover:underline"
+              >
+                {username}
+              </Link>
+            </div>
             <p>{bio.text}</p>
           </div>
           <div>

@@ -1,25 +1,25 @@
 import axios from "../axiosInstance";
-import { IArticleList } from "../../interfaces/global";
+import { IArticle } from "../../interfaces/global";
 import { IPublishArticleBody } from "../types/article"
-export const getFeed = async (page: number): Promise<{ success: boolean, articles: Array<IArticleList>, message?: string }> => {
+export const getFeed = async (page: number): Promise<{ success: boolean, articles: Array<IArticle>, message?: string }> => {
     return (
-        (await axios.get<{ success: boolean, articles: Array<IArticleList>, message?: string }>(`/article/feed?page=${page}`)).data
+        (await axios.get<{ success: boolean, articles: Array<IArticle>, message?: string }>(`/article/feed?page=${page}`)).data
     )
 };
-export const getTopArticles = async (): Promise<Array<IArticleList>> => {
+export const getTopArticles = async (): Promise<Array<IArticle>> => {
     return (
         (await axios.get("/article/top")).data
     )
 };
-export const getArticle = async (id: string): Promise<IArticleList> => {
+export const getArticle = async (id: string): Promise<{ success: boolean, article: IArticle }> => {
     return (
         (await axios.get(`/article/${id}`)).data
     )
 };
-export const getPublisherArticles = async (publisherId: string, page: number): Promise<{ success: boolean, articles: Array<IArticleList>, message?: string, }> => {
+export const getPublisherArticles = async (publisherId: string, page: number): Promise<{ success: boolean, articles: Array<IArticle>, message?: string, }> => {
     return (
         (await axios.get<{
-            success: boolean, articles: Array<IArticleList>, message?: string,
+            success: boolean, articles: Array<IArticle>, message?: string,
         }>(`/article/publisher/${publisherId}?page=${page}`)).data
     )
 };
@@ -27,7 +27,7 @@ export const getSavedArticles = async () => {
     return (
         (await axios.get<{
             success: boolean,
-            articles: Array<IArticleList>,
+            articles: Array<IArticle>,
             message?:
             string,
         }>("/article/saved", { withCredentials: true })).data

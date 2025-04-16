@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import WelcomeSection from "./components/WelcomeSection";
-import { IArticleList } from "../../interfaces/global";
+import { IArticle } from "../../interfaces/global";
 import TopArticlesSection from "./components/TopArticlesSection";
 import FeedSection from "./components/FeedSection";
 import { getFeedQuery } from "../../services/queries/article";
@@ -9,7 +9,7 @@ import { Loader } from "lucide-react";
 const index = () => {
   const LoginPopupRef = useRef<HTMLDialogElement>(null);
   const feed = getFeedQuery();
-  const articles: Array<IArticleList> = [
+  const articles: Array<IArticle> = [
     {
       _id: "1",
       cover: "books.png",
@@ -22,6 +22,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
     {
       _id: "2",
@@ -35,6 +36,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
     {
       _id: "3",
@@ -48,6 +50,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
     {
       _id: "4",
@@ -61,6 +64,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
     {
       _id: "5",
@@ -74,6 +78,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
     {
       _id: "6",
@@ -87,6 +92,7 @@ const index = () => {
       },
       readTime: 5,
       createdAt: new Date(),
+      content: "awdawd",
     },
   ];
   const topics = [

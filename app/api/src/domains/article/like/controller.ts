@@ -23,13 +23,23 @@ const likeArticle = async (req: Request, res: Response) => {
                     user: user._id,
                     createdAt: formatDateToYMD(new Date(), "_")
                 });
+                await Article.updateOne({ _id: articleId }, {
+                    $inc: {
+                        likesCount: 1
+                    }
+                })
                 res.status(201).send({ success: true, message: "تم اضافة الاعجاب" });
                 break;
             case "remove":
                 const deleteLikeStatus = await Like.deleteOne({ article: articleId, user: user._id });
                 if (deleteLikeStatus.deletedCount === 0) {
                     return res.status(401).send({ success: false, message: "لا يوجد اعجاب ليتم ازالة" });
-                }
+                };
+                await Article.updateOne({ _id: articleId }, {
+                    $inc: {
+                        likesCount: -1
+                    }
+                })
                 res.status(201).send({ success: true, message: "تم ازالة الاعجاب" });
                 break;
         }

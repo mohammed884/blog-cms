@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { SAVED_ARTICLES_KEY, PUBLISHER_ARTICLES_KEY, USER_KEY, FEED_KEY } from "../keys";
-import { getPublisherArticles, getSavedArticles, saveArticle, getFeed, publishArticle } from "../api/article";
+import { SAVED_ARTICLES_KEY, PUBLISHER_ARTICLES_KEY, USER_KEY, FEED_KEY, ARTICLE_KEY } from "../keys";
+import { getPublisherArticles, getSavedArticles, saveArticle, getFeed, publishArticle, getArticle } from "../api/article";
 import { IPublishArticleBody } from "../types/article";
 export const getPublisherArticlesQuery = (publisherId: string) => {
     const LIMIT = 5;
@@ -31,6 +31,12 @@ export const getFeedQuery = () => {
         // enabled: !!publisherId,
         retry: false
     })
+};
+export const getArticleQuery = (id: string) => {
+    return useQuery({
+        queryKey: [ARTICLE_KEY, { id }],
+        queryFn: async () => await getArticle(id),
+    });
 };
 export const getSavedArticlesQuery = (skip: boolean) => {
     return useQuery({
@@ -67,7 +73,7 @@ export const useSaveArticleMutation = () => {
         })
 };
 export const usePublishArticleMutation = () => {
-    return useMutation<{ success: true; title: string }, { success: false, message: string }, IPublishArticleBody>({
+    return useMutation<{ success: true; articleId: string }, { success: false, message: string }, IPublishArticleBody>({
         mutationFn: async (data) => await publishArticle(data),
     });
 };
